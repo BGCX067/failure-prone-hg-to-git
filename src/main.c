@@ -11,7 +11,7 @@ int main(){
     printf("res: %f, %f, %f\n", res[0], res[1], res[2]);
     float resDot = dot(a, b);
     printf("dot: %f\n", resDot);
-    normalize(res);
+    vecNormalize(res);
     printf("normalized res: %f, %f, %f\n", res[0], res[1], res[2]);
     cross(a, b, res);
     printf("cross: %f, %f, %f\n", res[0], res[1], res[2]);
