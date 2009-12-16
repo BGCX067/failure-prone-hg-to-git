@@ -86,13 +86,13 @@ LIBS		+= GLU GL SDL
 
 
 # Additional locations for header files
-INCDIRS		+= src
+INCDIRS		+= src src/math
 
 # Additional locations for library files
 LIBDIRS		+= 
 
 # Additional locations for source files
-SRCDIRS		= src 
+SRCDIRS		= src src/math
 
 # Object files and the target will be placed in this directory with an
 # underscore and the buildname appended (e.g., for the "debug" build: objs_debug/)
