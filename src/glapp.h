@@ -41,6 +41,6 @@ void setMouse(int x, int y);
 
 int  getTime();
 
-void mainloop(glapp* app, keyboard key, mouse m,  int(idle)(void*), int(render)(void*));
+void mainloop(glapp* app, keyboard* key, mouse* m,  int(idle)(void*), int(render)(void*));
 
 #endif

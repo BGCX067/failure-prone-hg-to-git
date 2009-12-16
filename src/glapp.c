@@ -171,12 +171,13 @@ int getKeyCode(int key){
 }
 
 
-void mainloop(glapp* app, keyboard keyboard, mouse mouse, int(idle)(void* ), int(render)(void*) ){
+void mainloop(glapp* app, keyboard* keyboard, mouse* mouse, int(idle)(void* ), int(render)(void*) ){
 	KeySym key;
 	int startTime =  getTime();
 	int endTime = 0;
 	int counter = 0;
 	float fps = 60;
+	float ifps = 1/fps;
 
 	while(1){
 		while(XPending(display)){
@@ -195,22 +196,22 @@ void mainloop(glapp* app, keyboard keyboard, mouse mouse, int(idle)(void* ), int
 				case KeyPress:
 					XLookupString(&event.xkey, NULL, 0, &key, NULL);
 					key = getKeyCode(key);
-					keyboard.keys[key] = 1;
+					keyboard->keys[key] = 1;
 					break;
 				case KeyRelease:
 					XLookupString(&event.xkey, NULL, 0, &key, NULL);
 					key =  getKeyCode(key);
-					keyboard.keys[key] = 0;
+					keyboard->keys[key] = 0;
 					break;
 				case MotionNotify:
-					mouse.x = event.xmotion.x;
-					mouse.y = event.xmotion.y;
+					mouse->x = event.xmotion.x;
+					mouse->y = event.xmotion.y;
 					break;
 				case ButtonPress:
-					mouse.button |= 1 << (event.xbutton.button - 1);
+					mouse->button |= 1 << (event.xbutton.button - 1);
 					break;
 				case ButtonRelease:
-					mouse.button  &= ~( 1 <<event.xbutton.button - 1  );
+					mouse->button  &= ~( 1 <<event.xbutton.button - 1  );
 					break;
 
 			}
@@ -219,9 +220,11 @@ void mainloop(glapp* app, keyboard keyboard, mouse mouse, int(idle)(void* ), int
 		if (counter++ == 10){
 			endTime = startTime;
 			startTime = getTime();
-			fps = counter * 1000.0/ (float) (startTime - endTime);
+			int elapsedTime = startTime - endTime;
+			fps = counter * 1000.0/ (float) (elapsedTime);
 			counter= 0;
 		}
+		ifps = 1/fps;
 
 
 		if (idle)
@@ -231,7 +234,7 @@ void mainloop(glapp* app, keyboard keyboard, mouse mouse, int(idle)(void* ), int
 			(*render)(NULL);
 
 		glXSwapBuffers(display, window);
-		mouse.button &= ~(BUTTON_UP | BUTTON_DOWN);
+		mouse->button &= ~(BUTTON_UP | BUTTON_DOWN);
 	}
 
 

@@ -2,14 +2,12 @@
 
 #include "glapp.h"
 #include "math/vec3.h"
+#include "renderer/renderer.h"
 
 int idle(void* a){
 	return 1;
 }
 
-int render(void* a){
-	return 1;
-}
 int main(){
 
 	glapp* app = setVideoMode(800, 600, 0);
@@ -20,9 +18,11 @@ int main(){
 		printf("Video mode: w:  %d h: %d depth: %d \n", app->width, app->height, app->depth);
 	}
 
+	renderer* renderer  = initializeRenderer(app->width, app->height, 1.0, 1000.0, 75.0 );
+
 	keyboard key;
 	mouse m;
-	mainloop(app, key, m, idle, render );
+	mainloop(app, &key, &m, idle, render );
 
 	closeVideo();
 	free(app);
