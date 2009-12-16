@@ -1,19 +1,30 @@
 #include <stdio.h>
 
+#include "glapp.h"
 #include "math/vec3.h"
 
+int idle(void* a){
+	return 1;
+}
+
+int render(void* a){
+	return 1;
+}
 int main(){
-    vec3 a = {1, 2, 4};
-    vec3 b = {0, -9, 1};
-    
-    vec3 res;
-    addvec(a, b, res);
-    printf("res: %f, %f, %f\n", res[0], res[1], res[2]);
-    float resDot = dot(a, b);
-    printf("dot: %f\n", resDot);
-    vecNormalize(res);
-    printf("normalized res: %f, %f, %f\n", res[0], res[1], res[2]);
-    cross(a, b, res);
-    printf("cross: %f, %f, %f\n", res[0], res[1], res[2]);
-    return 0;
+
+	glapp* app = setVideoMode(800, 600, 0);
+	if (!app){
+		printf("Invalid Video Mode\n");
+		return 1;
+	}else{
+		printf("Video mode: w:  %d h: %d depth: %d \n", app->width, app->height, app->depth);
+	}
+
+	keyboard key;
+	mouse m;
+	mainloop(app, key, m, idle, render );
+
+	closeVideo();
+	free(app);
+	return 0;
 }
