@@ -1,10 +1,7 @@
 #include <stdio.h>
 
 #include "glapp.h"
-<<<<<<< local
 #include "math/vec3.h"
-=======
->>>>>>> other
 
 int idle(void* a){
 	return 1;
