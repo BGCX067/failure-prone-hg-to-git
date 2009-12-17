@@ -30,11 +30,25 @@ enum TextureFlags{
 	CLAMP  = 1 << 1,
 	CLAMP_TO_EDGE  = 1 << 2,
 	
-	LINEAR	= 1 << 3,
-	BILINEAR = 1 << 4,
-	NEAREST = 1 << 5,
-
 	MIPMAP  = 1<< 17
+};
+
+enum TextureFilter{
+
+	LINEAR = 1 << 2,
+	BILINEAR = 1 << 3,
+	NEAREST = 1 << 4,
+
+	ANISOTROPY_1 = 1 << 5,
+	ANISOTROPY_2 = 1 << 6,
+	ANISOTROPY_4 = 1 << 7,
+	ANISOTROPY_8 = 1 << 8,
+	ANISOTROPY_16= 1 << 9
+};
+
+enum Type{
+	UNSIGNED_BYTE = GL_UNSIGNED_BYTE,
+	FLOAT = GL_FLOAT
 };
 
 typedef struct _texture{
@@ -57,6 +71,7 @@ int render(void* data);
 
 unsigned int initializeTexture(char* filename, int target, int imageFormat, int  internalFormat, int type, int flags);
 void bindTexture(int slot, int id);
+void setTextureFilter(int target, int filter);
 
 unsigned int initializeVBO(int size, const void* data);
 

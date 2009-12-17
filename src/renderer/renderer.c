@@ -11,6 +11,8 @@
 renderer* r;
 camera c;
 
+unsigned int tex;
+
 void beginRender(keyboard *k) { 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
@@ -25,10 +27,13 @@ void beginRender(keyboard *k) {
 }
 
 int render(void* data){
+
     beginRender((keyboard*)data);
 	glTranslatef(0.0, 0.0, -5.0f);
 	GLUquadric* quadric = gluNewQuadric();
-	gluQuadricDrawStyle(quadric, GLU_LINE);
+	gluQuadricDrawStyle(quadric, GLU_FILL);
+	gluQuadricTexture(quadric, GLU_TRUE);
+	bindTexture(0, tex);
 	gluSphere(quadric,  0.5, 20, 20);
 
     glFinish();
@@ -66,6 +71,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	glEnableClientState(GL_VERTEX_ARRAY);
 
     initCamera(&c);
+    tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE)); 
 	return r;
 
 }
@@ -114,6 +120,10 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
 				 sprintf(buff, filename, facenames[i]);
 				 buff[strlen(filename)+5] = '\0';
 				 data = stbi_load(buff, &x, &y, &n, 0);
+				 if (!data){
+				 	printf("Error loading: %s texture. \n", buff);
+					return 0;
+				}
 				 glTexImage2D(facetargets[i], 0, internalFormat, x, y, 0, imageFormat, type, data);
 				if (data){
 					stbi_image_free(data);
@@ -123,19 +133,6 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
 
 		}
 		stbi_image_free(data);
-	}
-
-	if ( flags & NEAREST ){
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	}
-	if ( flags & BILINEAR){
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	}
-	if ( flags & LINEAR ){
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	}
 
 	texture* tex = (texture*) dlmalloc(sizeof(texture));
@@ -150,6 +147,34 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
 
 	return textureID;
 
+}
+
+void setTextureFilter(int target, int flags){
+
+	if ( flags & NEAREST ){
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	}
+	if ( flags & BILINEAR){
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	}
+	if ( flags & LINEAR ){
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	}
+
+	if (flags & ANISOTROPY_1)
+		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0);
+	else if (flags & ANISOTROPY_2)
+		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0);
+	else if (flags & ANISOTROPY_4)
+		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
+	else if (flags & ANISOTROPY_8)
+		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0);
+	else if (flags & ANISOTROPY_16)
+		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);	
+ 
 }
 
 void bindTexture(int slot, int id){
@@ -179,18 +204,6 @@ void bindTexture(int slot, int id){
 			glTexParameteri(r->textures[id]->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(r->textures[id]->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(r->textures[id]->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		}
-		if ( r->textures[id]->flags & LINEAR && !(r->textures[r->prevTexture]->flags & LINEAR) ){
-			//glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		}
-		if ( r->textures[id]->flags & BILINEAR && !(r->textures[r->prevTexture]->flags & BILINEAR) ){
-			//glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		}
-		if ( r->textures[id]->flags & NEAREST ){
-			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		}
 		r->prevTexture = id;
 	}
