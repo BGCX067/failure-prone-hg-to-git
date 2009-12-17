@@ -18,6 +18,7 @@ int main(){
 		printf("Video mode: w:  %d h: %d depth: %d \n", app->width, app->height, app->depth);
 	}
 
+	setWindowTitle("Failure Prone");
 	renderer* renderer  = initializeRenderer(app->width, app->height, 1.0, 1000.0, 75.0 );
 
 	keyboard key;
