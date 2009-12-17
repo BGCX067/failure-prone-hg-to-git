@@ -8,6 +8,8 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+
 renderer* r;
 camera c;
 
@@ -43,10 +45,15 @@ int render(void* data){
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 
 	r = (renderer*) dlmalloc(sizeof(renderer));
+	//FIXME se usar linkedlist ou map remover os memsets
+	memset(r->vertexFormats, 0, MAX_VERTEX_FORMAT*sizeof(vertexFormat*));
+	memset(r->textures, 0, MAX_TEXTURES*sizeof(texture*));
 	r->fovy = fovy;
 	r->zfar = zfar;
 	r->znear = znear;
 	r->prevTexture = -1;
+	r->prevVBO = -1;
+	r->prevFormat = -1;
 
 	float ratio = (float) w / (float) h;
 	glEnable(GL_DEPTH_TEST);
@@ -210,3 +217,68 @@ void bindTexture(int slot, int id){
 
 }
 
+void killVBO(unsigned int id){
+	glDeleteBuffers(1, &id);
+}
+
+unsigned int initializeVBO(unsigned int size, const void* data){
+	unsigned int vboID;
+	glGenBuffers(1, &vboID);
+	glBindBuffer(GL_ARRAY_BUFFER, vboID);
+	//TODO se precisar de outro mode alem do STATIC_DRAW ?
+	glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, r->prevVBO); //volta
+	return vboID;
+}
+
+//TODO usar draw rande elements pros indices
+void drawVBO(unsigned int triCount, unsigned int vertexID, unsigned int indicesID, int formatID){
+
+	vertexFormat* current = r->vertexFormats[formatID];
+	vertexFormat* prev = r->vertexFormats[r->prevFormat];
+
+	glBindBuffer(GL_ARRAY_BUFFER, vertexID);
+
+	//primeiro ativa e desativa as vertex attrib arrays necessarias
+	for ( unsigned int i = 0; i < MAX_VERTEX_ATTRS; i++ ){
+		if ( current->attributes[i] ){
+			if ( !prev->attributes[i] )
+				glEnableVertexAttribArray(i);
+		}
+		if ( !current->attributes[i] && prev->attributes[i]  ){
+			glDisableVertexAttribArray(i);
+		}
+	}
+
+	//seta o attrib pointer, so necessario caso nao tenha sido feito antes
+	if ( r->prevVBO != vertexID ){
+		r->prevVBO = vertexID;
+		for ( unsigned int i = 0; i < MAX_VERTEX_ATTRS; i++ )
+			if ( current->attributes[i])
+				glVertexAttribPointer(i, current->attributes[i]->components, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(current->attributes[i]->offset));
+	}
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesID);
+	//TODO pode ser interessante usar GL_SHORT
+	glDrawElements(GL_TRIANGLES, triCount, GL_UNSIGNED_INT, NULL);
+
+	r->prevFormat = formatID;
+}
+
+unsigned int addVertexFormat(vertexAttribute** attrs,  unsigned int num){
+
+	vertexFormat* format = (vertexFormat*) dlmalloc(sizeof(vertexFormat));
+	format->attributes = (vertexAttribute*) dlmalloc(sizeof(vertexAttribute*[MAX_VERTEX_ATTRS]));
+	format->numAttrs = num;
+	format->attributes = attrs;
+	unsigned int indice;
+	//pega o primeiro valor do array de ponteiros que esta vazio
+	for (unsigned int i = 0; i < MAX_VERTEX_FORMAT; i++){
+		if (!r->vertexFormats[i]){
+			indice = i;
+			break;
+		}
+	}
+	r->vertexFormats[indice] = format;
+	return indice;
+}
