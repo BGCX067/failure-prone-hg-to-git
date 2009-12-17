@@ -3,6 +3,8 @@
 #include "camera.h"
 #include "math/matrix.h"
 #include "../glapp.h"
+#include "../util/image.h"
+#include "../util/malloc.h"
 #include <GL/gl.h>
 #include <GL/glu.h>
 
@@ -35,10 +37,11 @@ int render(void* data){
 
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 
-	r = (renderer*) malloc(sizeof(renderer));
+	r = (renderer*) dlmalloc(sizeof(renderer));
 	r->fovy = fovy;
 	r->zfar = zfar;
 	r->znear = znear;
+	r->prevTexture = -1;
 
 	float ratio = (float) w / (float) h;
 	glEnable(GL_DEPTH_TEST);
@@ -68,6 +71,129 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 }
 
 unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type, int flags){
+
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(target, textureID);
+
+	if (flags & CLAMP){
+		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP);
+	}
+	else if (flags & CLAMP_TO_EDGE) {
+		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	}
+
+	if (flags & MIPMAP)
+		glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
+
+	if ( filename != NULL ){
+		//TODO fazer 1d e 3d
+		int x, y, n;
+		unsigned char* data = NULL;
+		if ((target == TEXTURE_2D) || (target == TEXTURE_RECTANGLE) ){
+			data = stbi_load(filename, &x, &y, &n, 0);
+			if (!data){
+				printf("Error loading: %s texture. \n", filename );
+				return 0;
+			}
+			glTexImage2D(target, 0, internalFormat, x, y, 0, imageFormat, type, data);
+		}else if ( target == TEXTURE_CUBEMAP ){
+			 char buff[1024];
+			 GLuint facetargets[] = {
+					 GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+					 GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+					 GL_TEXTURE_CUBE_MAP_POSITIVE_Z, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+			 };
+			 char *facenames[] = {"posx", "negx", "posy", "negy", "posz", "negz" };
+			 for (int i = 0; i < 6; i++){
+			 	//TODO nao eh pra ser +5 no buff
+				 sprintf(buff, filename, facenames[i]);
+				 buff[strlen(filename)+5] = '\0';
+				 data = stbi_load(buff, &x, &y, &n, 0);
+				 glTexImage2D(facetargets[i], 0, internalFormat, x, y, 0, imageFormat, type, data);
+				if (data){
+					stbi_image_free(data);
+					 data = NULL;
+				 }
+			 }
+
+		}
+		stbi_image_free(data);
+	}
+
+	if ( flags & NEAREST ){
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	}
+	if ( flags & BILINEAR){
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	}
+	if ( flags & LINEAR ){
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	}
+
+	texture* tex = (texture*) dlmalloc(sizeof(texture));
+	tex->flags = flags;
+	tex->id = textureID;
+	tex->target = target;
+
+	r->textures[textureID] = tex;
+
+	if (r->prevTexture >= 0)
+		bindTexture(0, r->prevTexture);
+
+	return textureID;
+
+}
+
+void bindTexture(int slot, int id){
+	if ( r->prevTexture == -1 ){
+		r->prevTexture = id;
+		glEnable( r->textures[id]->target );
+		glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(r->textures[id]->target, r->textures[id]->id );
+	}else{
+
+		if ( r->textures[id]->target != r->textures[r->prevTexture]->target ){
+			glDisable(r->textures[r->prevTexture]->target);
+			glEnable( r->textures[id]->target );
+		}
+
+		glActiveTexture(GL_TEXTURE0 + slot);
+
+		if ( r->textures[id]->id != r->textures[r->prevTexture]->id )
+			glBindTexture(r->textures[id]->target, r->textures[id]->id );
+
+		if ( (r->textures[id]->flags & CLAMP) && !(r->textures[r->prevTexture]->flags  &CLAMP) ){
+			glTexParameteri(r->textures[id]->target, GL_TEXTURE_WRAP_S, GL_CLAMP);
+			glTexParameteri(r->textures[id]->target, GL_TEXTURE_WRAP_T, GL_CLAMP);
+			glTexParameteri(r->textures[id]->target, GL_TEXTURE_WRAP_R, GL_CLAMP);
+		}
+		if ((r->textures[id]->flags & CLAMP_TO_EDGE) && !(r->textures[r->prevTexture]->flags  &CLAMP_TO_EDGE) ){
+			glTexParameteri(r->textures[id]->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(r->textures[id]->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(r->textures[id]->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		}
+		if ( r->textures[id]->flags & LINEAR && !(r->textures[r->prevTexture]->flags & LINEAR) ){
+			//glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		}
+		if ( r->textures[id]->flags & BILINEAR && !(r->textures[r->prevTexture]->flags & BILINEAR) ){
+			//glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		}
+		if ( r->textures[id]->flags & NEAREST ){
+			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		}
+		r->prevTexture = id;
+	}
 
 }
 
