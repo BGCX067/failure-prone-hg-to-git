@@ -7,7 +7,7 @@
 /*[0] = x, [1] = y, [2] = z, [3] = angle*/
 typedef float quaternion[4];
 
-#define QUAT_IDENTITY(q) { q[0] = 0.0; q[1] = 0.0; q[2] = 0.0; q3 =   1.0;}
+#define QUAT_IDENTITY(q) { q[0] = 0.0; q[1] = 0.0; q[2] = 0.0; q[3] = 1.0;}
 
 float quatLength(quaternion q);
 void quatNormalize(quaternion q);

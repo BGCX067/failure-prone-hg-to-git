@@ -10,10 +10,10 @@ typedef struct camera {
    quaternion orientation;
 }camera;
 
-void initCamera(camera c);
+void initCamera(camera *c);
 /* TODO
  * void cameraHandleEvent()*/
-void setupViewMatrix(camera c, matrix m);
+void setupViewMatrix(camera *c, mat4 m);
 /* TODO void rotate();*/
 
 
