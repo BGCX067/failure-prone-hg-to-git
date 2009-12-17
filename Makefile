@@ -82,7 +82,7 @@ SRCS		+= $(foreach DIR,$(SRCDIRS),$(subst $(DIR)/,,$(wildcard $(DIR)/*.c)))
 OBJS		= 
 
 # Additional libs to link with.
-LIBS		+= GLU GL X11 Xxf86vm 
+LIBS		+= GLU GL X11 Xxf86vm
 
 
 # Additional locations for header files

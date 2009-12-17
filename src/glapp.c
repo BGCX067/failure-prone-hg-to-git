@@ -172,6 +172,7 @@ int getKeyCode(int key){
 
 
 void mainloop(glapp* app, keyboard* keyboard, mouse* mouse, int(idle)(void* ), int(render)(void*) ){
+    memset(keyboard->keys, 0, 512*sizeof(int));
 	KeySym key;
 	int startTime =  getTime();
 	int endTime = 0;
@@ -231,7 +232,7 @@ void mainloop(glapp* app, keyboard* keyboard, mouse* mouse, int(idle)(void* ), i
 			(*idle)( NULL );
 
 		if (render)
-			(*render)(NULL);
+			(*render)((void*)keyboard);
 
 		glXSwapBuffers(display, window);
 		mouse->button &= ~(BUTTON_UP | BUTTON_DOWN);
