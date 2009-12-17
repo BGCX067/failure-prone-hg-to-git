@@ -23,25 +23,14 @@ void beginRender(keyboard *k) {
 }
 
 int render(void* data){
-<<<<<<< local
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
-
-=======
     beginRender((keyboard*)data);
->>>>>>> other
 	glTranslatef(0.0, 0.0, -5.0f);
 	GLUquadric* quadric = gluNewQuadric();
 	gluQuadricDrawStyle(quadric, GLU_LINE);
 	gluSphere(quadric,  0.5, 20, 20);
-<<<<<<< local
 
-	glFinish();
-=======
     glFinish();
     glFlush();
->>>>>>> other
 }
 
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
@@ -75,6 +64,10 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 
     initCamera(&c);
 	return r;
+
+}
+
+unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type, int flags){
 
 }
 
