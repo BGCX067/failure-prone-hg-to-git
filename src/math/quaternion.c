@@ -17,7 +17,7 @@ void conjugate(quaternion q, quaternion conj) {
     conj[0] = -q[0];
     conj[1] = -q[1];
     conj[2] = -q[2];
-    conj[3] =  q[2];
+    conj[3] =  q[3];
 }
 
 void mult(quaternion q2, quaternion q1, quaternion res) {
@@ -56,4 +56,22 @@ void quatToMatrix(quaternion q, mat4 m) {
 
 	m[3] = m[7] = m[11] =  m[12] = m[13] = m[14] = 0.0;
 	m[15] = 1.0;
+}
+
+void rotateVec(vec3 v, quaternion q, vec3 res) {
+    quaternion q2;
+    q2[0] = v[0];
+    q2[1] = v[1];
+    q2[2] = v[2];
+    q2[3] = 0.0;
+
+    quaternion result;
+    mult(q, q2, result);
+    quaternion conjq;
+    conjugate(q, conjq);
+    mult(result, conjq, result);
+    
+    res[0] = result[0];
+    res[1] = result[1];
+    res[2] = result[2];
 }

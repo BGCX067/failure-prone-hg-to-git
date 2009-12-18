@@ -4,6 +4,7 @@
 
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include "../glapp.h"
 
 #define MAX_VERTEX_ATTRS 16
 #define MAX_TEXTURES 256
@@ -107,7 +108,7 @@ typedef struct _renderer{
 
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy);
 
-int render(void* data);
+int render(event e);
 
 unsigned int initializeTexture(char* filename, int target, int imageFormat, int  internalFormat, int type, int flags);
 void bindTexture(int slot, int id);

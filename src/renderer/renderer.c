@@ -15,12 +15,12 @@ camera c;
 
 unsigned int tex;
 
-void beginRender(keyboard *k) { 
+void beginRender(event e) { 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
     
     mat4 m;
-    cameraHandleEvent(&c, *k);
+    cameraHandleEvent(&c, e);
     setupViewMatrix(&c, m);
     //glLoadMatrixf(m);
     gluLookAt(c.pos[0], c.pos[1], c.pos[2], c.viewDir[0] + c.pos[0],
@@ -28,9 +28,9 @@ void beginRender(keyboard *k) {
               c.up[0], c.up[1], c.up[2]);
 }
 
-int render(void* data){
+int render(event e){
 
-    beginRender((keyboard*)data);
+    beginRender(e);
 	glTranslatef(0.0, 0.0, -5.0f);
 	GLUquadric* quadric = gluNewQuadric();
 	gluQuadricDrawStyle(quadric, GLU_FILL);

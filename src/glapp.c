@@ -171,15 +171,17 @@ int getKeyCode(int key){
 }
 
 
-void mainloop(glapp* app, keyboard* keyboard, mouse* mouse, int(idle)(void* ), int(render)(void*) ){
+void mainloop(glapp* app, keyboard* keyboard, mouse* mouse, int(idle)(void* ), int(render)(event) ){
     memset(keyboard->keys, 0, 512*sizeof(int));
+    event evt;
 	KeySym key;
 	int startTime =  getTime();
 	int endTime = 0;
 	int counter = 0;
 	float fps = 60;
 	float ifps = 1/fps;
-
+    
+    setMouse(app->width/2, app->height/2);
 	while(1){
 		while(XPending(display)){
 			XEvent  event;
@@ -197,22 +199,33 @@ void mainloop(glapp* app, keyboard* keyboard, mouse* mouse, int(idle)(void* ), i
 				case KeyPress:
 					XLookupString(&event.xkey, NULL, 0, &key, NULL);
 					key = getKeyCode(key);
+                    //FIXME ainda precisa do key?
+                    evt.type = key;
 					keyboard->keys[key] = 1;
 					break;
 				case KeyRelease:
 					XLookupString(&event.xkey, NULL, 0, &key, NULL);
 					key =  getKeyCode(key);
+                    //FIXME o evento precisa diferenciar entre
+                    //KeyPress e KeyReleae
+                    evt.type = key;
 					keyboard->keys[key] = 0;
 					break;
 				case MotionNotify:
 					mouse->x = event.xmotion.x;
 					mouse->y = event.xmotion.y;
-					break;
+                    //FIXME: hard coded
+                    evt.type = MOUSE_MOVE;
+                    evt.x = mouse->x;
+                    evt.y = mouse->y;
+                    break;
 				case ButtonPress:
 					mouse->button |= 1 << (event.xbutton.button - 1);
+                    evt.type = mouse->button;
 					break;
 				case ButtonRelease:
 					mouse->button  &= ~( 1 <<event.xbutton.button - 1  );
+                    evt.type = mouse->button;
 					break;
 
 			}
@@ -232,10 +245,11 @@ void mainloop(glapp* app, keyboard* keyboard, mouse* mouse, int(idle)(void* ), i
 			(*idle)( NULL );
 
 		if (render)
-			(*render)((void*)keyboard);
+			(*render)(evt);
 
 		glXSwapBuffers(display, window);
 		mouse->button &= ~(BUTTON_UP | BUTTON_DOWN);
+        setMouse(app->width/2, app->height/2);
 	}
 
 

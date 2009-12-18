@@ -12,7 +12,8 @@ enum {
 	KEY_UP,
 	KEY_DOWN,
 	KEY_LEFT,
-	KEY_RIGHT
+	KEY_RIGHT,
+    MOUSE_MOVE
 };
 
 enum{
@@ -33,6 +34,11 @@ typedef struct _mouse{
 	int button;
 }mouse;
 
+typedef struct _event {
+    int type;
+    int x, y;
+}event;
+
 glapp* setVideoMode(int w, int h, int fullscreen);
 void closeVideo();
 
@@ -41,6 +47,6 @@ void setMouse(int x, int y);
 
 int  getTime();
 
-void mainloop(glapp* app, keyboard* key, mouse* m,  int(idle)(void*), int(render)(void*));
+void mainloop(glapp* app, keyboard* key, mouse* m,  int(idle)(void*), int(render)(event));
 
 #endif

@@ -12,9 +12,8 @@ typedef struct camera {
 }camera;
 
 void initCamera(camera *c);
-void cameraHandleEvent(camera *c, keyboard k);
+void cameraHandleEvent(camera *c, event e);
 void setupViewMatrix(camera *c, mat4 m);
-/* TODO void rotate();*/
 
 
 #endif
