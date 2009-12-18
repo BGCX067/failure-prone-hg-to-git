@@ -31,7 +31,7 @@ void cameraHandleEvent(camera *c, event e) {
         printf("\tdy: %f\n", dy);
         i++;
         
-        float mouseSensitivity = 0.01;
+        float mouseSensitivity = 0.001;
         float rotationUp = dx*mouseSensitivity;
         float rotationRight = dy*mouseSensitivity;
 
@@ -54,21 +54,21 @@ void cameraHandleEvent(camera *c, event e) {
         //O up deve ter mudado, encontra o novo
         cross(right, c->viewDir, c->up);
     }
-    /*if(k.keys[KEY_UP]) {
+    if(e.type == KEY_UP) {
         vec3 dir; 
-        vecMult(c->viewDir, 0.001, dir);
+        vecMult(c->viewDir, 0.1, dir);
         vecAdd(c->pos, dir, c->pos);
     }
-    if(k.keys[KEY_DOWN]) {
+    if(e.type == KEY_DOWN) {
         vec3 dir; 
-        vecMult(c->viewDir, -0.001, dir);
+        vecMult(c->viewDir, -0.1, dir);
         vecAdd(c->pos, dir, c->pos);
     }
-    if(k.keys[KEY_RIGHT]) {
+    if(e.type == KEY_RIGHT) {
         vec3 dir;
         cross(c->viewDir, c->up, dir);
         vecNormalize(dir);
-        vecMult(dir, 0.001, dir);
+        vecMult(dir, 0.1, dir);
         vecAdd(c->pos, dir, c->pos);
         
         //FIXME não tá funcionando direito:
@@ -81,12 +81,12 @@ void cameraHandleEvent(camera *c, event e) {
         //vecSub(viewPoint, c->pos, c->viewDir);
         //vecNormalize(c->viewDir);
     }
-    if(k.keys[KEY_LEFT]) {
+    if(e.type == KEY_LEFT) {
         vec3 dir;
         cross(c->viewDir, c->up, dir);
         vecNormalize(dir);
-        vecMult(dir, -0.001, dir);
+        vecMult(dir, -0.1, dir);
         vecAdd(c->pos, dir, c->pos);
-    }*/
+    }
 }
 

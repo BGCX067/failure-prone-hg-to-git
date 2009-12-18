@@ -212,12 +212,14 @@ void mainloop(glapp* app, keyboard* keyboard, mouse* mouse, int(idle)(void* ), i
 					keyboard->keys[key] = 0;
 					break;
 				case MotionNotify:
-					mouse->x = event.xmotion.x;
-					mouse->y = event.xmotion.y;
-                    //FIXME: hard coded
-                    evt.type = MOUSE_MOVE;
-                    evt.x = mouse->x;
-                    evt.y = mouse->y;
+                    if(event.xmotion.x != 400 || event.xmotion.y != 300) {
+					    mouse->x = event.xmotion.x;
+                        mouse->y = event.xmotion.y;
+                        //FIXME: hard coded
+                        evt.type = MOUSE_MOVE;
+                        evt.x = mouse->x;
+                        evt.y = mouse->y;
+                    }
                     break;
 				case ButtonPress:
 					mouse->button |= 1 << (event.xbutton.button - 1);
@@ -227,7 +229,6 @@ void mainloop(glapp* app, keyboard* keyboard, mouse* mouse, int(idle)(void* ), i
 					mouse->button  &= ~( 1 <<event.xbutton.button - 1  );
                     evt.type = mouse->button;
 					break;
-
 			}
 		}
 
@@ -246,10 +247,10 @@ void mainloop(glapp* app, keyboard* keyboard, mouse* mouse, int(idle)(void* ), i
 
 		if (render)
 			(*render)(evt);
-
 		glXSwapBuffers(display, window);
 		mouse->button &= ~(BUTTON_UP | BUTTON_DOWN);
         setMouse(app->width/2, app->height/2);
+        evt.type = NO_EVENT;
 	}
 
 

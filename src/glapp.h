@@ -13,7 +13,8 @@ enum {
 	KEY_DOWN,
 	KEY_LEFT,
 	KEY_RIGHT,
-    MOUSE_MOVE
+    MOUSE_MOVE,
+    NO_EVENT
 };
 
 enum{
