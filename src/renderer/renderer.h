@@ -164,7 +164,7 @@ typedef struct _renderer{
 
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy);
 
-int render(event e);
+int render(event *e);
 
 //texturas
 unsigned int initializeTexture(char* filename, int target, int imageFormat, int  internalFormat, int type, int flags);

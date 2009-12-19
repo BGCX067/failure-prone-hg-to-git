@@ -60,7 +60,7 @@ camera c;
 
 unsigned int tex;
 
-void beginRender(event e) { 
+void beginRender(event *e) { 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
     
@@ -73,8 +73,7 @@ void beginRender(event e) {
               c.up[0], c.up[1], c.up[2]);
 }
 
-int render(event e){
-
+int render(event *e){
     beginRender(e);
 	glTranslatef(0.0, 0.0, -5.0f);
 	GLUquadric* quadric = gluNewQuadric();

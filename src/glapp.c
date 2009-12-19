@@ -171,9 +171,9 @@ int getKeyCode(int key){
 }
 
 
-void mainloop(glapp* app, keyboard* keyboard, mouse* mouse, int(idle)(void* ), int(render)(event) ){
-    memset(keyboard->keys, 0, 512*sizeof(int));
+void mainloop(glapp* app, int(idle)(void* ), int(render)(event*) ){
     event evt;
+    memset(evt.keys, 0, 512*sizeof(int));
 	KeySym key;
 	int startTime =  getTime();
 	int endTime = 0;
@@ -183,6 +183,7 @@ void mainloop(glapp* app, keyboard* keyboard, mouse* mouse, int(idle)(void* ), i
     
     setMouse(app->width/2, app->height/2);
 	while(1){
+        evt.type = NO_EVENT;
 		while(XPending(display)){
 			XEvent  event;
 			XNextEvent(display,  &event);
@@ -199,39 +200,34 @@ void mainloop(glapp* app, keyboard* keyboard, mouse* mouse, int(idle)(void* ), i
 				case KeyPress:
 					XLookupString(&event.xkey, NULL, 0, &key, NULL);
 					key = getKeyCode(key);
-                    //FIXME ainda precisa do key?
-                    evt.type = key;
-					keyboard->keys[key] = 1;
+                    evt.keys[key] = 1;
+                    evt.type |= KEYBOARD_EVENT;
 					break;
 				case KeyRelease:
 					XLookupString(&event.xkey, NULL, 0, &key, NULL);
-					key =  getKeyCode(key);
-                    //FIXME o evento precisa diferenciar entre
-                    //KeyPress e KeyReleae
-                    evt.type = key;
-					keyboard->keys[key] = 0;
+					key = getKeyCode(key);
+                    evt.type |= KEYBOARD_EVENT;
+					evt.keys[key] = 0;
 					break;
 				case MotionNotify:
+                    //FIXME: centro da janela hard coded
                     if(event.xmotion.x != 400 || event.xmotion.y != 300) {
-					    mouse->x = event.xmotion.x;
-                        mouse->y = event.xmotion.y;
-                        //FIXME: hard coded
-                        evt.type = MOUSE_MOVE;
-                        evt.x = mouse->x;
-                        evt.y = mouse->y;
+					    evt.x = event.xmotion.x;
+                        evt.y = event.xmotion.y;
+                        evt.type |= MOUSE_MOTION_EVENT;
                     }
                     break;
 				case ButtonPress:
-					mouse->button |= 1 << (event.xbutton.button - 1);
-                    evt.type = mouse->button;
+					evt.button |= 1 << (event.xbutton.button - 1);
+                    evt.type |= MOUSE_BUTTON_EVENT;
 					break;
 				case ButtonRelease:
-					mouse->button  &= ~( 1 <<event.xbutton.button - 1  );
-                    evt.type = mouse->button;
+					evt.button  &= ~( 1 <<event.xbutton.button - 1  );
+                    evt.type |= MOUSE_BUTTON_EVENT;
 					break;
 			}
-		}
 
+		}
 		if (counter++ == 10){
 			endTime = startTime;
 			startTime = getTime();
@@ -246,14 +242,11 @@ void mainloop(glapp* app, keyboard* keyboard, mouse* mouse, int(idle)(void* ), i
 			(*idle)( NULL );
 
 		if (render)
-			(*render)(evt);
+			(*render)(&evt);
 		glXSwapBuffers(display, window);
-		mouse->button &= ~(BUTTON_UP | BUTTON_DOWN);
+		evt.button &= ~(BUTTON_UP | BUTTON_DOWN);
         setMouse(app->width/2, app->height/2);
-        evt.type = NO_EVENT;
 	}
-
-
 }
 
 #endif

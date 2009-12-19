@@ -7,16 +7,25 @@ typedef struct _glapp{
 	int depth;
 }glapp;
 
+
+/* enum para os tipos de evento */
+enum {
+    NO_EVENT = 1 << 0,
+    KEYBOARD_EVENT = 1 << 1,
+    MOUSE_MOTION_EVENT = 1 << 2,
+    MOUSE_BUTTON_EVENT = 1 << 3
+};
+
+/* enum para as keys do evento */
 enum {
 	KEY_ESC = 256,
 	KEY_UP,
 	KEY_DOWN,
 	KEY_LEFT,
-	KEY_RIGHT,
-    MOUSE_MOVE,
-    NO_EVENT
+	KEY_RIGHT
 };
 
+/* enum para button do evento */
 enum{
 	BUTTON_LEFT = 1 << 0,
 	BUTTON_MIDDLE = 1 << 1,
@@ -25,18 +34,10 @@ enum{
 	BUTTON_DOWN = 1 << 4
 };
 
-typedef struct _keyboard{
-	int keys[512];
-}keyboard;
-
-typedef struct _mouse{
-	int x;
-	int y;
-	int button;
-}mouse;
-
 typedef struct _event {
     int type;
+    int keys[512];
+    int button;
     int x, y;
 }event;
 
@@ -48,6 +49,6 @@ void setMouse(int x, int y);
 
 int  getTime();
 
-void mainloop(glapp* app, keyboard* key, mouse* m,  int(idle)(void*), int(render)(event));
+void mainloop(glapp* app, int(idle)(void*), int(render)(event*));
 
 #endif

@@ -21,9 +21,7 @@ int main(){
 	setWindowTitle("Failure Prone");
 	renderer* renderer  = initializeRenderer(app->width, app->height, 1.0, 1000.0, 75.0 );
 
-	keyboard key;
-	mouse m;
-	mainloop(app, &key, &m, idle, render );
+	mainloop(app, idle, render );
 
 	closeVideo();
 	free(app);
