@@ -9,6 +9,58 @@
 #define MAX_VERTEX_ATTRS 16
 #define MAX_TEXTURES 256
 #define MAX_VERTEX_FORMAT 256
+#define MAX_SHADERS 256
+
+enum ConstantType {
+	CONSTANT_FLOAT,
+	CONSTANT_VEC2,
+	CONSTANT_VEC3,
+	CONSTANT_VEC4,
+	CONSTANT_INT,
+	CONSTANT_IVEC2,
+	CONSTANT_IVEC3,
+	CONSTANT_IVEC4,
+	CONSTANT_BOOL,
+	CONSTANT_BVEC2,
+	CONSTANT_BVEC3,
+	CONSTANT_BVEC4,
+	CONSTANT_MAT2,
+	CONSTANT_MAT3,
+	CONSTANT_MAT4,
+
+	CONSTANT_TYPE_COUNT
+};
+
+enum Semantic{
+	TIME,
+	EYEPOS,
+	LIGHTPOS
+};
+
+typedef struct _uniform{
+
+	int location;
+	char* name;
+	unsigned char* data;
+	int size;
+	int type;
+	int semantic;
+	short int dirty;
+
+}uniform;
+
+typedef struct _sampler{
+	char* name;
+	unsigned int index;
+	unsigned int location;
+}sampler;
+
+typedef struct _shader{
+	uniform** uniforms;
+	int numUniforms;
+	sampler** samplers;
+	int numSamplers;
+}shader;
 
 enum TextureTarget{
 
@@ -104,22 +156,45 @@ typedef struct _renderer{
 	int prevFormat;
 	vertexFormat* vertexFormats[MAX_VERTEX_FORMAT];
 
+	int prevShader;
+	shader* shaders[MAX_SHADERS];
+	void *uniformFuncs[CONSTANT_TYPE_COUNT];
+
 }renderer;
 
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy);
 
 int render(event e);
 
+//texturas
 unsigned int initializeTexture(char* filename, int target, int imageFormat, int  internalFormat, int type, int flags);
 void bindTexture(int slot, int id);
 void setTextureFilter(int target, int filter);
 
+//VBOS
 unsigned int initializeVBO(unsigned int size, const void* data);
 void killVBO(unsigned int id);
 void drawVBO(unsigned int triCount, unsigned int vertexId, unsigned int indicesID,  int fmt);
 
 unsigned int addVertexFormat(vertexAttribute** attrs, unsigned int num);
 
+//shaders
+unsigned int initializeShader(const char* vertexSource, const char* fragmentSource);
+void bindShader(unsigned int program);
+int printShaderCompilerLog(unsigned int shader);
+int printShaderLinkerLog(unsigned int program);
+void setShaderConstant1i(int shaderid, const char *name, const int constant);
+void setShaderConstant1f(int shaderid, const char *name, const float constant);
+void setShaderConstant2f(int shaderid, const char *name, const float constant[]);
+void setShaderConstant3f(int shaderid, const char *name, const float constant[]);
+void setShaderConstant4f(int shaderid, const char *name, const float constant[]);
+/*void setShaderConstant4x4f(const char *name, const mat4 &constant);
+void setShaderConstantArray1f(const char *name, const float *constant, const uint count);
+void setShaderConstantArray2f(const char *name, const vec2  *constant, const uint count);
+void setShaderConstantArray3f(const char *name, const vec3  *constant, const uint count);
+void setShaderConstantArray4f(const char *name, const vec4  *constant, const uint count);
+void setShaderConstantArray4x4f(const char *name, const mat4 *constant, const uint count);*/
+void setShaderConstantRaw(int shaderid, const char *name, const void *data, const int size);
 
 
 #endif

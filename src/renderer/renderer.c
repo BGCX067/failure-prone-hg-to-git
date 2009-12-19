@@ -1,4 +1,4 @@
-
+#include "../util/GLee.h"
 #include "renderer.h"
 #include "camera.h"
 #include "math/matrix.h"
@@ -7,8 +7,53 @@
 #include "../util/malloc.h"
 #include <GL/gl.h>
 #include <GL/glu.h>
+  
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
+typedef GLvoid (APIENTRY *UNIFORM_FUNC)(GLint location, GLsizei count, const void *value);
+typedef GLvoid (APIENTRY *UNIFORM_MAT_FUNC)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+void *uniformFuncs[CONSTANT_TYPE_COUNT];
+
+
+int getConstantType(GLenum type){
+	switch (type){
+		case GL_FLOAT:          return CONSTANT_FLOAT;
+		case GL_FLOAT_VEC2: return CONSTANT_VEC2;
+		case GL_FLOAT_VEC3: return CONSTANT_VEC3;
+		case GL_FLOAT_VEC4: return CONSTANT_VEC4;
+		case GL_INT:            return CONSTANT_INT;
+		case GL_INT_VEC2:   return CONSTANT_IVEC2;
+		case GL_INT_VEC3:   return CONSTANT_IVEC3;
+		case GL_INT_VEC4:   return CONSTANT_IVEC4;
+		case GL_BOOL:       return CONSTANT_BOOL;
+		case GL_BOOL_VEC2:  return CONSTANT_BVEC2;
+		case GL_BOOL_VEC3:  return CONSTANT_BVEC3;
+		case GL_BOOL_VEC4:  return CONSTANT_BVEC4;
+		case GL_FLOAT_MAT2: return CONSTANT_MAT2;
+		case GL_FLOAT_MAT3: return CONSTANT_MAT3;
+		case GL_FLOAT_MAT4: return CONSTANT_MAT4;
+	}
+
+	return  -1;
+}
+
+int constantTypeSizes[CONSTANT_TYPE_COUNT] = {
+	sizeof(float),
+	sizeof(float) *2,
+	sizeof(float) *3,
+	sizeof(float) * 4,
+	sizeof(int),
+	sizeof(int) * 2,
+	sizeof(int) * 3,
+	sizeof(int) * 4,
+	sizeof(int),
+	sizeof(int) * 2,
+	sizeof(int) * 3,
+	sizeof(int) * 4,
+	sizeof(float) *4,
+	sizeof(float) *9,
+	sizeof(float) * 16,
+};
 
 renderer* r;
 camera c;
@@ -55,6 +100,29 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	r->prevVBO = -1;
 	r->prevFormat = -1;
 
+	//FIXEME  gambi feia, o glee so inicializa as fncoes quando sao chamadas
+	//mas o ponteiro pra funcao uniformFuncs nao chama elas, logo nao inicializa
+	//logo nao fucionam
+	//float color;
+	//glUniform4fv(99, 0, color);
+	//glUniform3fv(99, 0, color);
+	uniformFuncs[CONSTANT_FLOAT] = (void *) glUniform1fv;
+	uniformFuncs[CONSTANT_VEC2]  = (void *) glUniform2fv;
+	uniformFuncs[CONSTANT_VEC3]  = (void *) glUniform3fv;
+	uniformFuncs[CONSTANT_VEC4]  = (void *) glUniform4fv;
+	uniformFuncs[CONSTANT_INT]   = (void *) glUniform1iv;
+	uniformFuncs[CONSTANT_IVEC2] = (void *) glUniform2iv;
+	uniformFuncs[CONSTANT_IVEC3] = (void *) glUniform3iv;
+	uniformFuncs[CONSTANT_IVEC4] = (void *) glUniform4iv;
+	uniformFuncs[CONSTANT_BOOL]  = (void *) glUniform1iv;
+	uniformFuncs[CONSTANT_BVEC2] = (void *) glUniform2iv;
+	uniformFuncs[CONSTANT_BVEC3] = (void *) glUniform3iv;
+	uniformFuncs[CONSTANT_BVEC4] = (void *) glUniform4iv;
+	uniformFuncs[CONSTANT_MAT2]  = (void *) glUniformMatrix2fv;
+	uniformFuncs[CONSTANT_MAT3]  = (void *) glUniformMatrix3fv;
+	uniformFuncs[CONSTANT_MAT4]  = (void *) glUniformMatrix4fv;
+
+
 	float ratio = (float) w / (float) h;
 	glEnable(GL_DEPTH_TEST);
 	glViewport(0, 0, w, h);
@@ -77,8 +145,8 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-    initCamera(&c);
-    tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE)); 
+ 	initCamera(&c);
+ 	tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE)); 
 	return r;
 
 }
@@ -189,6 +257,7 @@ void bindTexture(int slot, int id){
 		r->prevTexture = id;
 		glEnable( r->textures[id]->target );
 		glActiveTexture(GL_TEXTURE0 + slot);
+		//TODO nao precisa de bind se usar shaders
 		glBindTexture(r->textures[id]->target, r->textures[id]->id );
 	}else{
 
@@ -282,3 +351,241 @@ unsigned int addVertexFormat(vertexAttribute** attrs,  unsigned int num){
 	r->vertexFormats[indice] = format;
 	return indice;
 }
+
+
+unsigned int initializeShader(const char* vertexSource, const char* fragmentSource){
+
+	if (!vertexSource && !fragmentSource)
+		return 0;
+
+	int shaderProgram = glCreateProgram();
+	if (!shaderProgram)
+		return 0;
+
+	int vertexShader;
+	if (vertexSource){
+		vertexShader = glCreateShader(GL_VERTEX_SHADER);
+
+		if (vertexShader == 0)
+			return 0;
+
+		glShaderSource(vertexShader, 1, &vertexSource, 0);
+		glCompileShader(vertexShader);
+
+		if (printShaderCompilerLog(vertexShader)){
+			glDeleteShader(vertexShader);
+			return 0;
+		}
+
+		glAttachShader(shaderProgram, vertexShader);
+	}
+
+	int fragmentShader;
+	if (fragmentSource){
+		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+
+		if (fragmentShader == 0)
+			return 0;
+
+		glShaderSource(fragmentShader, 1, &fragmentSource, 0);
+		glCompileShader(fragmentShader);
+
+		if (printShaderCompilerLog(fragmentShader)){
+			glDeleteShader(fragmentShader);
+			return 0;
+		}
+
+		glAttachShader(shaderProgram, fragmentShader);
+	}
+
+	glLinkProgram(shaderProgram);
+	if (printShaderLinkerLog(shaderProgram)){
+		glDeleteShader(vertexShader);
+		glDeleteShader(fragmentShader);
+		glDeleteProgram(shaderProgram);
+		return 0;
+	}
+
+	glUseProgram(shaderProgram);
+
+	int uniformCount, maxLength;
+	int attributeCount, maxAttrLength;
+	glGetProgramiv(shaderProgram, GL_ACTIVE_UNIFORMS, &uniformCount);
+	glGetProgramiv(shaderProgram, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxLength);
+	glGetProgramiv(shaderProgram, GL_ACTIVE_ATTRIBUTES, &attributeCount);
+	glGetProgramiv(shaderProgram, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxAttrLength);
+
+	shader* newShader =  (shader*) dlmalloc( sizeof(shader));
+	newShader->numUniforms = newShader->numSamplers = 0;
+	//conta quantas uniforms sao samplers ou variaveis uniforms
+	char* name = (char*) dlmalloc (sizeof(char)*maxLength);
+	char* attrName = (char*) dlmalloc(sizeof(char)*maxAttrLength);
+	for (int  i = 0; i < uniformCount; i++){
+		GLenum type;
+		GLint length, size;
+		glGetActiveUniform(shaderProgram, i, maxLength, &length, &size, &type, name);
+		if (type >= GL_SAMPLER_1D  &&  type <=  GL_SAMPLER_2D_RECT_SHADOW_ARB)
+			newShader->numSamplers++;
+		else
+			newShader->numUniforms++;
+	}
+	newShader->uniforms = dlmalloc(sizeof(uniform*)*newShader->numUniforms);
+	newShader->samplers = dlmalloc(sizeof(sampler*)*newShader->numSamplers);
+
+	int samplers = 0;
+	for (int i = 0; i < attributeCount; i++){
+		GLenum type;
+		GLint length, size;
+		glGetActiveAttrib(shaderProgram, i, maxAttrLength, &length, &size, &type, attrName );
+		if ( strcmp(name, "Tangent") == 0)
+			glBindAttribLocation(shaderProgram, ATTR_TANGENT, "Tangent");
+		if ( strcmp(name, "Binormal") == 0 )
+			glBindAttribLocation(shaderProgram, ATTR_BINORMAL, "Binormal");
+	}
+
+	for(int i = 0; i < uniformCount; i++){
+		int samplerCount  = 0;
+		int uniformCount = 0;
+		GLenum type;
+		GLint length, size;
+		glGetActiveUniform(shaderProgram, i, maxLength, &length, &size, &type, name);
+		if (type >= GL_SAMPLER_1D && type <= GL_SAMPLER_2D_RECT_SHADOW_ARB){
+
+			GLint location = glGetUniformLocation(shaderProgram, name);
+			glUniform1i(location, samplers); //informa o shader a texunit
+			sampler* sam = (sampler*) dlmalloc( sizeof(sampler));
+			sam->name = (char*) dlmalloc( sizeof( char)*(length + 1));
+			sam->index = samplers;
+			sam->location = location;
+			strcpy(sam->name, name);
+			newShader->samplers[samplerCount] = sam;
+			samplers++;
+			samplerCount++;
+		}else{
+
+			if (strncmp(name, "gl_", 3) != 0){
+
+				uniform* uni = (uniform*) dlmalloc(sizeof(uniform));
+				uni->name = (char*) dlmalloc( sizeof(char)*(length + 1));
+				uni->location = glGetUniformLocation(shaderProgram, name);
+				uni->type = getConstantType(type);
+				uni->size = size;
+				strcpy(uni->name, name);
+				int constantSize = constantTypeSizes[uni->type] * uni->size;
+				uni->data =  dlmalloc(sizeof(unsigned char) * constantSize);
+				memset(uni->data, 0, constantSize);
+				uni->dirty = 0;
+				if (strcmp(uni->name, "LightPosition") == 0)
+					uni->semantic = LIGHTPOS;
+				if (strcmp(uni->name, "EyePosition") == 0)
+					uni->semantic = EYEPOS;
+				if (strcmp(uni->name, "Timer") == 0)
+					uni->semantic = TIME;
+				newShader->uniforms[uniformCount] = uni;
+				uniformCount++;
+			}
+		}
+	}
+
+	free(name);
+	r->shaders[shaderProgram] = newShader;
+	glUseProgram(r->prevShader);
+
+	return shaderProgram;
+}
+
+void bindShader(unsigned int program){
+
+	if (program != r->prevShader){
+		r->prevShader = program;
+		glUseProgram(program);
+	}
+
+	for(unsigned int i = 0; i < r->shaders[program]->numUniforms; i++ ){
+		if (r->shaders[program]->uniforms[i]->dirty ){
+			r->shaders[program]->uniforms[i]->dirty = 0;
+			if (r->shaders[program]->uniforms[i]->type >= CONSTANT_MAT2){
+				((UNIFORM_MAT_FUNC) uniformFuncs[r->shaders[program]->uniforms[i]->type])(r->shaders[program]->uniforms[i]->location, r->shaders[program]->uniforms[i]->size, GL_TRUE, (float *) r->shaders[program]->uniforms[i]->data);
+			} else {
+				((UNIFORM_FUNC) uniformFuncs[r->shaders[program]->uniforms[i]->type])(r->shaders[program]->uniforms[i]->location, r->shaders[program]->uniforms[i]->size, r->shaders[program]->uniforms[i]->data);
+				//((UNIFORM_FUNC) uniformFuncs[2])(0, 1, color);
+				//glUniform4fv(shaders[program]->uniforms[i]->location, shaders[program]->uniforms[i]->size, (GLfloat*) shaders[program]->uniforms[i]->data);
+			}
+		}else if ( r->shaders[program]->uniforms[1]->semantic == EYEPOS){
+			float eyep[3];
+            		//CAMERA::getInstance().getPosition(eyep);
+			//setShaderConstant3f(program, "EyePosition",  eyep);
+		}else if (r->shaders[program]->uniforms[i]->semantic == TIME)
+			//setShaderConstant1f(program, "Time", TIMER::getInstance().getElapsedTime());
+			  setShaderConstant1f(program, "Time", 0.1);
+		else if (r->shaders[program]->uniforms[i]->semantic == LIGHTPOS){
+			float lightp[3] = {10.0, 10.0, 10.0 };
+			setShaderConstant3f(program, "LightPosition",  lightp);
+		}
+	}
+
+}
+
+int printShaderCompilerLog(unsigned int shader){
+	int compiled;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+	int infoLen = 0;
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
+	if(infoLen > 1) {
+		char* infoLog = (char*) dlmalloc(sizeof(char) * infoLen);
+		glGetShaderInfoLog(shader, infoLen, NULL, infoLog);
+		printf("Error compiling shader:\n%s\n", infoLog);
+		free(infoLog);
+		return 1;
+	}
+	return 0;
+}
+
+int printShaderLinkerLog(unsigned int program){
+	int linked;
+	glGetShaderiv(program, GL_LINK_STATUS, &linked);
+	int infoLen = 0;
+	glGetShaderiv(program, GL_INFO_LOG_LENGTH, &infoLen);
+	if(infoLen > 1) {
+		char* infoLog = (char*) dlmalloc(sizeof(char) * infoLen);
+		glGetProgramInfoLog(program, infoLen, NULL, infoLog);
+		printf("Error compiling shader:\n%s\n", infoLog);
+		free(infoLog);
+		return 1;
+	}
+	return 0;
+}
+
+void setShaderConstant1i(int shaderid, const char *name, const int constant){
+	setShaderConstantRaw(shaderid, name, &constant, sizeof(constant));
+}
+
+void setShaderConstant1f(int shaderid, const char *name, const float constant){
+	setShaderConstantRaw(shaderid, name, &constant, sizeof(constant));
+}
+
+void setShaderConstant2f(int shaderid, const char* name, const float constant[]){
+	setShaderConstantRaw(shaderid, name, constant, sizeof(constant)*2);
+}
+
+void setShaderConstant3f(int shaderid, const char *name,  const float constant[]){
+	setShaderConstantRaw(shaderid, name, constant, sizeof(constant)*3);
+}
+
+void setShaderConstant4f(int shaderid, const char *name, const float constant[]){
+	setShaderConstantRaw(shaderid, name, constant, sizeof(constant)*4);
+}
+
+void setShaderConstantRaw(int shaderid, const char* name, const void* data, int size){
+
+	for(unsigned int i = 0; i < r->shaders[shaderid]->numUniforms; i++ ){
+		if (strcmp(name, r->shaders[shaderid]->uniforms[i]->name ) == 0 ){
+			if (memcmp(r->shaders[shaderid]->uniforms[i]->data, data, size)){
+				memcpy(r->shaders[shaderid]->uniforms[i]->data, data, size);
+				r->shaders[shaderid]->uniforms[i]->dirty = 1;
+			}
+		}
+	}
+
+}
+
