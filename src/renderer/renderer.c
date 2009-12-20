@@ -1,10 +1,12 @@
 #include "../util/GLee.h"
 #include "renderer.h"
 #include "camera.h"
+#include "scene.h"
 #include "math/matrix.h"
 #include "../glapp.h"
 #include "../util/image.h"
 #include "../util/malloc.h"
+#include "../util/textfile.h"
 #include <GL/gl.h>
 #include <GL/glu.h>
   
@@ -59,6 +61,7 @@ renderer* r;
 camera c;
 
 unsigned int tex;
+unsigned int phong;
 
 void beginRender(event *e) { 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -98,13 +101,15 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	r->prevTexture = -1;
 	r->prevVBO = -1;
 	r->prevFormat = -1;
+	r->prevShader = 0;
 
 	//FIXEME  gambi feia, o glee so inicializa as fncoes quando sao chamadas
 	//mas o ponteiro pra funcao uniformFuncs nao chama elas, logo nao inicializa
 	//logo nao fucionam
-	//float color;
-	//glUniform4fv(99, 0, color);
-	//glUniform3fv(99, 0, color);
+	float foo[4];
+	float foo2[3];
+	glUniform4fv(99, 0, foo);
+	glUniform3fv(99, 0, foo2);
 	uniformFuncs[CONSTANT_FLOAT] = (void *) glUniform1fv;
 	uniformFuncs[CONSTANT_VEC2]  = (void *) glUniform2fv;
 	uniformFuncs[CONSTANT_VEC3]  = (void *) glUniform3fv;
@@ -145,7 +150,19 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	glEnableClientState(GL_VERTEX_ARRAY);
 
  	initCamera(&c);
- 	tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE)); 
+ 	tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
+	
+	phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
+	float color[] = { 1.0, 0.0, 0.0, 1.0 };
+	setShaderConstant4f(phong, "LightColor", color);
+	float position[] = {10, 0, -10};
+	setShaderConstant3f(phong, "LightPosition", position); 
+	float eyep[] = {0, 0, 0};
+	setShaderConstant3f(phong, "EyePosition", eyep);
+	bindShader(phong);
+
+	scene* duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
+
 	return r;
 
 }
@@ -354,6 +371,7 @@ unsigned int addVertexFormat(vertexAttribute** attrs,  unsigned int num){
 
 unsigned int initializeShader(const char* vertexSource, const char* fragmentSource){
 
+
 	if (!vertexSource && !fragmentSource)
 		return 0;
 
@@ -426,11 +444,11 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 		if (type >= GL_SAMPLER_1D  &&  type <=  GL_SAMPLER_2D_RECT_SHADOW_ARB)
 			newShader->numSamplers++;
 		else
-			newShader->numUniforms++;
+			if (strncmp(name, "gl_", 3) != 0)
+				newShader->numUniforms++;
 	}
-	newShader->uniforms = dlmalloc(sizeof(uniform*)*newShader->numUniforms);
-	newShader->samplers = dlmalloc(sizeof(sampler*)*newShader->numSamplers);
-
+	newShader->uniforms = (uniform**)dlmalloc(sizeof(uniform*)*newShader->numUniforms);
+	newShader->samplers = (sampler**)dlmalloc(sizeof(sampler*)*newShader->numSamplers);
 	int samplers = 0;
 	for (int i = 0; i < attributeCount; i++){
 		GLenum type;
@@ -441,15 +459,13 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 		if ( strcmp(name, "Binormal") == 0 )
 			glBindAttribLocation(shaderProgram, ATTR_BINORMAL, "Binormal");
 	}
-
+	int numUniforms = 0;
+	int numSamplers = 0;
 	for(int i = 0; i < uniformCount; i++){
-		int samplerCount  = 0;
-		int uniformCount = 0;
 		GLenum type;
 		GLint length, size;
 		glGetActiveUniform(shaderProgram, i, maxLength, &length, &size, &type, name);
 		if (type >= GL_SAMPLER_1D && type <= GL_SAMPLER_2D_RECT_SHADOW_ARB){
-
 			GLint location = glGetUniformLocation(shaderProgram, name);
 			glUniform1i(location, samplers); //informa o shader a texunit
 			sampler* sam = (sampler*) dlmalloc( sizeof(sampler));
@@ -457,9 +473,9 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 			sam->index = samplers;
 			sam->location = location;
 			strcpy(sam->name, name);
-			newShader->samplers[samplerCount] = sam;
+			newShader->samplers[numSamplers] = sam;
 			samplers++;
-			samplerCount++;
+			numSamplers++;
 		}else{
 
 			if (strncmp(name, "gl_", 3) != 0){
@@ -480,20 +496,21 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 					uni->semantic = EYEPOS;
 				if (strcmp(uni->name, "Timer") == 0)
 					uni->semantic = TIME;
-				newShader->uniforms[uniformCount] = uni;
-				uniformCount++;
+				newShader->uniforms[numUniforms] = uni;
+				numUniforms++;
 			}
 		}
 	}
 
-	free(name);
+	dlfree(name);
 	r->shaders[shaderProgram] = newShader;
 	glUseProgram(r->prevShader);
-
+	
 	return shaderProgram;
 }
 
 void bindShader(unsigned int program){
+
 
 	if (program != r->prevShader){
 		r->prevShader = program;
@@ -510,16 +527,16 @@ void bindShader(unsigned int program){
 				//((UNIFORM_FUNC) uniformFuncs[2])(0, 1, color);
 				//glUniform4fv(shaders[program]->uniforms[i]->location, shaders[program]->uniforms[i]->size, (GLfloat*) shaders[program]->uniforms[i]->data);
 			}
-		}else if ( r->shaders[program]->uniforms[1]->semantic == EYEPOS){
-			float eyep[3];
+		//}else if ( r->shaders[program]->uniforms[1]->semantic == EYEPOS){
+		//	float eyep[3];
             		//CAMERA::getInstance().getPosition(eyep);
 			//setShaderConstant3f(program, "EyePosition",  eyep);
-		}else if (r->shaders[program]->uniforms[i]->semantic == TIME)
+		//}else if (r->shaders[program]->uniforms[i]->semantic == TIME)
 			//setShaderConstant1f(program, "Time", TIMER::getInstance().getElapsedTime());
-			  setShaderConstant1f(program, "Time", 0.1);
-		else if (r->shaders[program]->uniforms[i]->semantic == LIGHTPOS){
-			float lightp[3] = {10.0, 10.0, 10.0 };
-			setShaderConstant3f(program, "LightPosition",  lightp);
+		//	  setShaderConstant1f(program, "Time", 0.1);
+		//else if (r->shaders[program]->uniforms[i]->semantic == LIGHTPOS){
+		//	float lightp[3] = {10.0, 10.0, 10.0 };
+		//	setShaderConstant3f(program, "LightPosition",  lightp);
 		}
 	}
 
@@ -576,7 +593,6 @@ void setShaderConstant4f(int shaderid, const char *name, const float constant[])
 }
 
 void setShaderConstantRaw(int shaderid, const char* name, const void* data, int size){
-
 	for(unsigned int i = 0; i < r->shaders[shaderid]->numUniforms; i++ ){
 		if (strcmp(name, r->shaders[shaderid]->uniforms[i]->name ) == 0 ){
 			if (memcmp(r->shaders[shaderid]->uniforms[i]->data, data, size)){
