@@ -221,6 +221,8 @@ scene* initializeDae(char* filename){
 
 
 	ezxml_free(dae);
+	printf("scena lida.\n");
+	return s;
 }
 
 void initializeTriangles(triangles* tri){

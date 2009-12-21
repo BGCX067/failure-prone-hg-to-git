@@ -7,6 +7,7 @@
 #include "../util/image.h"
 #include "../util/malloc.h"
 #include "../util/textfile.h"
+#include "mesh.h";
 #include <GL/gl.h>
 #include <GL/glu.h>
   
@@ -63,6 +64,7 @@ camera c;
 
 unsigned int tex;
 unsigned int phong;
+scene *duck;
 
 void beginRender(event *e) { 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -80,14 +82,15 @@ void beginRender(event *e) {
 
 int render(event *e){
     beginRender(e);
-	glTranslatef(0.0, 0.0, -5.0f);
-	GLUquadric* quadric = gluNewQuadric();
-	gluQuadricDrawStyle(quadric, GLU_FILL);
-	gluQuadricTexture(quadric, GLU_TRUE);
-    gluQuadricOrientation(quadric, GLU_INSIDE);
-    gluQuadricNormals(quadric, GLU_SMOOTH);
+	//glTranslatef(0.0, 0.0, -5.0f);
+	//GLUquadric* quadric = gluNewQuadric();
+	//gluQuadricDrawStyle(quadric, GLU_FILL);
+	//gluQuadricTexture(quadric, GLU_TRUE);
+    //gluQuadricOrientation(quadric, GLU_INSIDE);
+   // gluQuadricNormals(quadric, GLU_SMOOTH);
 	bindTexture(0, tex);
-	gluSphere(quadric,  0.5, 20, 20);
+//	gluSphere(quadric,  0.5, 20, 20);
+	drawVBO(duck->meshes[0].tris[0].indicesCount, duck->meshes[0].tris[0].vboId, duck->meshes[0].tris[0].indicesId, duck->meshes[0].tris[0].vertexFormatId );
 
     glFinish();
     glFlush();
@@ -99,13 +102,17 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	//FIXME se usar linkedlist ou map remover os memsets
 	memset(r->vertexFormats, 0, MAX_VERTEX_FORMAT*sizeof(vertexFormat*));
 	memset(r->textures, 0, MAX_TEXTURES*sizeof(texture*));
+	memset(r->shaders, 0, MAX_SHADERS*sizeof(shader*));
 	r->fovy = fovy;
 	r->zfar = zfar;
 	r->znear = znear;
 	r->prevTexture = -1;
 	r->prevVBO = -1;
-	r->prevFormat = -1;
 	r->prevShader = 0;
+	vertexAttribute** defaultAttr = dlmalloc(sizeof(vertexAttribute*)*MAX_VERTEX_ATTRS);
+	for(int i  = 0; i < MAX_VERTEX_ATTRS; i++)
+		defaultAttr[i] = NULL;
+	r->prevFormat = addVertexFormat(defaultAttr, 16);
 
 	//FIXEME  gambi feia, o glee so inicializa as fncoes quando sao chamadas
 	//mas o ponteiro pra funcao uniformFuncs nao chama elas, logo nao inicializa
@@ -165,7 +172,8 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	setShaderConstant3f(phong, "EyePosition", c.pos);
 	bindShader(phong);
 
-	scene* duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
+	duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
+	createVBO(&duck->meshes[0]);
 
 	return r;
 
@@ -330,11 +338,16 @@ void drawVBO(unsigned int triCount, unsigned int vertexID, unsigned int indicesI
 
 	//primeiro ativa e desativa as vertex attrib arrays necessarias
 	for ( unsigned int i = 0; i < MAX_VERTEX_ATTRS; i++ ){
+		printf("ativando/desativando vertex array\n");
 		if ( current->attributes[i] ){
-			if ( !prev->attributes[i] )
+			printf("atributo current  ativado\n");
+			if ( !prev->attributes[i] ){
+				printf("atributo  previous desativado.. ativando\n");
 				glEnableVertexAttribArray(i);
+			}
 		}
 		if ( !current->attributes[i] && prev->attributes[i]  ){
+			printf("desativando atributo\n");
 			glDisableVertexAttribArray(i);
 		}
 	}
