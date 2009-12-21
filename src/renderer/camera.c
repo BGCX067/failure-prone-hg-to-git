@@ -13,9 +13,9 @@ void initCamera(camera *c) {
 
 void setupViewMatrix(camera *c, mat4 m) {
     quatToMatrix(c->orientation, m);
-    m[12] = -c->pos[0];
-    m[13] = -c->pos[1];
-    m[15] = -c->pos[2];
+    //m[12] = -c->pos[0];
+    //m[13] = -c->pos[1];
+    //m[14] = -c->pos[2];
 }
 
 void cameraHandleEvent(camera *c, event *e) {
@@ -29,24 +29,75 @@ void cameraHandleEvent(camera *c, event *e) {
         float rotationUp = dx*mouseSensitivity;
         float rotationRight = dy*mouseSensitivity;
 
-        if(rotationUp > 1.0)
-            rotationUp = 1.0;
-        if(rotationRight > 1.0)
-            rotationRight = 1.0;
-        quaternion q;
-        //Rotaciona ao redor do eixo up
-        fromAxisAngle(c->up, rotationUp, q);
-        rotateVec(c->viewDir, q, c->viewDir);
+        if(rotationUp > 0.1)
+            rotationUp = 0.1;
+        if(rotationRight > 0.1)
+            rotationRight = 0.1;
+        
+        /* Rotação com quaternion e rotacionando os vetores para manter os eixos
+         * TODO: tirar os eixos da matriz                                       */
+        quaternion q1, q2;
+        vec3 oldView;
+        oldView[0] = c->viewDir[0];
+        oldView[1] = c->viewDir[1];
+        oldView[2] = c->viewDir[2];
+        fromAxisAngle(c->up, rotationUp, q2);
+        rotateVec(c->viewDir, q2, c->viewDir);
         vecNormalize(c->viewDir);
 
+        vec3 right;
+        cross(c->viewDir, c->up, right);
+        //cross(right, c->viewDir, c->up);
+        fromAxisAngle(right, rotationRight, q1);
+        rotateVec(c->viewDir, q1, c->viewDir);
+        vecNormalize(c->viewDir);
+        cross(right, oldView, c->up);
+        
+        c->up[0] = 0.0;
+        c->up[1] = 1.0;
+        c->up[2] = 0.0;
+        cross(c->viewDir, c->up, right);
+        vecNormalize(right);
+        cross(right, c->viewDir, c->up);
+        vecNormalize(c->up);
+
+
+        /*cross(right, c->viewDir, c->up);
+        fromAxisAngle(c->up, rotationUp, q2);
+        rotateVec(c->viewDir, q2, c->viewDir);
+        vecNormalize(c->viewDir);*/
+        mult(q2, q1, q2);
+        mult(q2, c->orientation, c->orientation);
+        quatNormalize(c->orientation);
+        
+        /* Rotação na marra
+        vec3 right;
+        cross(c->viewDir, c->up, right);
+        c->viewDir[0] = c->viewDir[0]*cos(rotationRight*PIdiv180) + c->up[0]*sin(rotationRight*PIdiv180);
+        c->viewDir[1] = c->viewDir[1]*cos(rotationRight*PIdiv180) + c->up[1]*sin(rotationRight*PIdiv180);
+        c->viewDir[2] = c->viewDir[2]*cos(rotationRight*PIdiv180) + c->up[2]*sin(rotationRight*PIdiv180);
+        vecNormalize(c->viewDir);
+        cross(right, c->viewDir, c->up);
+        
+        c->viewDir[0] = c->viewDir[0]*cos(rotationUp*PIdiv180) - right[0]*sin(rotationUp*PIdiv180);
+        c->viewDir[1] = c->viewDir[1]*cos(rotationUp*PIdiv180) - right[1]*sin(rotationUp*PIdiv180);
+        c->viewDir[2] = c->viewDir[2]*cos(rotationUp*PIdiv180) - right[2]*sin(rotationUp*PIdiv180); 
+        vecNormalize(c->viewDir);
+        */
+
+        /* Rotação usando quaternion para rotacionar os vetores 
         //Rotaciona ao redor do eixo right
+        quaternion q;
         vec3 right;
         cross(c->viewDir, c->up, right);
         fromAxisAngle(right, rotationRight, q);
         rotateVec(c->viewDir, q, c->viewDir);
+
+        //Rotaciona ao redor do eixo up
+        fromAxisAngle(c->up, rotationUp, q);
+        rotateVec(c->viewDir, q, c->viewDir);
         vecNormalize(c->viewDir);
-        //O up deve ter mudado, encontra o novo
-        cross(right, c->viewDir, c->up);
+        */
     }
     if(e->type & KEYBOARD_EVENT) {
         if(e->keys[KEY_UP]) {

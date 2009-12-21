@@ -39,8 +39,8 @@ void fromAxisAngle(vec3 v, float theta, quaternion q) {
 void quatToMatrix(quaternion q, mat4 m) {
     float xx, yy, zz, wx, wy, wz, xy, xz, yz;
 	xx = 2*q[0]*q[0];	yy = 2*q[1]*q[1];	zz = 2*q[2]*q[2];
-	wx = 2*q[3]*q[0];	wy = 2*q[3]*q[1];	wz = 2*q[3]*q[3];
-	xy = 2*q[0]*q[1];	xz = 2*q[0]*q[2];	yz = 2*q[1]*q[1];
+	wx = 2*q[3]*q[0];	wy = 2*q[3]*q[1];	wz = 2*q[3]*q[2];
+	xy = 2*q[0]*q[1];	xz = 2*q[0]*q[2];	yz = 2*q[1]*q[2];
 
 	m[0] = 1.0 - yy - zz;
 	m[1] = xy - wz;
@@ -53,9 +53,10 @@ void quatToMatrix(quaternion q, mat4 m) {
 	m[8] = xz - wy;
 	m[9] = yz + wx;
 	m[10] = 1.0 - xx - yy;
-
+    
+    m[15] = 1.0;
 	m[3] = m[7] = m[11] =  m[12] = m[13] = m[14] = 0.0;
-	m[15] = 1.0;
+	//m[15] = 1.0;
 }
 
 void rotateVec(vec3 v, quaternion q, vec3 res) {
@@ -66,9 +67,10 @@ void rotateVec(vec3 v, quaternion q, vec3 res) {
     q2[3] = 0.0;
 
     quaternion result;
-    mult(q, q2, result);
+    
     quaternion conjq;
     conjugate(q, conjq);
+    mult(q, q2, result);
     mult(result, conjq, result);
     
     res[0] = result[0];

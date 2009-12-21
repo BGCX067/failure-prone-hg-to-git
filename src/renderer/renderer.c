@@ -70,7 +70,8 @@ void beginRender(event *e) {
     mat4 m;
     cameraHandleEvent(&c, e);
     setupViewMatrix(&c, m);
-    //glLoadMatrixf(m);
+    //glMultMatrixf(m);
+    //glTranslated(-c.pos[0], -c.pos[1], -c.pos[2]);
     gluLookAt(c.pos[0], c.pos[1], c.pos[2], c.viewDir[0] + c.pos[0],
               c.viewDir[1] + c.pos[1], c.viewDir[2] + c.pos[2],
               c.up[0], c.up[1], c.up[2]);
@@ -159,7 +160,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	setShaderConstant3f(phong, "LightPosition", position); 
 	float eyep[] = {0, 0, 0};
 	setShaderConstant3f(phong, "EyePosition", eyep);
-	bindShader(phong);
+	//bindShader(phong);
 
 	scene* duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
 
