@@ -6,7 +6,7 @@ extern renderer* r;
 
 void createVBO(mesh* m){
 
-	for (int i = 0; i < m->trianglesCount; i++){
+/*	for (int i = 0; i < m->trianglesCount; i++){
 		
 		vertexAttribute** attrs = dlmalloc (sizeof (vertexAttribute*) * 16);
 		for (int k = 0; k < 16; k++)
@@ -16,6 +16,6 @@ void createVBO(mesh* m){
 
 
 	}
-
+*/
 
 }
