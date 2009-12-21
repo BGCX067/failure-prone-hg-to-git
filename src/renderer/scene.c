@@ -2,7 +2,7 @@
 #include "../util/ezxml.h"
 #include "../util/malloc.h"
 #include <stdio.h>
-
+#include <string.h>
 ezxml_t getVertexSource(char* sourceName, ezxml_t mesh){
 
 	ezxml_t source = ezxml_child(mesh, "vertices");

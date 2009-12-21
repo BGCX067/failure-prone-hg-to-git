@@ -58,6 +58,7 @@ int constantTypeSizes[CONSTANT_TYPE_COUNT] = {
 };
 
 renderer* r;
+//FIXME camera global
 camera c;
 
 unsigned int tex;
@@ -83,6 +84,8 @@ int render(event *e){
 	GLUquadric* quadric = gluNewQuadric();
 	gluQuadricDrawStyle(quadric, GLU_FILL);
 	gluQuadricTexture(quadric, GLU_TRUE);
+    gluQuadricOrientation(quadric, GLU_INSIDE);
+    gluQuadricNormals(quadric, GLU_SMOOTH);
 	bindTexture(0, tex);
 	gluSphere(quadric,  0.5, 20, 20);
 
@@ -158,9 +161,9 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	setShaderConstant4f(phong, "LightColor", color);
 	float position[] = {10, 0, -10};
 	setShaderConstant3f(phong, "LightPosition", position); 
-	float eyep[] = {0, 0, 0};
-	setShaderConstant3f(phong, "EyePosition", eyep);
-	//bindShader(phong);
+	//float eyep[] = {c->pos[0], c->pos[1], c->pos[2]};
+	setShaderConstant3f(phong, "EyePosition", c.pos);
+	bindShader(phong);
 
 	scene* duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
 
