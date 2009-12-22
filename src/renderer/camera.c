@@ -102,19 +102,19 @@ void cameraHandleEvent(camera *c, event *e) {
     if(e->type & KEYBOARD_EVENT) {
         if(e->keys[KEY_UP]) {
             vec3 dir; 
-            vecMult(c->viewDir, 0.1, dir);
+            vecMult(c->viewDir, 1, dir);
             vecAdd(c->pos, dir, c->pos);
         }
         if(e->keys[KEY_DOWN]) {
             vec3 dir; 
-            vecMult(c->viewDir, -0.1, dir);
+            vecMult(c->viewDir, -1, dir);
             vecAdd(c->pos, dir, c->pos);
         }
         if(e->keys[KEY_RIGHT]) {
             vec3 dir;
             cross(c->viewDir, c->up, dir);
             vecNormalize(dir);
-            vecMult(dir, 0.1, dir);
+            vecMult(dir, 1, dir);
             vecAdd(c->pos, dir, c->pos);
 
             //FIXME não tá funcionando direito:
@@ -131,7 +131,7 @@ void cameraHandleEvent(camera *c, event *e) {
             vec3 dir;
             cross(c->viewDir, c->up, dir);
             vecNormalize(dir);
-            vecMult(dir, -0.1, dir);
+            vecMult(dir, -1, dir);
             vecAdd(c->pos, dir, c->pos);
         }
     }

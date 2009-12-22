@@ -88,7 +88,7 @@ int render(event *e){
 	//gluQuadricTexture(quadric, GLU_TRUE);
     //gluQuadricOrientation(quadric, GLU_INSIDE);
    // gluQuadricNormals(quadric, GLU_SMOOTH);
-	bindTexture(0, tex);
+	//bindTexture(0, tex);
 //	gluSphere(quadric,  0.5, 20, 20);
 	drawVBO(duck->meshes[0].tris[0].indicesCount, duck->meshes[0].tris[0].vboId, duck->meshes[0].tris[0].indicesId, duck->meshes[0].tris[0].vertexFormatId );
 
@@ -114,7 +114,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 		defaultAttr[i] = NULL;
 	r->prevFormat = addVertexFormat(defaultAttr, 16);
 
-	//FIXEME  gambi feia, o glee so inicializa as fncoes quando sao chamadas
+	//FIXME  gambi feia, o glee so inicializa as fncoes quando sao chamadas
 	//mas o ponteiro pra funcao uniformFuncs nao chama elas, logo nao inicializa
 	//logo nao fucionam
 	float foo[4];
@@ -163,13 +163,15 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
  	initCamera(&c);
  	tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
 	
-	phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
+	phong = initializeShader( readTextFile("data/shaders/ppphong.vert"), readTextFile("data/shaders/ppphong.frag") );
 	float color[] = { 1.0, 0.0, 0.0, 1.0 };
 	setShaderConstant4f(phong, "LightColor", color);
-	float position[] = {10, 0, -10};
+	float position[] = {1000, 0, -1000};
 	setShaderConstant3f(phong, "LightPosition", position); 
 	//float eyep[] = {c->pos[0], c->pos[1], c->pos[2]};
 	setShaderConstant3f(phong, "EyePosition", c.pos);
+    float shininess = 16.0;
+    setShaderConstant1f(phong, "shininess", shininess);
 	bindShader(phong);
 
 	duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
@@ -527,8 +529,6 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 }
 
 void bindShader(unsigned int program){
-
-
 	if (program != r->prevShader){
 		r->prevShader = program;
 		glUseProgram(program);
@@ -544,10 +544,10 @@ void bindShader(unsigned int program){
 				//((UNIFORM_FUNC) uniformFuncs[2])(0, 1, color);
 				//glUniform4fv(shaders[program]->uniforms[i]->location, shaders[program]->uniforms[i]->size, (GLfloat*) shaders[program]->uniforms[i]->data);
 			}
-		//}else if ( r->shaders[program]->uniforms[1]->semantic == EYEPOS){
-		//	float eyep[3];
+		}else if ( r->shaders[program]->uniforms[1]->semantic == EYEPOS){
+			float eyep[3];
             		//CAMERA::getInstance().getPosition(eyep);
-			//setShaderConstant3f(program, "EyePosition",  eyep);
+			setShaderConstant3f(program, "EyePosition",  c.pos);
 		//}else if (r->shaders[program]->uniforms[i]->semantic == TIME)
 			//setShaderConstant1f(program, "Time", TIMER::getInstance().getElapsedTime());
 		//	  setShaderConstant1f(program, "Time", 0.1);
