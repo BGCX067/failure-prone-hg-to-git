@@ -109,6 +109,8 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	r->prevTexture = -1;
 	r->prevVBO = -1;
 	r->prevShader = 0;
+	r->viewPortWidth = w;
+	r->viewPortHeight = h;
 	vertexAttribute** defaultAttr = dlmalloc(sizeof(vertexAttribute*)*MAX_VERTEX_ATTRS);
 	for(int i  = 0; i < MAX_VERTEX_ATTRS; i++)
 		defaultAttr[i] = NULL;
@@ -187,19 +189,46 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
 	glGenTextures(1, &textureID);
 	glBindTexture(target, textureID);
 
-	if (flags & CLAMP){
-		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP);
-	}
-	else if (flags & CLAMP_TO_EDGE) {
-		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	}
+	if (r->prevTexture >= 0){
+		if ( (flags & CLAMP) && !(r->textures[r->prevTexture]->flags  &CLAMP) ){
+			glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP);
+			glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP);
+			glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP);
+		}
+		if ((flags & CLAMP_TO_EDGE) && !(r->textures[r->prevTexture]->flags  &CLAMP_TO_EDGE) ){
+			glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		}
 
-	if (flags & MIPMAP)
-		glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
+		if ( (flags & NEAREST) &&  !(  r->textures[r->prevTexture]->flags & NEAREST) ){
+			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		}
+		if ( (flags & BILINEAR) &&  !(r->textures[r->prevTexture]->flags & BILINEAR)){
+			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		}
+		if ( (flags & LINEAR) &&  !(r->textures[r->prevTexture]->flags & LINEAR) ){
+			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		}
+
+		if ( (flags & ANISOTROPY_1) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_1))
+			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0);
+		else if ((flags & ANISOTROPY_2) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_2))
+			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0);
+		else if ((flags & ANISOTROPY_4) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_4))
+
+			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
+		else if ((flags & ANISOTROPY_8) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_8))
+			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0);
+		else if ((flags & ANISOTROPY_16) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_16))
+			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);	
+
+		if (flags & MIPMAP)
+			glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
+	}
 
 	if ( filename != NULL ){
 		//TODO fazer 1d e 3d
@@ -221,7 +250,6 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
 			 };
 			 char *facenames[] = {"posx", "negx", "posy", "negy", "posz", "negz" };
 			 for (int i = 0; i < 6; i++){
-			 	//TODO nao eh pra ser +5 no buff
 				 sprintf(buff, filename, facenames[i]);
 				 buff[strlen(filename)+5] = '\0';
 				 data = stbi_load(buff, &x, &y, &n, 0);
@@ -254,40 +282,13 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
 
 }
 
-void setTextureFilter(int target, int flags){
-
-	if ( flags & NEAREST ){
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	}
-	if ( flags & BILINEAR){
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	}
-	if ( flags & LINEAR ){
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	}
-
-	if (flags & ANISOTROPY_1)
-		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0);
-	else if (flags & ANISOTROPY_2)
-		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0);
-	else if (flags & ANISOTROPY_4)
-		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
-	else if (flags & ANISOTROPY_8)
-		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0);
-	else if (flags & ANISOTROPY_16)
-		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);	
- 
-}
 
 void bindTexture(int slot, int id){
 	if ( r->prevTexture == -1 ){
 		r->prevTexture = id;
 		glEnable( r->textures[id]->target );
 		glActiveTexture(GL_TEXTURE0 + slot);
-		//TODO nao precisa de bind se usar shaders
+		//TODO nao precisa mais do enable quando usa shaders
 		glBindTexture(r->textures[id]->target, r->textures[id]->id );
 	}else{
 
@@ -311,6 +312,40 @@ void bindTexture(int slot, int id){
 			glTexParameteri(r->textures[id]->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(r->textures[id]->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 		}
+
+		if ( (r->textures[id]->flags & NEAREST) &&  !(  r->textures[r->prevTexture]-> flags & NEAREST) ){
+			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		}
+		else if ( (r->textures[id]->flags & BILINEAR) &&  !(r->textures[r->prevTexture]->flags & BILINEAR)){
+			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		}
+		else if ( (r->textures[id]->flags & LINEAR) &&  !(r->textures[r->prevTexture]->flags & LINEAR) ){
+			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		}
+
+		
+		//TODO uma maneira mais simples de 
+		if ( ((r->textures[r->prevTexture]->flags &ANISOTROPY_2) || (r->textures[r->prevTexture]->flags &ANISOTROPY_4) || (r->textures[r->prevTexture]->flags &ANISOTROPY_8) || (r->textures[r->prevTexture]->flags &ANISOTROPY_16) ) && ( !((r->textures[id]->flags & ANISOTROPY_2) || (r->textures[id]->flags & ANISOTROPY_4) || (r->textures[id]->flags & ANISOTROPY_8) || (r->textures[id]->flags & ANISOTROPY_16)  )  )){
+			glTexParameterf(r->textures[id]->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 0.0);
+			printf("anterior tinha anisotropy e atual nao tem, desativando \n");
+
+		}else{
+			if ( (r->textures[id]->flags & ANISOTROPY_1) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_1))
+				glTexParameterf(r->textures[id]->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0);
+			else if ((r->textures[id]->flags & ANISOTROPY_2) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_2))
+				glTexParameterf(r->textures[id]->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0);
+			else if ((r->textures[id]->flags & ANISOTROPY_4) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_4))
+				glTexParameterf(r->textures[id]->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
+			else if ((r->textures[id]->flags & ANISOTROPY_8) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_8))
+				glTexParameterf(r->textures[id]->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0);
+			else if ((r->textures[id]->flags & ANISOTROPY_16) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_16)) 
+				glTexParameterf(r->textures[id]->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);	
+		}
+
+
 		r->prevTexture = id;
 	}
 
@@ -340,16 +375,12 @@ void drawVBO(unsigned int triCount, unsigned int vertexID, unsigned int indicesI
 
 	//primeiro ativa e desativa as vertex attrib arrays necessarias
 	for ( unsigned int i = 0; i < MAX_VERTEX_ATTRS; i++ ){
-		printf("ativando/desativando vertex array\n");
 		if ( current->attributes[i] ){
-			printf("atributo current  ativado\n");
 			if ( !prev->attributes[i] ){
-				printf("atributo  previous desativado.. ativando\n");
 				glEnableVertexAttribArray(i);
 			}
 		}
 		if ( !current->attributes[i] && prev->attributes[i]  ){
-			printf("desativando atributo\n");
 			glDisableVertexAttribArray(i);
 		}
 	}
@@ -545,8 +576,6 @@ void bindShader(unsigned int program){
 				//glUniform4fv(shaders[program]->uniforms[i]->location, shaders[program]->uniforms[i]->size, (GLfloat*) shaders[program]->uniforms[i]->data);
 			}
 		}else if ( r->shaders[program]->uniforms[1]->semantic == EYEPOS){
-			float eyep[3];
-            		//CAMERA::getInstance().getPosition(eyep);
 			setShaderConstant3f(program, "EyePosition",  c.pos);
 		//}else if (r->shaders[program]->uniforms[i]->semantic == TIME)
 			//setShaderConstant1f(program, "Time", TIMER::getInstance().getElapsedTime());
@@ -621,3 +650,21 @@ void setShaderConstantRaw(int shaderid, const char* name, const void* data, int 
 
 }
 
+unsigned int initializeFramebuffer(int width, int height){
+
+	framebuffer *fb = dlmalloc(sizeof(framebuffer));
+
+	unsigned int id;
+	glGenFramebuffer(1, &id);
+	glBindFramebuffer(GL_FRAMEBUFFER, id);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texid, 0);
+
+	mainFramebuffer();
+
+}
+
+void mainFramebuffer(){
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewPort(r->viewPortWidth, r->viewPortHeight);
+}

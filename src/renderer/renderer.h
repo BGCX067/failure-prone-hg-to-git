@@ -84,22 +84,20 @@ enum TextureInternalFormat{
 enum TextureFlags{
 	CLAMP  = 1 << 1,
 	CLAMP_TO_EDGE  = 1 << 2,
-	
+
+	LINEAR = 1 << 3,
+	BILINEAR = 1 << 4,
+	NEAREST = 1 << 5,
+
+	ANISOTROPY_1 = 1 << 6,
+	ANISOTROPY_2 = 1 << 7,
+	ANISOTROPY_4 = 1 << 8,
+	ANISOTROPY_8 = 1 << 9,
+	ANISOTROPY_16= 1 << 10,
+
 	MIPMAP  = 1<< 17
 };
 
-enum TextureFilter{
-
-	LINEAR = 1 << 2,
-	BILINEAR = 1 << 3,
-	NEAREST = 1 << 4,
-
-	ANISOTROPY_1 = 1 << 5,
-	ANISOTROPY_2 = 1 << 6,
-	ANISOTROPY_4 = 1 << 7,
-	ANISOTROPY_8 = 1 << 8,
-	ANISOTROPY_16= 1 << 9
-};
 
 enum Type{
 	UNSIGNED_BYTE = GL_UNSIGNED_BYTE,
@@ -146,7 +144,15 @@ typedef struct _vertexFormat{
 	short int numAttrs;
 }vertexFormat;
 
+typedef struct _framebuffer{
+	int width, int height;
+	int id;
+};
+
 typedef struct _renderer{
+
+	int viewPortWidth, viewPortHeight;
+
 	float fovy, znear, zfar;
 
 	int prevTexture;
@@ -169,7 +175,10 @@ int render(event *e);
 //texturas
 unsigned int initializeTexture(char* filename, int target, int imageFormat, int  internalFormat, int type, int flags);
 void bindTexture(int slot, int id);
-void setTextureFilter(int target, int filter);
+
+//framebuffers
+void mainFramebuffer();
+unsigned int initializeFramebuffer(int width, int height);
 
 //VBOS
 unsigned int initializeVBO(unsigned int size, const void* data);
@@ -197,4 +206,3 @@ void setShaderConstantArray4x4f(const char *name, const mat4 *constant, const ui
 void setShaderConstantRaw(int shaderid, const char *name, const void *data, const int size);
 
 
-#endif
