@@ -282,6 +282,72 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
 
 }
 
+unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type, int flags){
+
+
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(target, textureID);
+
+	if (r->prevTexture >= 0){
+		if ( (flags & CLAMP) && !(r->textures[r->prevTexture]->flags  &CLAMP) ){
+			glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP);
+			glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP);
+			glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP);
+		}
+		if ((flags & CLAMP_TO_EDGE) && !(r->textures[r->prevTexture]->flags  &CLAMP_TO_EDGE) ){
+			glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		}
+
+		if ( (flags & NEAREST) &&  !(  r->textures[r->prevTexture]->flags & NEAREST) ){
+			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		}
+		if ( (flags & BILINEAR) &&  !(r->textures[r->prevTexture]->flags & BILINEAR)){
+			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		}
+		if ( (flags & LINEAR) &&  !(r->textures[r->prevTexture]->flags & LINEAR) ){
+			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		}
+
+		if ( (flags & ANISOTROPY_1) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_1))
+			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0);
+		else if ((flags & ANISOTROPY_2) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_2))
+			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0);
+		else if ((flags & ANISOTROPY_4) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_4))
+
+			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
+		else if ((flags & ANISOTROPY_8) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_8))
+			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0);
+		else if ((flags & ANISOTROPY_16) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_16))
+			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);	
+
+		if (flags & MIPMAP)
+			glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
+	}
+
+	if ((target == TEXTURE_2D) || (target == TEXTURE_RECTANGLE) ){
+		glTexImage2D(target, 0, internalFormat, x, y, 0, imageFormat, type, data);
+	}
+
+	texture* tex = (texture*) dlmalloc(sizeof(texture));
+	tex->flags = flags;
+	tex->id = textureID;
+	tex->target = target;
+
+	r->textures[textureID] = tex;
+
+	if (r->prevTexture >= 0)
+		bindTexture(0, r->prevTexture);
+
+	return textureID;
+
+
+}
 
 void bindTexture(int slot, int id){
 	if ( r->prevTexture == -1 ){
@@ -650,21 +716,21 @@ void setShaderConstantRaw(int shaderid, const char* name, const void* data, int 
 
 }
 
-unsigned int initializeFramebuffer(int width, int height){
+unsigned int initializeFramebuffer(int width, int height, int format, int internalFormat, int type, int  flags){
 
 	framebuffer *fb = dlmalloc(sizeof(framebuffer));
-
+	unsigned int texid = initializeTextureFromMemory(NULL, width,  height, TEXTURE_2D, format, internalFormat, type, flags);
 	unsigned int id;
-	glGenFramebuffer(1, &id);
+	glGenFramebuffers(1, &id);
 	glBindFramebuffer(GL_FRAMEBUFFER, id);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texid, 0);
 
-	mainFramebuffer();
+	bindMainFramebuffer();
 
 }
 
-void mainFramebuffer(){
+void bindMainFramebuffer(){
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewPort(r->viewPortWidth, r->viewPortHeight);
+	glViewport(0, 0, r->viewPortWidth, r->viewPortHeight);
 }

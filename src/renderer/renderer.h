@@ -10,6 +10,7 @@
 #define MAX_TEXTURES 256
 #define MAX_VERTEX_FORMAT 256
 #define MAX_SHADERS 256
+#define MAX_FRAMEBUFFERS 10
 
 enum ConstantType {
 	CONSTANT_FLOAT,
@@ -145,9 +146,9 @@ typedef struct _vertexFormat{
 }vertexFormat;
 
 typedef struct _framebuffer{
-	int width, int height;
+	int width, height;
 	int id;
-};
+} framebuffer;
 
 typedef struct _renderer{
 
@@ -166,6 +167,9 @@ typedef struct _renderer{
 	shader* shaders[MAX_SHADERS];
 	void *uniformFuncs[CONSTANT_TYPE_COUNT];
 
+	int prevFramebufeer;
+	framebuffer* framebuffers[MAX_FRAMEBUFFERS];
+
 }renderer;
 
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy);
@@ -173,12 +177,13 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy);
 int render(event *e);
 
 //texturas
-unsigned int initializeTexture(char* filename, int target, int imageFormat, int  internalFormat, int type, int flags);
+unsigned int initializeTextureFromMemory(void* data, int x, int  y, int  target, int imageFormat, int internalFormat, int type, int flags);
+unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type, int flags);
 void bindTexture(int slot, int id);
 
 //framebuffers
-void mainFramebuffer();
-unsigned int initializeFramebuffer(int width, int height);
+void bindMainFramebuffer();
+unsigned int initializeFramebuffer(int width, int height, int format, int internalFormat, int type, int flags );
 
 //VBOS
 unsigned int initializeVBO(unsigned int size, const void* data);
@@ -205,4 +210,4 @@ void setShaderConstantArray4f(const char *name, const vec4  *constant, const uin
 void setShaderConstantArray4x4f(const char *name, const mat4 *constant, const uint count);*/
 void setShaderConstantRaw(int shaderid, const char *name, const void *data, const int size);
 
-
+#endif
