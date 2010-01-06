@@ -88,7 +88,7 @@ int render(event *e){
 	//gluQuadricTexture(quadric, GLU_TRUE);
     //gluQuadricOrientation(quadric, GLU_INSIDE);
    // gluQuadricNormals(quadric, GLU_SMOOTH);
-	//bindTexture(0, tex);
+	bindTexture(0, tex);
 //	gluSphere(quadric,  0.5, 20, 20);
 	drawVBO(duck->meshes[0].tris[0].indicesCount, duck->meshes[0].tris[0].vboId, duck->meshes[0].tris[0].indicesId, duck->meshes[0].tris[0].vertexFormatId );
 
@@ -103,6 +103,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	memset(r->vertexFormats, 0, MAX_VERTEX_FORMAT*sizeof(vertexFormat*));
 	memset(r->textures, 0, MAX_TEXTURES*sizeof(texture*));
 	memset(r->shaders, 0, MAX_SHADERS*sizeof(shader*));
+	memset(r->framebuffers, 0, MAX_FRAMEBUFFERS*sizeof(framebuffer*));
 	r->fovy = fovy;
 	r->zfar = zfar;
 	r->znear = znear;
@@ -111,6 +112,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	r->prevShader = 0;
 	r->viewPortWidth = w;
 	r->viewPortHeight = h;
+	r->prevFramebuffer = -1;
 	vertexAttribute** defaultAttr = dlmalloc(sizeof(vertexAttribute*)*MAX_VERTEX_ATTRS);
 	for(int i  = 0; i < MAX_VERTEX_ATTRS; i++)
 		defaultAttr[i] = NULL;
@@ -165,7 +167,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
  	initCamera(&c);
  	tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
 	
-	phong = initializeShader( readTextFile("data/shaders/ppphong.vert"), readTextFile("data/shaders/ppphong.frag") );
+/*	phong = initializeShader( readTextFile("data/shaders/ppphong.vert"), readTextFile("data/shaders/ppphong.frag") );
 	float color[] = { 1.0, 0.0, 0.0, 1.0 };
 	setShaderConstant4f(phong, "LightColor", color);
 	float position[] = {1000, 0, -1000};
@@ -174,12 +176,56 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	setShaderConstant3f(phong, "EyePosition", c.pos);
     float shininess = 16.0;
     setShaderConstant1f(phong, "shininess", shininess);
-	bindShader(phong);
+	//bindShader(phong);*/
 
 	duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
 	createVBO(&duck->meshes[0]);
 
 	return r;
+
+}
+
+//funcao auxiliar pra tirar o codigo repetido nas duas funcoes abaixo
+////TODO melhorar isso =[
+void applySamplerState(int target, int flags){
+
+	if ( (flags & CLAMP) ){
+		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP);
+	}
+	if ((flags & CLAMP_TO_EDGE) ){
+		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	}
+
+	if ( (flags & NEAREST) ){
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	}
+	if ( (flags & BILINEAR) ){
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	}
+	if ( (flags & LINEAR) ){
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	}
+
+	if ( (flags & ANISOTROPY_1) )
+		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0);
+	else if ((flags & ANISOTROPY_2) )
+		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0);
+	else if ((flags & ANISOTROPY_4) )
+		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
+	else if ((flags & ANISOTROPY_8) )
+		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0);
+	else if ((flags & ANISOTROPY_16) )
+		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);	
+
+	if (flags & MIPMAP)
+		glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
 
 }
 
@@ -219,7 +265,6 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
 		else if ((flags & ANISOTROPY_2) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_2))
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0);
 		else if ((flags & ANISOTROPY_4) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_4))
-
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
 		else if ((flags & ANISOTROPY_8) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_8))
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0);
@@ -228,7 +273,8 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
 
 		if (flags & MIPMAP)
 			glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
-	}
+	}else
+		applySamplerState(target, flags);
 
 	if ( filename != NULL ){
 		//TODO fazer 1d e 3d
@@ -328,7 +374,8 @@ unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, i
 
 		if (flags & MIPMAP)
 			glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
-	}
+	}else
+		applySamplerState(target, flags);
 
 	if ((target == TEXTURE_2D) || (target == TEXTURE_RECTANGLE) ){
 		glTexImage2D(target, 0, internalFormat, x, y, 0, imageFormat, type, data);
@@ -356,6 +403,7 @@ void bindTexture(int slot, int id){
 		glActiveTexture(GL_TEXTURE0 + slot);
 		//TODO nao precisa mais do enable quando usa shaders
 		glBindTexture(r->textures[id]->target, r->textures[id]->id );
+
 	}else{
 
 		if ( r->textures[id]->target != r->textures[r->prevTexture]->target ){
@@ -716,21 +764,32 @@ void setShaderConstantRaw(int shaderid, const char* name, const void* data, int 
 
 }
 
-unsigned int initializeFramebuffer(int width, int height, int format, int internalFormat, int type, int  flags){
+unsigned int initializeFramebuffer(void* data, int width, int height, int format, int internalFormat, int type, int  flags){
 
 	framebuffer *fb = dlmalloc(sizeof(framebuffer));
-	unsigned int texid = initializeTextureFromMemory(NULL, width,  height, TEXTURE_2D, format, internalFormat, type, flags);
+	unsigned int texid = initializeTextureFromMemory(data, width,  height, TEXTURE_2D, format, internalFormat, type, flags);
 	unsigned int id;
 	glGenFramebuffers(1, &id);
 	glBindFramebuffer(GL_FRAMEBUFFER, id);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texid, 0);
 
+	r->framebuffers[id] = id;
+
 	bindMainFramebuffer();
 
 }
 
-void bindMainFramebuffer(){
+void bindFramebuffer(int id){
+	if (r->prevFramebuffer != id){
+		r->prevFramebuffer = id;
+		glBindFramebuffer(GL_FRAMEBUFFER, id);
+		glViewport(0, 0, r->framebuffers[id]->width,  r->framebuffers[id]->height); 
 
+	}
+}
+
+void bindMainFramebuffer(){
+	r->prevFramebuffer = 0;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, r->viewPortWidth, r->viewPortHeight);
 }

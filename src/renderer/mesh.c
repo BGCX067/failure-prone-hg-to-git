@@ -60,6 +60,7 @@ void createVBO(mesh* m){
 		}
 
 		for( int j = 0; j < m->tris[i].numTexSets; j++){
+			printf("configurando texset: %d\n", j);
 			vboSize += m->tris[i].texCoords[j]->count;
 			attrs[ATTR_TEXCOORD0+j] = dlmalloc(sizeof(vertexAttribute));
 			attrs[ATTR_TEXCOORD0+j]->count = m->tris[i].texCoords[j]->count;

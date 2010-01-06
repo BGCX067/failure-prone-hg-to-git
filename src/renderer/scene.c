@@ -181,27 +181,41 @@ scene* initializeDae(char* filename){
 								}
 							}
 						}
-						else if ( strcmp(semantic, "TEXCOORD") ){
+						else if ( strcmp(semantic, "TEXCOORD")  == 0){
+							printf("lendo texcoords\n");
 							texCoord* texSet = dlmalloc(sizeof(texCoord));
 							texSet->set = atoi( ezxml_attr(input, "set"));
+							printf("texcoord set: %d\n", texSet->set);
 							ezxml_t source = getSource(sourceName, mesh);
 							if (source){
+								printf("achou o source\n");
 								ezxml_t float_array = ezxml_child(source, "float_array");
 								if (float_array){
+									printf("achou o float_array\n");
 									texSet->count = atoi(ezxml_attr(float_array, "count"));
-									getFloatArray( &texSet->texCoords, float_array, texSet->count);
+									printf("count :%d\n", texSet->count);
+									printf("texcoords: %s\n", float_array->txt);
+									getFloatArray( &(texSet->texCoords), float_array->txt, texSet->count);
+									printf("float array lida\n");
 								}
 								ezxml_t technique_common = ezxml_child(source, "technique_common");
 								if (technique_common){
+									printf("lendo technique_common\n");
 									ezxml_t accessor = ezxml_child(technique_common, "accessor");
-									if (accessor)
-										texSet->components = atoi( ezxml_attr(technique_common, "stride"));
-									else
+									if (accessor){
+										printf("tem accessor\n");
+										texSet->components = atoi( ezxml_attr(accessor, "stride"));
+										printf("accessor: %d\n", atoi( ezxml_attr(accessor,"stride" )));
+									}
+									else{
+										printf("nao tem accessor\n");
 										texSet->components = 2;
+									}
 								}else
 									texSet->components = 2;
 								
 							}
+							printf("lido components:%d \n", texSet->components);
 							s->meshes[i].tris[triCount].numTexSets++;
 							texSetIndices++;
 							s->meshes[i].tris[triCount].texCoords[texSetIndices] = texSet;

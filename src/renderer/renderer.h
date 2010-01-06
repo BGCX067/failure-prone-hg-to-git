@@ -167,10 +167,22 @@ typedef struct _renderer{
 	shader* shaders[MAX_SHADERS];
 	void *uniformFuncs[CONSTANT_TYPE_COUNT];
 
-	int prevFramebufeer;
+	int prevFramebuffer;
 	framebuffer* framebuffers[MAX_FRAMEBUFFERS];
 
 }renderer;
+
+//Primitivas mais high level do renderer FIXME: colocar em outro file?
+
+typedef struct _point{
+	int x, y;
+}point;
+
+typedef struct _rect{
+	int x, y, w, h;
+}rect;
+
+
 
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy);
 
@@ -183,7 +195,8 @@ void bindTexture(int slot, int id);
 
 //framebuffers
 void bindMainFramebuffer();
-unsigned int initializeFramebuffer(int width, int height, int format, int internalFormat, int type, int flags );
+void bindFramebuffer(int id);
+unsigned int initializeFramebuffer(void* data, int width, int height, int format, int internalFormat, int type, int flags );
 
 //VBOS
 unsigned int initializeVBO(unsigned int size, const void* data);
