@@ -63,6 +63,7 @@ renderer* r;
 camera c;
 
 unsigned int tex;
+unsigned int normalMap;
 unsigned int phong;
 scene *duck;
 
@@ -82,22 +83,48 @@ void beginRender(event *e) {
 
 int render(event *e){
     beginRender(e);
-	//glTranslatef(0.0, 0.0, -5.0f);
+	glTranslatef(0.0, 0.0, -5.0f);
 	//GLUquadric* quadric = gluNewQuadric();
 	//gluQuadricDrawStyle(quadric, GLU_FILL);
 	//gluQuadricTexture(quadric, GLU_TRUE);
     //gluQuadricOrientation(quadric, GLU_INSIDE);
+<<<<<<< local
+    //gluQuadricNormals(quadric, GLU_SMOOTH);
+	//bindTexture(0, tex);
+    //gluSphere(quadric,  0.5, 20, 20);
+    bindTexture(0, normalMap);
+	//drawVBO(duck->meshes[0].tris[0].indicesCount, duck->meshes[0].tris[0].vboId, duck->meshes[0].tris[0].indicesId, duck->meshes[0].tris[0].vertexFormatId );
+    //glTranslatef(0.0, 0.0, -5.0f);
+	/*GLUquadric* quadric = gluNewQuadric();
+	gluQuadricDrawStyle(quadric, GLU_FILL);
+	gluQuadricTexture(quadric, GLU_TRUE);
+    gluQuadricOrientation(quadric, GLU_INSIDE);
+    gluQuadricNormals(quadric, GLU_SMOOTH);
+    gluSphere(quadric,  0.5, 20, 20);*/
+    //glNormal3f(0.0, 0.0, 1.0);
+    //glRectf(-10.0, -10.0, 10.0, 10.0);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 1.0);
+        glVertex3f(-10.0, -10.0, 0.0);
+        glTexCoord2f(1.0, 1.0);
+        glVertex3f(10.0, -10.0, 0.0);
+        glTexCoord2f(1.0, .0);
+        glVertex3f(10.0, 10.0, 0.0);
+        glTexCoord2f(0.0, 0.0);
+        glVertex3f(-10.0, 10.0, 0.0);
+    glEnd();
+=======
    // gluQuadricNormals(quadric, GLU_SMOOTH);
 	bindTexture(0, tex);
 //	gluSphere(quadric,  0.5, 20, 20);
 	drawVBO(duck->meshes[0].tris[0].indicesCount, duck->meshes[0].tris[0].vboId, duck->meshes[0].tris[0].indicesId, duck->meshes[0].tris[0].vertexFormatId );
 
+>>>>>>> other
     glFinish();
     glFlush();
 }
 
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
-
 	r = (renderer*) dlmalloc(sizeof(renderer));
 	//FIXME se usar linkedlist ou map remover os memsets
 	memset(r->vertexFormats, 0, MAX_VERTEX_FORMAT*sizeof(vertexFormat*));
@@ -165,24 +192,33 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	glEnableClientState(GL_VERTEX_ARRAY);
 
  	initCamera(&c);
+<<<<<<< local
+ 	tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP));
+	normalMap = initializeTexture("data/textures/normal_map.tga", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
+	phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
+=======
  	tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
 	
 /*	phong = initializeShader( readTextFile("data/shaders/ppphong.vert"), readTextFile("data/shaders/ppphong.frag") );
+>>>>>>> other
 	float color[] = { 1.0, 0.0, 0.0, 1.0 };
 	setShaderConstant4f(phong, "LightColor", color);
-	float position[] = {1000, 0, -1000};
+	float position[] = {1000, 1000, 1000};
 	setShaderConstant3f(phong, "LightPosition", position); 
 	//float eyep[] = {c->pos[0], c->pos[1], c->pos[2]};
 	setShaderConstant3f(phong, "EyePosition", c.pos);
     float shininess = 16.0;
     setShaderConstant1f(phong, "shininess", shininess);
+<<<<<<< local
+	//bindShader(phong);
+=======
 	//bindShader(phong);*/
+>>>>>>> other
 
 	duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
 	createVBO(&duck->meshes[0]);
 
 	return r;
-
 }
 
 //funcao auxiliar pra tirar o codigo repetido nas duas funcoes abaixo
@@ -230,7 +266,6 @@ void applySamplerState(int target, int flags){
 }
 
 unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type, int flags){
-
 	unsigned int textureID;
 	glGenTextures(1, &textureID);
 	glBindTexture(target, textureID);
@@ -325,7 +360,6 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
 		bindTexture(0, r->prevTexture);
 
 	return textureID;
-
 }
 
 unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type, int flags){
@@ -397,7 +431,7 @@ unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, i
 }
 
 void bindTexture(int slot, int id){
-	if ( r->prevTexture == -1 ){
+	if (r->prevTexture == -1){
 		r->prevTexture = id;
 		glEnable( r->textures[id]->target );
 		glActiveTexture(GL_TEXTURE0 + slot);
@@ -405,10 +439,9 @@ void bindTexture(int slot, int id){
 		glBindTexture(r->textures[id]->target, r->textures[id]->id );
 
 	}else{
-
-		if ( r->textures[id]->target != r->textures[r->prevTexture]->target ){
+		if (r->textures[id]->target != r->textures[r->prevTexture]->target){
 			glDisable(r->textures[r->prevTexture]->target);
-			glEnable( r->textures[id]->target );
+			glEnable(r->textures[id]->target);
 		}
 
 		glActiveTexture(GL_TEXTURE0 + slot);
@@ -641,9 +674,7 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 			samplers++;
 			numSamplers++;
 		}else{
-
 			if (strncmp(name, "gl_", 3) != 0){
-
 				uniform* uni = (uniform*) dlmalloc(sizeof(uniform));
 				uni->name = (char*) dlmalloc( sizeof(char)*(length + 1));
 				uni->location = glGetUniformLocation(shaderProgram, name);
@@ -761,7 +792,6 @@ void setShaderConstantRaw(int shaderid, const char* name, const void* data, int 
 			}
 		}
 	}
-
 }
 
 unsigned int initializeFramebuffer(void* data, int width, int height, int format, int internalFormat, int type, int  flags){
