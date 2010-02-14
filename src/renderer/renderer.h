@@ -146,6 +146,7 @@ typedef struct _vertexFormat{
 	short int numAttrs;
 }vertexFormat;
 
+//void* createVertexFormat();
 void destroyVertexFormat(void *ptr);
 
 typedef struct _framebuffer{

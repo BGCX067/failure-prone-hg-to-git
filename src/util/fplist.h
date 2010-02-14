@@ -8,19 +8,21 @@ typedef struct _fpnode {
 }fpnode;
 
 void fpnode_destroy(fpnode* n, void (*destroy)(void*));
+fpnode* fpnode_create(void* (*create)());
 
 typedef struct _fplist {
     fpnode *first;
     fpnode *last;
     int size;
     void (*destroy)(void*);
+    void* (*create)();
 }fplist;
 
 /* TODO considerar iterator */
 /* typedef fpnode* fplist_iterator;*/
 
 /* Inicializador e destrutor para a lista */
-fplist* fplist_init(void (*dest)(void*));
+fplist* fplist_init(void* (*_create)(), void (*dest)(void*));
 void fplist_destroy(fplist *l);
 
 void* fplist_getdata(int index, fplist *l);

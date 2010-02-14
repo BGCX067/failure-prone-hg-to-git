@@ -132,7 +132,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	r = (renderer*) dlmalloc(sizeof(renderer));
 	//FIXME se usar linkedlist ou map remover os memsets
 	//memset(r->vertexFormats, 0, MAX_VERTEX_FORMAT*sizeof(vertexFormat*));
-    r->vertexFormats = fplist_init(destroyVertexFormat);
+    r->vertexFormats = fplist_init(NULL, destroyVertexFormat);
 	memset(r->textures, 0, MAX_TEXTURES*sizeof(texture*));
 	memset(r->shaders, 0, MAX_SHADERS*sizeof(shader*));
 	memset(r->framebuffers, 0, MAX_FRAMEBUFFERS*sizeof(framebuffer*));
