@@ -17,6 +17,11 @@ typedef GLvoid (APIENTRY *UNIFORM_FUNC)(GLint location, GLsizei count, const voi
 typedef GLvoid (APIENTRY *UNIFORM_MAT_FUNC)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
 void *uniformFuncs[CONSTANT_TYPE_COUNT];
 
+void destroyVertexFormat(void *ptr) {
+    for(int i = 0; i < ((vertexFormat*)ptr)->numAttrs; i++)
+        dlfree(((vertexFormat*)ptr)->attributes);
+    dlfree(ptr);
+}
 
 int getConstantType(GLenum type){
 	switch (type){
@@ -88,19 +93,19 @@ int render(event *e){
 	//gluQuadricDrawStyle(quadric, GLU_FILL);
 	//gluQuadricTexture(quadric, GLU_TRUE);
     //gluQuadricOrientation(quadric, GLU_INSIDE);
-<<<<<<< local
+/*<<<<<<< local
     //gluQuadricNormals(quadric, GLU_SMOOTH);
 	//bindTexture(0, tex);
     //gluSphere(quadric,  0.5, 20, 20);
     bindTexture(0, normalMap);
 	//drawVBO(duck->meshes[0].tris[0].indicesCount, duck->meshes[0].tris[0].vboId, duck->meshes[0].tris[0].indicesId, duck->meshes[0].tris[0].vertexFormatId );
     //glTranslatef(0.0, 0.0, -5.0f);
-	/*GLUquadric* quadric = gluNewQuadric();
-	gluQuadricDrawStyle(quadric, GLU_FILL);
-	gluQuadricTexture(quadric, GLU_TRUE);
-    gluQuadricOrientation(quadric, GLU_INSIDE);
-    gluQuadricNormals(quadric, GLU_SMOOTH);
-    gluSphere(quadric,  0.5, 20, 20);*/
+	//GLUquadric* quadric = gluNewQuadric();
+	//gluQuadricDrawStyle(quadric, GLU_FILL);
+	//gluQuadricTexture(quadric, GLU_TRUE);
+    //gluQuadricOrientation(quadric, GLU_INSIDE);
+    //gluQuadricNormals(quadric, GLU_SMOOTH);
+    //gluSphere(quadric,  0.5, 20, 20);
     //glNormal3f(0.0, 0.0, 1.0);
     //glRectf(-10.0, -10.0, 10.0, 10.0);
     glBegin(GL_QUADS);
@@ -113,13 +118,12 @@ int render(event *e){
         glTexCoord2f(0.0, 0.0);
         glVertex3f(-10.0, 10.0, 0.0);
     glEnd();
-=======
+=======*/
    // gluQuadricNormals(quadric, GLU_SMOOTH);
 	bindTexture(0, tex);
 //	gluSphere(quadric,  0.5, 20, 20);
 	drawVBO(duck->meshes[0].tris[0].indicesCount, duck->meshes[0].tris[0].vboId, duck->meshes[0].tris[0].indicesId, duck->meshes[0].tris[0].vertexFormatId );
 
->>>>>>> other
     glFinish();
     glFlush();
 }
@@ -127,7 +131,8 @@ int render(event *e){
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	r = (renderer*) dlmalloc(sizeof(renderer));
 	//FIXME se usar linkedlist ou map remover os memsets
-	memset(r->vertexFormats, 0, MAX_VERTEX_FORMAT*sizeof(vertexFormat*));
+	//memset(r->vertexFormats, 0, MAX_VERTEX_FORMAT*sizeof(vertexFormat*));
+    r->vertexFormats = fplist_init(destroyVertexFormat);
 	memset(r->textures, 0, MAX_TEXTURES*sizeof(texture*));
 	memset(r->shaders, 0, MAX_SHADERS*sizeof(shader*));
 	memset(r->framebuffers, 0, MAX_FRAMEBUFFERS*sizeof(framebuffer*));
@@ -192,15 +197,13 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	glEnableClientState(GL_VERTEX_ARRAY);
 
  	initCamera(&c);
-<<<<<<< local
- 	tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP));
+ 	
+    tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP));
 	normalMap = initializeTexture("data/textures/normal_map.tga", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
 	phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
-=======
  	tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
 	
 /*	phong = initializeShader( readTextFile("data/shaders/ppphong.vert"), readTextFile("data/shaders/ppphong.frag") );
->>>>>>> other
 	float color[] = { 1.0, 0.0, 0.0, 1.0 };
 	setShaderConstant4f(phong, "LightColor", color);
 	float position[] = {1000, 1000, 1000};
@@ -209,11 +212,8 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	setShaderConstant3f(phong, "EyePosition", c.pos);
     float shininess = 16.0;
     setShaderConstant1f(phong, "shininess", shininess);
-<<<<<<< local
 	//bindShader(phong);
-=======
 	//bindShader(phong);*/
->>>>>>> other
 
 	duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
 	createVBO(&duck->meshes[0]);
@@ -515,8 +515,10 @@ unsigned int initializeVBO(unsigned int size, const void* data){
 //TODO usar draw rande elements pros indices
 void drawVBO(unsigned int triCount, unsigned int vertexID, unsigned int indicesID, int formatID){
 
-	vertexFormat* current = r->vertexFormats[formatID];
-	vertexFormat* prev = r->vertexFormats[r->prevFormat];
+	//vertexFormat* current = r->vertexFormats[formatID];
+    vertexFormat* current = fplist_getdata(formatID, r->vertexFormats);
+	//vertexFormat* prev = r->vertexFormats[r->prevFormat];
+    vertexFormat* prev = fplist_getdata(r->prevFormat, r->vertexFormats);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vertexID);
 
@@ -553,7 +555,7 @@ unsigned int addVertexFormat(vertexAttribute** attrs,  unsigned int num){
 	format->attributes = (vertexAttribute*) dlmalloc(sizeof(vertexAttribute*[MAX_VERTEX_ATTRS]));
 	format->numAttrs = num;
 	format->attributes = attrs;
-	unsigned int indice;
+	/*unsigned int indice;
 	//pega o primeiro valor do array de ponteiros que esta vazio
 	for (unsigned int i = 0; i < MAX_VERTEX_FORMAT; i++){
 		if (!r->vertexFormats[i]){
@@ -562,7 +564,8 @@ unsigned int addVertexFormat(vertexAttribute** attrs,  unsigned int num){
 		}
 	}
 	r->vertexFormats[indice] = format;
-	return indice;
+	return indice;*/
+    return fplist_insback(format, r->vertexFormats);
 }
 
 
