@@ -8,14 +8,14 @@ void fpnode_destroy(fpnode* n, void (*destroy)(void*)){
     dlfree(n);
 }
 
-fpnode* fpnode_create(void *(*create)()) {
+/*fpnode* fpnode_create(void *(*create)(void*)) {
     fpnode* n = (fpnode*) dlmalloc(sizeof(fpnode));
     if(create)
         n->data = create();
     n->next = NULL;
     n->prev = NULL;
     return n;
-}
+}*/
 
 fplist* fplist_init(void* (*_create)(), void (*dest)(void*)) {
     fplist *l = (fplist*) dlmalloc(sizeof(fplist));
@@ -54,7 +54,11 @@ void* fplist_getdata(int index, fplist *l) {
 void fplist_insfront(void *data, fplist *l) {
     /* Aloca um node novo */
     //fpnode *n = (fpnode*) dlmalloc(sizeof(fpnode));
-    fpnode *n = fpnode_create(l->create);
+    fpnode* n = (fpnode*) dlmalloc(sizeof(fpnode));
+    if(l->create)
+        n->data = l->create(data);
+    else
+        n->data = data;
     /* Ajusta os ponteiros corretamente - inserindo no início */
     n->next = l->first;
     l->first = n;
@@ -62,17 +66,17 @@ void fplist_insfront(void *data, fplist *l) {
     if(!l->last)
         l->last = n;
 
-    /* Aloca  a memória para o elemento e copia o valor */
-    /* FIXME a memória para data não está sendo alocada */
-    /* newNode->data = dlmalloc(sizeof(data)); */
-    n->data = data;
-
     l->size++;
 }
 
 int fplist_insback(void *data, fplist *l) {
     //fpnode *n = (fpnode*)dlmalloc(sizeof(fpnode));
-    fpnode *n = fpnode_create(l->create);
+    fpnode* n = (fpnode*) dlmalloc(sizeof(fpnode));
+    if(l->create)
+        n->data = l->create(data);
+    else
+        n->data = data;
+
     n->data = data;
 
     /* Primeiro elemento */

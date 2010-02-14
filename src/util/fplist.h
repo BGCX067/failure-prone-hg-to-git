@@ -15,14 +15,11 @@ typedef struct _fplist {
     fpnode *last;
     int size;
     void (*destroy)(void*);
-    void* (*create)();
+    void* (*create)(void*);
 }fplist;
 
-/* TODO considerar iterator */
-/* typedef fpnode* fplist_iterator;*/
 
-/* Inicializador e destrutor para a lista */
-fplist* fplist_init(void* (*_create)(), void (*dest)(void*));
+fplist* fplist_init(void* (*_create)(void*), void (*dest)(void*));
 void fplist_destroy(fplist *l);
 
 void* fplist_getdata(int index, fplist *l);
