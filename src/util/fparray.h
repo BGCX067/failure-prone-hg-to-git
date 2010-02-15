@@ -1,5 +1,5 @@
-#ifndef _ARRAY_H_
-#define _ARRAY_H_
+#ifndef _FPARRAY_H_
+#define _FPARRAY_H_
 
 typedef struct _fparray {
     void (*destroy)(void*);
