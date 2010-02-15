@@ -1,6 +1,8 @@
 #ifndef _GLAPP_H_
 #define _GLAPP_H_
 
+#include "renderer/scene.h"
+
 typedef struct _glapp{
 	int width;
 	int height;
@@ -49,6 +51,6 @@ void setMouse(int x, int y);
 
 int  getTime();
 
-void mainloop(glapp* app, int(idle)(void*), int(render)(event*));
+void mainloop(glapp* app, int(idle)(float, event*, scene* ), int(render)(float, event*, scene*), scene* s);
 
 #endif

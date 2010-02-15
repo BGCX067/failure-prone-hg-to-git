@@ -86,7 +86,7 @@ void beginRender(event *e) {
               c.up[0], c.up[1], c.up[2]);
 }
 
-int render(event *e){
+int render(float ifps, event *e, scene *s){
     beginRender(e);
 	glTranslatef(0.0, 0.0, -5.0f);
 	//GLUquadric* quadric = gluNewQuadric();
@@ -122,7 +122,14 @@ int render(event *e){
    // gluQuadricNormals(quadric, GLU_SMOOTH);
 	bindTexture(0, tex);
 //	gluSphere(quadric,  0.5, 20, 20);
-	drawVBO(duck->meshes[0].tris[0].indicesCount, duck->meshes[0].tris[0].vboId, duck->meshes[0].tris[0].indicesId, duck->meshes[0].tris[0].vertexFormatId );
+	mesh *m = duck->meshes->first->data;
+	triangles* t = m->tris->first->data;
+	printf("draw vbo\n");
+	drawVBO(t->indicesCount, t->vboId, t->indicesId, t->vertexFormatId );
+
+	beginGUI();
+		doButton(NULL, NULL, NULL, 0);
+	endGUI();
 
     glFinish();
     glFlush();
@@ -199,7 +206,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
  	initCamera(&c);
  	
     tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP));
-	normalMap = initializeTexture("data/textures/normal_map.tga", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
+	normalMap = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
 	phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
  	tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
 	
@@ -216,8 +223,8 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	//bindShader(phong);*/
 
 	duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
-	createVBO(&duck->meshes[0]);
-
+	createVBO(duck->meshes->first->data);
+	initializeGUI(800, 600);
 	return r;
 }
 

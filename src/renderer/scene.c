@@ -47,9 +47,9 @@ scene* initializeDae(char* filename){
 		return NULL;
 	}
 
-	scene* s = dlmalloc(sizeof(scene));
-	s->meshCount  = 0;
-	s->textureCount = 0;
+	scene* s = initializeScene();//dlmalloc(sizeof(scene));
+	//s->meshCount  = 0;
+	//s->textureCount = 0;
 
 	ezxml_t library_images = ezxml_child(dae, "library_images");
 	if (library_images){
@@ -73,36 +73,51 @@ scene* initializeDae(char* filename){
 			}
 		}
 		
-		s->meshes = dlmalloc(sizeof(mesh)*s->meshCount);
+		//s->meshes = dlmalloc(sizeof(mesh)*s->meshCount);
+		//  s->meshes = dlmalloc(sizeof(mesh*)*MAX_MESHES_PER_SCENE);
+		//  for (int j = 0; j < s->meshCount; j++)
+		//  	s->meshes[j] = dlmalloc(sizeof(mesh));
 
 		for(geometry = ezxml_child(library_geometries, "geometry"); geometry; geometry = geometry->next){
-			ezxml_t mesh;
+			ezxml_t meshxml;
 			int i = 0;
-			for(mesh = ezxml_child(geometry, "mesh"); mesh; mesh = mesh->next){
-				ezxml_t tri;
-				s->meshes[i].trianglesCount = 0;
-				for( tri = ezxml_child(mesh, "triangles");  tri; tri = tri->next){
-					s->meshes[i].trianglesCount++;
+			for(meshxml = ezxml_child(geometry, "mesh"); meshxml; meshxml = meshxml->next){
+				mesh* m = dlmalloc(sizeof(mesh));
+				ezxml_t trixml;
+				m->trianglesCount = 0;
+				for( trixml = ezxml_child(meshxml, "triangles");  trixml; trixml = trixml->next){
+					m->trianglesCount++;
 				}
-				s->meshes[i].tris = dlmalloc(sizeof(triangles)*s->meshes[i].trianglesCount);
+				//TODO passar  destrutor?
+				printf("inicializando lista\n");
+				m->tris = fplist_init(NULL, NULL); //dlmalloc(sizeof(triangles)*s->meshes[i]->trianglesCount);
 				int triCount = 0;
-				for (tri = ezxml_child(mesh, "triangles"); tri; tri = tri->next){
-					initializeTriangles( &(s->meshes[i].tris[triCount]) );
-					int count = atoi( ezxml_attr(tri, "count"))*3;
-					s->meshes[i].tris[triCount].indicesCount  = count;
+				triangles* tri;
+				for (trixml = ezxml_child(meshxml, "triangles"); trixml; trixml = trixml->next){
+					printf("lendo triangulo \n");
+					triangles* tri = dlmalloc(sizeof(triangles));
+					//TODO memset?
+					printf("initializando triangulo \n");
+					initializeTriangles( tri );
+					printf("triangulo inicializado \n");
+					int count = atoi( ezxml_attr(trixml, "count"))*3;
+					printf("vai receber count: %d \n", count);
+					tri->indicesCount  = count;
+					printf("recebeu count \n");
 					//TODO pode ser short int
-					s->meshes[i].tris[triCount].indices = dlmalloc( sizeof(unsigned int)*count );
-					ezxml_t p = ezxml_child(tri, "p");
+					tri->indices = dlmalloc( sizeof(unsigned int)*count );
+					printf("alocou  indices\n");
+					ezxml_t p = ezxml_child(trixml, "p");
 					char* tok  = strtok(p->txt, " ");
 					int k = 0;
 					while(tok != NULL){
-						s->meshes[i].tris[triCount].indices[k] = atoi(tok);
+						tri->indices[k] = atoi(tok);
 						tok = strtok(NULL, " ");
 						k++;
 					}
 					printf("leu os indices\n");
 					
-					ezxml_t input = ezxml_child(tri, "input");
+					ezxml_t input = ezxml_child(trixml, "input");
 					int texSetIndices = -1;
 
 					while(input){
@@ -117,14 +132,14 @@ scene* initializeDae(char* filename){
 						printf("sourceNAme: %s  semantic: %s  \n", sourceName, semantic);
 						if (strcmp(semantic, "VERTEX") == 0){
 							printf(" Vertex \n");
-							ezxml_t source = getVertexSource(sourceName, mesh);
+							ezxml_t source = getVertexSource(sourceName, meshxml);
 							if (source){
 								printf("source \n");
 								ezxml_t floatArray = ezxml_child(source, "float_array");
 								if (floatArray){
 									printf("floatArray\n");
-									s->meshes[i].tris[triCount].verticesCount = atoi(ezxml_attr(floatArray, "count"));
-									getFloatArray( s->meshes[i].tris[triCount].vertices, floatArray->txt, atoi(ezxml_attr(floatArray, "count")) );
+									tri->verticesCount = atoi(ezxml_attr(floatArray, "count"));
+									getFloatArray( tri->vertices, floatArray->txt, atoi(ezxml_attr(floatArray, "count")) );
 								}else{
 									ezxml_t vertexInput;
 									printf("vertexInput\n");
@@ -137,12 +152,12 @@ scene* initializeDae(char* filename){
 													sourceName[k-1] = sourceName[k];
 												sourceName[strlen(sourceName)-1] = '\0';
 											}
-											ezxml_t source = getSource(sourceName, mesh);
+											ezxml_t source = getSource(sourceName, meshxml);
 											if (source){
 												ezxml_t float_array = ezxml_child(source, "float_array");
 												if (float_array){
-													s->meshes[i].tris[triCount].verticesCount = atoi(ezxml_attr(float_array, "count"));
-													getFloatArray(&(s->meshes[i].tris[triCount].vertices), float_array->txt, atoi(ezxml_attr(float_array, "count")));
+													tri->verticesCount = atoi(ezxml_attr(float_array, "count"));
+													getFloatArray(&(tri->vertices), float_array->txt, atoi(ezxml_attr(float_array, "count")));
 												}
 											}
 										}
@@ -152,32 +167,32 @@ scene* initializeDae(char* filename){
 								printf("nao achou o source %s \n", sourceName);
 						}
 						else if ( strcmp(semantic,  "NORMAL") == 0){
-							ezxml_t source = getSource(sourceName, mesh);
+							ezxml_t source = getSource(sourceName, meshxml);
 							if (source){
 								ezxml_t float_array = ezxml_child(source,  "float_array");
 								if (float_array){
-									s->meshes[i].tris[triCount].normalsCount = atoi(ezxml_attr(float_array, "count"));
-									getFloatArray(&(s->meshes[i].tris[triCount].normals), float_array->txt, s->meshes[i].tris[triCount].normalsCount);
+									tri->normalsCount = atoi(ezxml_attr(float_array, "count"));
+									getFloatArray(&(tri->normals), float_array->txt, tri->normalsCount);
 								}
 							}
 						}
 						else if ( strcmp(semantic,  "TANGENT") == 0){
-							ezxml_t source = getSource(sourceName, mesh);
+							ezxml_t source = getSource(sourceName, meshxml);
 							if (source){
 								ezxml_t float_array = ezxml_child(source,  "float_array");
 								if (float_array){
-									s->meshes[i].tris[triCount].tangentsCount = atoi(ezxml_attr(float_array, "count"));
-									getFloatArray(&(s->meshes[i].tris[triCount].tangents), float_array->txt, s->meshes[i].tris[triCount].tangentsCount);
+									tri->tangentsCount = atoi(ezxml_attr(float_array, "count"));
+									getFloatArray(&(tri->tangents), float_array->txt, tri->tangentsCount);
 								}
 							}
 						}
 						else if ( strcmp(semantic,  "BINORMAL") == 0){
-							ezxml_t source = getSource(sourceName, mesh);
+							ezxml_t source = getSource(sourceName, meshxml);
 							if (source){
 								ezxml_t float_array = ezxml_child(source,  "float_array");
 								if (float_array){
-									s->meshes[i].tris[triCount].binormalsCount = atoi(ezxml_attr(float_array, "count"));
-									getFloatArray(&(s->meshes[i].tris[triCount].binormals), float_array->txt, s->meshes[i].tris[triCount].binormalsCount);
+									tri->binormalsCount = atoi(ezxml_attr(float_array, "count"));
+									getFloatArray(&(tri->binormals), float_array->txt, tri->binormalsCount);
 								}
 							}
 						}
@@ -186,7 +201,7 @@ scene* initializeDae(char* filename){
 							texCoord* texSet = dlmalloc(sizeof(texCoord));
 							texSet->set = atoi( ezxml_attr(input, "set"));
 							printf("texcoord set: %d\n", texSet->set);
-							ezxml_t source = getSource(sourceName, mesh);
+							ezxml_t source = getSource(sourceName, meshxml);
 							if (source){
 								printf("achou o source\n");
 								ezxml_t float_array = ezxml_child(source, "float_array");
@@ -216,18 +231,19 @@ scene* initializeDae(char* filename){
 								
 							}
 							printf("lido components:%d \n", texSet->components);
-							s->meshes[i].tris[triCount].numTexSets++;
+							tri->numTexSets++;
 							texSetIndices++;
-							s->meshes[i].tris[triCount].texCoords[texSetIndices] = texSet;
-							s->meshes[i].tris[triCount].totalAttrs++;
+							tri->texCoords[texSetIndices] = texSet;
+							tri->totalAttrs++;
 						}
 						input = input->next;
 
 					}
-
+					fplist_insback(tri, m->tris);
 					triCount++;
 				}
 				i++;
+				fplist_insback(m, s->meshes);
 			}
 		}
 
@@ -248,3 +264,17 @@ void initializeTriangles(triangles* tri){
 
 }
 
+int addMesh(scene* s, mesh *m){
+	
+	return fplist_insback(s->meshes, m );
+}
+
+scene* initializeScene(){
+
+	scene * s = dlmalloc(sizeof(scene));
+	memset(s, sizeof(scene),  0);
+	//TODO deixa null aqui?
+	s->meshes = fplist_init(NULL,  NULL);
+	s->nodes = fplist_init(NULL, NULL);
+	return s;
+}
