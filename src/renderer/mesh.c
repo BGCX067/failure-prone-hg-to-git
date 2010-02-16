@@ -10,6 +10,7 @@ void createVBO(mesh* m){
 	fpnode *n = m->tris->first;
 	triangles* tri = NULL;
 	while( n != NULL ){
+		printf("n nao eh null\n");
 		tri =  n->data;
 
 		vertexAttribute** attrs = dlmalloc (sizeof (vertexAttribute*) * 16);

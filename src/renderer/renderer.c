@@ -122,14 +122,16 @@ int render(float ifps, event *e, scene *s){
    // gluQuadricNormals(quadric, GLU_SMOOTH);
 	bindTexture(0, tex);
 //	gluSphere(quadric,  0.5, 20, 20);
+	printf("lendo mesh \n");
 	mesh *m = duck->meshes->first->data;
+	printf("lendo triangles \n");
 	triangles* t = m->tris->first->data;
 	printf("draw vbo\n");
 	drawVBO(t->indicesCount, t->vboId, t->indicesId, t->vertexFormatId );
-
-	beginGUI();
-		doButton(NULL, NULL, NULL, 0);
-	endGUI();
+	printf("vbo desenhada\n");
+//	beginGUI();
+//		doButton(NULL, NULL, NULL, 0);
+//	endGUI();
 
     glFinish();
     glFlush();
@@ -224,7 +226,9 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 
 	duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
 	createVBO(duck->meshes->first->data);
-	initializeGUI(800, 600);
+	printf("initialize gui \n");
+	//initializeGUI(800, 600);
+	printf("gui done\n");
 	return r;
 }
 

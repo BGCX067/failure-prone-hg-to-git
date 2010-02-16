@@ -5,6 +5,7 @@
 #include "renderer/renderer.h"
 #include "renderer/scene.h"
 #include "renderer/mesh.h"
+#include "util/fplist.h"
 
 int idle(float ifps, event* e, scene* s){
 	
@@ -27,7 +28,10 @@ int main(){
 	renderer* renderer  = initializeRenderer(app->width, app->height, 1.0, 1000.0, 75.0 );
 	scene* s = initializeScene();
 
-//	mesh *m =  
+	triangles*  t  = dlmalloc(sizeof(triangles));
+	memset(t, 0, sizeof(triangles));
+	mesh *quad = dlmalloc(sizeof(mesh));
+	addMesh(s, quad);
 	
 	mainloop(app, idle, render, s );
 

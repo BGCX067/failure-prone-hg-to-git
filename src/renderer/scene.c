@@ -257,10 +257,7 @@ scene* initializeDae(char* filename){
 
 void initializeTriangles(triangles* tri){
 
-	tri->totalAttrs = tri->numTexSets = tri->indicesCount = tri->verticesCount = tri->normalsCount = tri->tangentsCount = tri->binormalsCount = 0;
-	tri->indices = tri->vertices = tri->normals = tri->tangents = tri->binormals = NULL;
-	for (int i = 0; i < MAX_TEXCOORDS; i++)
-		tri->texCoords[i] = NULL;
+	memset(tri, 0, sizeof(triangles));
 
 }
 
