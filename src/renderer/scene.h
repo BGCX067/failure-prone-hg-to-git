@@ -26,7 +26,7 @@ typedef struct _scene{
 void initializeTriangles(triangles* tri);
 
 int addMesh(scene* s, mesh *m);
-int addMesh(scene* s, mesh *m);
+int addNode(scene* s, node *m);
 
 scene* initializeDae(char* filename);
 
