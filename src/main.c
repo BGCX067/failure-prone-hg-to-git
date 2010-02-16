@@ -6,6 +6,15 @@
 #include "renderer/scene.h"
 #include "renderer/mesh.h"
 #include "util/fplist.h"
+#include "util/malloc.h"
+
+float    genericSpriteVerts[] = {
+	-10.0, -10.0, 0.0,
+	10.0, -10.0, 0.0,
+	0.0,  10.0, 0.0 };
+//	10.0,  10.0, 0.0 };
+
+unsigned int indices[] = { 0, 1, 2};
 
 int idle(float ifps, event* e, scene* s){
 	
@@ -30,7 +39,13 @@ int main(){
 
 	triangles*  t  = dlmalloc(sizeof(triangles));
 	memset(t, 0, sizeof(triangles));
+	t->indicesCount = 3;
+	t->verticesCount = 9;
+	t->vertices =  genericSpriteVerts;
+	t->indices = indices;
+
 	mesh *quad = dlmalloc(sizeof(mesh));
+	fplist_insback(quad->tris, t);
 	addMesh(s, quad);
 	
 	mainloop(app, idle, render, s );

@@ -8,7 +8,6 @@ typedef struct _fpnode {
 }fpnode;
 
 void fpnode_destroy(fpnode* n, void (*destroy)(void*));
-fpnode* fpnode_create(void* (*create)());
 
 typedef struct _fplist {
     fpnode *first;
