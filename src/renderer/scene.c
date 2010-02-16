@@ -258,12 +258,18 @@ scene* initializeDae(char* filename){
 void initializeTriangles(triangles* tri){
 
 	memset(tri, 0, sizeof(triangles));
+	tri->verticesComponents = 3;
 
 }
 
 int addMesh(scene* s, mesh *m){
 	return fplist_insback(m, s->meshes );
 }
+
+int addNode(scene* s, node* n){
+	return fplist_insback(n, s->nodes);
+}
+
 
 scene* initializeScene(){
 

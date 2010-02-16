@@ -165,6 +165,10 @@ int getKeyCode(int key){
 		case XK_Up: 	ret = KEY_UP; break;
 		case XK_Right:	ret = KEY_RIGHT; break;
 		case XK_Down:	ret = KEY_DOWN; break;
+		case XK_a:	ret = KEY_A; break;
+		case XK_s:	ret = KEY_S; break;
+		case XK_d:	ret = KEY_D; break;
+		case XK_w:	ret = KEY_W; break;
 	}
 
 	return ret;

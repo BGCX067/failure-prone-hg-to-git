@@ -9,16 +9,39 @@
 #include "util/malloc.h"
 
 float    genericSpriteVerts[] = {
-	-10.0, -10.0, 0.0,
-	10.0, -10.0, 0.0,
-	0.0,  10.0, 0.0 };
-//	10.0,  10.0, 0.0 };
+	0.0, 0.0,
+	50.0, 0.0, 
+	0.0,  50.0,
+	50.0,  50.0,  };
 
-unsigned int indices[] = { 0, 1, 2};
+unsigned int indices[] = { 0, 1, 2, 3, 2, 1};
+
+node player;
 
 int idle(float ifps, event* e, scene* s){
 	
-	
+	if (e->type & KEYBOARD_EVENT){
+		if (e->keys[KEY_D]){
+			player.pos[0] +=3;
+			if (player.pos[0] > 800)
+				player.pos[0] = 800;
+		}
+		if (e->keys[KEY_A]){
+			player.pos[0] -= 3;
+			if (player.pos[0] < 0)
+				player.pos[0] = 0;
+		}
+		if  (e->keys[KEY_W]){
+			player.pos[1] += 3;
+			if (player.pos[1] > 600)
+				player.pos[1] = 600;
+		}
+		if (e->keys[KEY_S]){
+			player.pos[1]  -= 3;
+			if (player.pos[1] < 0)
+				player.pos[1] = 0;
+		}
+	}
 
 	return 1;
 }
@@ -39,15 +62,24 @@ int main(){
 
 	triangles*  t  = dlmalloc(sizeof(triangles));
 	memset(t, 0, sizeof(triangles));
-	t->indicesCount = 3;
-	t->verticesCount = 9;
+	t->indicesCount = 6;
+	t->verticesComponents = 2;
+	t->verticesCount = 8;
 	t->vertices =  genericSpriteVerts;
 	t->indices = indices;
 
+	player.pos[0] =  400;  player.pos[1] = 300; player.pos[2] =  0;
+
 	mesh *quad = dlmalloc(sizeof(mesh));
-    quad->tris = fplist_init(NULL, dlfree);
-	fplist_insback(t, quad->tris);
+	player.model = quad;
+	quad->trianglesCount = 1;
+	quad->tris = fplist_init(NULL, dlfree);
+	fplist_insback( t, quad->tris);
+	createVBO(quad);
+    //quad->tris = fplist_init(NULL, dlfree);
+	//fplist_insback(t, quad->tris);
 	addMesh(s, quad);
+	addNode(s, &player);
 	
 	mainloop(app, idle, render, s );
 
@@ -55,3 +87,6 @@ int main(){
 	free(app);
 	return 0;
 }
+
+
+

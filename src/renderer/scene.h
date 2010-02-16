@@ -6,7 +6,7 @@
 #include "../math/vec3.h"
 
 typedef struct _node{
-	mesh* m;
+	mesh* model;
 
 	vec3 pos;	
 
@@ -26,6 +26,7 @@ typedef struct _scene{
 void initializeTriangles(triangles* tri);
 
 int addMesh(scene* s, mesh *m);
+int addNode(scene* s, node *m);
 
 scene* initializeDae(char* filename);
 
