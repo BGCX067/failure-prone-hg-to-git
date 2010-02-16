@@ -7,7 +7,7 @@ void fpnode_destroy(fpnode* n, void (*destroy)(void*)){
     dlfree(n);
 }
 
-fplist* fplist_init(void* (*_create)(), void (*dest)(void*)) {
+fplist* fplist_init(void* (*_create)(void*), void (*dest)(void*)) {
     fplist *l = (fplist*) dlmalloc(sizeof(fplist));
     l->first = NULL;
     l->last= NULL;
@@ -60,15 +60,18 @@ void fplist_insfront(void *data, fplist *l) {
 
 int fplist_insback(void *data, fplist *l) {
     fpnode* n = (fpnode*) dlmalloc(sizeof(fpnode));
-    if(l->create)
+    if(l->create) {
         n->data = l->create(data);
-    else
+    }
+    else {
         n->data = data;
+    }
 
     n->next = NULL;
     
     /* Primeiro elemento */
     if(!l->first) {
+        printf("!l->first");
         l->first = n;
         l->last = n;
         n->prev = NULL;

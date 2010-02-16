@@ -171,7 +171,7 @@ int getKeyCode(int key){
 }
 
 
-void mainloop(glapp* app, int(idle)(void* ), int(render)(event*) ){
+void mainloop(glapp* app, int(idle)(float, event*, scene *), int(render)(float, event*, scene*), scene* s ){
     event evt;
     memset(evt.keys, 0, 512*sizeof(int));
 	KeySym key;
@@ -239,13 +239,14 @@ void mainloop(glapp* app, int(idle)(void* ), int(render)(event*) ){
 
 
 		if (idle)
-			(*idle)( NULL );
+			(*idle)( ifps, &evt, s );
 
 		if (render)
-			(*render)(&evt);
+			(*render)(ifps, &evt, s);
+
 		glXSwapBuffers(display, window);
 		evt.button &= ~(BUTTON_UP | BUTTON_DOWN);
-        setMouse(app->width/2, app->height/2);
+        	setMouse(app->width/2, app->height/2);
 	}
 }
 
