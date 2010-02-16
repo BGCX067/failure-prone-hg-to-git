@@ -145,7 +145,8 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	memset(r->textures, 0, MAX_TEXTURES*sizeof(texture*));
 	//memset(r->shaders, 0, MAX_SHADERS*sizeof(shader*));
     r->shaders = fparray_init(NULL, NULL, sizeof(shader));
-	memset(r->framebuffers, 0, MAX_FRAMEBUFFERS*sizeof(framebuffer*));
+	//memset(r->framebuffers, 0, MAX_FRAMEBUFFERS*sizeof(framebuffer*));
+    r->framebuffers = fparray_init(NULL, dlfree, sizeof(framebuffer));
 	r->fovy = fovy;
 	r->zfar = zfar;
 	r->znear = znear;
@@ -812,14 +813,20 @@ void setShaderConstantRaw(int shaderid, const char* name, const void* data, int 
 
 unsigned int initializeFramebuffer(void* data, int width, int height, int format, int internalFormat, int type, int  flags){
 
-	framebuffer *fb = dlmalloc(sizeof(framebuffer));
+	
 	unsigned int texid = initializeTextureFromMemory(data, width,  height, TEXTURE_2D, format, internalFormat, type, flags);
 	unsigned int id;
 	glGenFramebuffers(1, &id);
 	glBindFramebuffer(GL_FRAMEBUFFER, id);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texid, 0);
 
-	r->framebuffers[id] = id;
+	//r->framebuffers[id] = id;
+    framebuffer *fb = dlmalloc(sizeof(framebuffer));
+    fb->id = id;
+    fb->width = width;
+    fb->height = height;
+
+    fparray_inspos(fb, id, r->framebuffers);
 
 	bindMainFramebuffer();
 
@@ -829,8 +836,8 @@ void bindFramebuffer(int id){
 	if (r->prevFramebuffer != id){
 		r->prevFramebuffer = id;
 		glBindFramebuffer(GL_FRAMEBUFFER, id);
-		glViewport(0, 0, r->framebuffers[id]->width,  r->framebuffers[id]->height); 
-
+        framebuffer* fb = fparray_getdata(id, r->framebuffers);
+		glViewport(0, 0, fb->width,  fb->height); 
 	}
 }
 

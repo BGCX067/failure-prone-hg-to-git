@@ -47,12 +47,17 @@ int fparray_insback(void *data, fparray *a) {
     return a->size - 1;
 }
 
+
+/* FIXME incrementar o tamanho até ser possível inserir */
 void fparray_inspos(void* data, int pos, fparray *a) {
     if(a->size + 1 == a->alloc_size) {
         /* Aloca mais espaço pro array */
         a->alloc_size *= 2;
         dlrealloc(a->data, a->elemsize*a->alloc_size);
     }
+
+    /* FIXME verificar se a posição está livre, se sim, não
+     * é necessário modificar os ponteiros               */
     /* Move os elementos para deixar a posição pos livre */
     for(int i = pos; i < a->size; i++)
         a->data[i+1] = a->data[i];

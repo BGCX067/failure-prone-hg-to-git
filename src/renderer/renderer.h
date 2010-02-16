@@ -167,17 +167,19 @@ typedef struct _renderer{
 	int prevVBO;
 	int prevFormat;
 	//vertexFormat* vertexFormats[MAX_VERTEX_FORMAT];
-    fparray *vertexFormats;
+    fparray* vertexFormats;
 
 
 	int prevShader;
 	//shader* shaders[MAX_SHADERS];
-    fparray *shaders;
+    fparray* shaders;
 	void *uniformFuncs[CONSTANT_TYPE_COUNT];
 
 	int prevFramebuffer;
-	framebuffer* framebuffers[MAX_FRAMEBUFFERS];
-
+	//framebuffer* framebuffers[MAX_FRAMEBUFFERS];
+    fparray* framebuffers; 
+    
+    
 }renderer;
 
 //Primitivas mais high level do renderer FIXME: colocar em outro file?
