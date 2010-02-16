@@ -1,5 +1,6 @@
 #include "fparray.h"
 #include "malloc.h"
+#include "stdlib.h"
 
 #define INIT_SIZE 8
 
@@ -12,6 +13,7 @@ fparray* fparray_init(void* (*_create)(void*), void (*dest)(void*), int elemsize
     vec->size = 0;
     vec->elemsize = elemsize;
     vec->data = dlmalloc(INIT_SIZE*vec->elemsize);
+    memset(vec->data, 0, INIT_SIZE*vec->elemsize);
     return vec;
 }
 
@@ -55,16 +57,20 @@ void fparray_inspos(void* data, int pos, fparray *a) {
         a->alloc_size *= 2;
         dlrealloc(a->data, a->elemsize*a->alloc_size);
     }
-
-    /* FIXME verificar se a posição está livre, se sim, não
-     * é necessário modificar os ponteiros               */
-    /* Move os elementos para deixar a posição pos livre */
-    for(int i = pos; i < a->size; i++)
-        a->data[i+1] = a->data[i];
-    if(a->create)
-        a->data[pos] = a->create(data);
-    else
-        a->data[pos] = data;
+    
+    if(a->data[pos] != NULL) {
+        if (a->create)
+            a->data[pos] = a->create(data);
+        else
+            a->data[pos] = data;
+    } else {
+        for(int i = pos; i < a->size; i++)
+            a->data[i+1] = a->data[i];
+        if(a->create)
+            a->data[pos] = a->create(data);
+        else
+            a->data[pos] = data;
+    }
     a->size++;
 }
 
