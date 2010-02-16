@@ -89,9 +89,9 @@ void beginRender(event *e) {
 int render(float ifps, event *e, scene *s){
     beginRender(e);
 	glTranslatef(0.0, 0.0, -5.0f);
-	//GLUquadric* quadric = gluNewQuadric();
+//	GLUquadric* quadric = gluNewQuadric();
 	//gluQuadricDrawStyle(quadric, GLU_FILL);
-	//gluQuadricTexture(quadric, GLU_TRUE);
+//	gluQuadricTexture(quadric, GLU_TRUE);
     //gluQuadricOrientation(quadric, GLU_INSIDE);
 /*<<<<<<< local
     //gluQuadricNormals(quadric, GLU_SMOOTH);
@@ -577,6 +577,7 @@ unsigned int initializeVBO(unsigned int size, const void* data){
 //TODO usar draw rande elements pros indices
 void drawVBO(unsigned int triCount, unsigned int vertexID, unsigned int indicesID, int formatID){
 
+
 	//vertexFormat* current = r->vertexFormats[formatID];
     vertexFormat* current = fparray_getdata(formatID, r->vertexFormats);
 	//vertexFormat* prev = r->vertexFormats[r->prevFormat];
@@ -587,10 +588,12 @@ void drawVBO(unsigned int triCount, unsigned int vertexID, unsigned int indicesI
 	for ( unsigned int i = 0; i < MAX_VERTEX_ATTRS; i++ ){
 		if ( current->attributes[i] ){
 			if ( !prev->attributes[i] ){
+				printf("enabling: %d \n",  i);
 				glEnableVertexAttribArray(i);
 			}
 		}
 		if ( !current->attributes[i] && prev->attributes[i]  ){
+			printf("disabling: %d \n", i);
 			glDisableVertexAttribArray(i);
 		}
 	}
@@ -599,8 +602,10 @@ void drawVBO(unsigned int triCount, unsigned int vertexID, unsigned int indicesI
 	if ( r->prevVBO != vertexID ){
 		r->prevVBO = vertexID;
 		for ( unsigned int i = 0; i < MAX_VERTEX_ATTRS; i++ )
-			if ( current->attributes[i])
+			if ( current->attributes[i]){
+				printf("vertex attrib pointer: %d %d \n", i, current->attributes[i]->components);
 				glVertexAttribPointer(i, current->attributes[i]->components, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(current->attributes[i]->offset));
+				}
 	}
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesID);

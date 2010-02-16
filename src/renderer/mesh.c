@@ -27,7 +27,7 @@ void createVBO(mesh* m){
 		attrs[ATTR_VERTEX]->size =  tri->verticesCount*sizeof(float);
 		attrs[ATTR_VERTEX]->type = ATTR_VERTEX;
 		attrs[ATTR_VERTEX]->offset = 0;
-		attrs[ATTR_VERTEX]->components = 3;
+		attrs[ATTR_VERTEX]->components = tri->verticesComponents;
 		unsigned int offset = attrs[ATTR_VERTEX]->size;
 
 		if (tri->normals){
