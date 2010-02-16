@@ -171,7 +171,8 @@ typedef struct _renderer{
 
 
 	int prevShader;
-	shader* shaders[MAX_SHADERS];
+	//shader* shaders[MAX_SHADERS];
+    fparray *shaders;
 	void *uniformFuncs[CONSTANT_TYPE_COUNT];
 
 	int prevFramebuffer;
