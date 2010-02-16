@@ -141,7 +141,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	r = (renderer*) dlmalloc(sizeof(renderer));
 	//FIXME se usar linkedlist ou map remover os memsets
 	//memset(r->vertexFormats, 0, MAX_VERTEX_FORMAT*sizeof(vertexFormat*));
-    r->vertexFormats = fplist_init(NULL, destroyVertexFormat);
+    r->vertexFormats = fparray_init(NULL, destroyVertexFormat, sizeof(vertexFormat));
 	memset(r->textures, 0, MAX_TEXTURES*sizeof(texture*));
 	memset(r->shaders, 0, MAX_SHADERS*sizeof(shader*));
 	memset(r->framebuffers, 0, MAX_FRAMEBUFFERS*sizeof(framebuffer*));
@@ -527,10 +527,9 @@ unsigned int initializeVBO(unsigned int size, const void* data){
 void drawVBO(unsigned int triCount, unsigned int vertexID, unsigned int indicesID, int formatID){
 
 	//vertexFormat* current = r->vertexFormats[formatID];
-    vertexFormat* current = fplist_getdata(formatID, r->vertexFormats);
+    vertexFormat* current = fparray_getdata(formatID, r->vertexFormats);
 	//vertexFormat* prev = r->vertexFormats[r->prevFormat];
-    vertexFormat* prev = fplist_getdata(r->prevFormat, r->vertexFormats);
-
+	vertexFormat* prev = fparray_getdata(r->prevFormat, r->vertexFormats);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexID);
 
 	//primeiro ativa e desativa as vertex attrib arrays necessarias
@@ -576,7 +575,7 @@ unsigned int addVertexFormat(vertexAttribute** attrs,  unsigned int num){
 	}
 	r->vertexFormats[indice] = format;
 	return indice;*/
-    return fplist_insback(format, r->vertexFormats);
+    return fparray_insback(format, r->vertexFormats);
 }
 
 

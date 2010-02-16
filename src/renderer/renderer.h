@@ -6,6 +6,7 @@
 #include <GL/glu.h>
 #include "../glapp.h"
 #include "../util/fplist.h"
+#include "../util/fparray.h"
 
 #define MAX_VERTEX_ATTRS 16
 #define MAX_TEXTURES 256
@@ -166,7 +167,8 @@ typedef struct _renderer{
 	int prevVBO;
 	int prevFormat;
 	//vertexFormat* vertexFormats[MAX_VERTEX_FORMAT];
-    fplist *vertexFormats;
+    fparray *vertexFormats;
+
 
 	int prevShader;
 	shader* shaders[MAX_SHADERS];

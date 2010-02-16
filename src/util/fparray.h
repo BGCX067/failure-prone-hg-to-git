@@ -14,7 +14,9 @@ typedef struct _fparray {
 fparray* fparray_init(void* (*_create)(void*), void (*dest)(void*), int elemsize);
 void fparray_destroy(fparray *a);
 
-void fparray_insback(void *data, fparray *a);
+void* fparray_getdata(int index, fparray *a);
+
+int fparray_insback(void *data, fparray *a);
 void fparray_inspos(void* data, int pos, fparray *a);
 void fparray_rmback(fparray *a);
 void fparray_rmpos(int pos, fparray *a);

@@ -23,7 +23,11 @@ void fparray_destroy(fparray *a) {
     a = NULL;
 }
 
-void fparray_insback(void *data, fparray *a) {
+void* fparray_getdata(int index, fparray *a) {
+    return a->data[index];
+}
+
+int fparray_insback(void *data, fparray *a) {
     if(a->size < a->alloc_size) {
         if(a->create)
             a->data[a->size] = a->create(data);
@@ -39,6 +43,8 @@ void fparray_insback(void *data, fparray *a) {
             a->data[a->size] = data;
     }
     a->size++;
+
+    return a->size - 1;
 }
 
 void fparray_inspos(void* data, int pos, fparray *a) {
