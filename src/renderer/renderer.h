@@ -194,6 +194,11 @@ typedef struct _rect{
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy);
 
 int render(float ifps, event *e, scene* s);
+void begin2d();
+void end2d();
+
+void disableDepth();
+void enableDepth();
 
 //texturas
 unsigned int initializeTextureFromMemory(void* data, int x, int  y, int  target, int imageFormat, int internalFormat, int type, int flags);

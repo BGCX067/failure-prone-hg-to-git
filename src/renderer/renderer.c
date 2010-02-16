@@ -7,7 +7,7 @@
 #include "../util/image.h"
 #include "../util/malloc.h"
 #include "../util/textfile.h"
-#include "mesh.h";
+#include "mesh.h"
 #include <GL/gl.h>
 #include <GL/glu.h>
   
@@ -120,19 +120,24 @@ int render(float ifps, event *e, scene *s){
     glEnd();
 =======*/
    // gluQuadricNormals(quadric, GLU_SMOOTH);
+   begin2d();
 	bindTexture(0, tex);
+	fpnode* iterator = s->nodes->first;
+	while ( iterator){
 //	gluSphere(quadric,  0.5, 20, 20);
-	printf("lendo mesh \n");
-	mesh *m = duck->meshes->first->data;
-	printf("lendo triangles \n");
-	triangles* t = m->tris->first->data;
-	printf("draw vbo\n");
-	drawVBO(t->indicesCount, t->vboId, t->indicesId, t->vertexFormatId );
-	printf("vbo desenhada\n");
+		node* n = iterator->data;
+		mesh *m = n->model;
+		triangles* t = m->tris->first->data;
+		glPushMatrix();
+		glTranslatef(n->pos[0], n->pos[1], n->pos[2]);
+		drawVBO(t->indicesCount, t->vboId, t->indicesId, t->vertexFormatId );
+		glPopMatrix();
 //	beginGUI();
 //		doButton(NULL, NULL, NULL, 0);
 //	endGUI();
-
+		iterator = iterator->next;
+	}
+	end2d();
     glFinish();
     glFlush();
 }
@@ -231,6 +236,52 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	printf("gui done\n");
 	return r;
 }
+
+void begin2d(){
+
+	glPushAttrib( GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+//	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	
+	glDisable(GL_STENCIL_TEST);
+	glStencilMask( 0 );
+	disableDepth();
+
+//	glEnable(GL_BLEND);
+//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+//	glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
+
+	glMatrixMode( GL_MODELVIEW );
+        glPushMatrix();
+        glLoadIdentity();
+
+	//coloca no modo ortho
+	glMatrixMode( GL_PROJECTION );
+    	glPushMatrix();
+        glLoadIdentity();
+	//TODO info da GUI na struct
+	gluOrtho2D( 0, r->viewPortWidth, 0, r->viewPortHeight);
+}
+
+void end2d(){
+	glPopAttrib();
+	enableDepth();
+	glMatrixMode( GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode( GL_MODELVIEW);
+	glPopMatrix();
+}
+
+void enableDepth(){
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+}
+
+void disableDepth(){
+	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
+}
+
 
 //funcao auxiliar pra tirar o codigo repetido nas duas funcoes abaixo
 ////TODO melhorar isso =[
