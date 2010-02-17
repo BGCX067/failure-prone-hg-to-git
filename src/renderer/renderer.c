@@ -148,8 +148,10 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	//memset(r->vertexFormats, 0, MAX_VERTEX_FORMAT*sizeof(vertexFormat*));
     r->vertexFormats = fparray_init(NULL, destroyVertexFormat, sizeof(vertexFormat));
 	memset(r->textures, 0, MAX_TEXTURES*sizeof(texture*));
-	memset(r->shaders, 0, MAX_SHADERS*sizeof(shader*));
-	memset(r->framebuffers, 0, MAX_FRAMEBUFFERS*sizeof(framebuffer*));
+	//memset(r->shaders, 0, MAX_SHADERS*sizeof(shader*));
+    r->shaders = fparray_init(NULL, NULL, sizeof(shader));
+	//memset(r->framebuffers, 0, MAX_FRAMEBUFFERS*sizeof(framebuffer*));
+    r->framebuffers = fparray_init(NULL, dlfree, sizeof(framebuffer));
 	r->fovy = fovy;
 	r->zfar = zfar;
 	r->znear = znear;
@@ -212,10 +214,10 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 
  	initCamera(&c);
  	
-    tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP));
-	normalMap = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
+    	tex = initializeTexture("data/textures/cthulhuship.png", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE,  (MIPMAP));
+//	normalMap = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
 	phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
- 	tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
+// 	tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
 	
 /*	phong = initializeShader( readTextFile("data/shaders/ppphong.vert"), readTextFile("data/shaders/ppphong.frag") );
 	float color[] = { 1.0, 0.0, 0.0, 1.0 };
@@ -246,8 +248,8 @@ void begin2d(){
 	glStencilMask( 0 );
 	disableDepth();
 
-//	glEnable(GL_BLEND);
-//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 //	glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
 
@@ -767,7 +769,8 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 	}
 
 	dlfree(name);
-	r->shaders[shaderProgram] = newShader;
+	//r->shaders[shaderProgram] = newShader;
+    fparray_inspos(newShader, shaderProgram, r->shaders);
 	glUseProgram(r->prevShader);
 	
 	return shaderProgram;
@@ -778,18 +781,18 @@ void bindShader(unsigned int program){
 		r->prevShader = program;
 		glUseProgram(program);
 	}
-
-	for(unsigned int i = 0; i < r->shaders[program]->numUniforms; i++ ){
-		if (r->shaders[program]->uniforms[i]->dirty ){
-			r->shaders[program]->uniforms[i]->dirty = 0;
-			if (r->shaders[program]->uniforms[i]->type >= CONSTANT_MAT2){
-				((UNIFORM_MAT_FUNC) uniformFuncs[r->shaders[program]->uniforms[i]->type])(r->shaders[program]->uniforms[i]->location, r->shaders[program]->uniforms[i]->size, GL_TRUE, (float *) r->shaders[program]->uniforms[i]->data);
+    shader *shdr = fparray_getdata(program, r->shaders);
+	for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
+		if (shdr->uniforms[i]->dirty ){
+			shdr->uniforms[i]->dirty = 0;
+			if (shdr->uniforms[i]->type >= CONSTANT_MAT2){
+				((UNIFORM_MAT_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_TRUE, (float *) shdr->uniforms[i]->data);
 			} else {
-				((UNIFORM_FUNC) uniformFuncs[r->shaders[program]->uniforms[i]->type])(r->shaders[program]->uniforms[i]->location, r->shaders[program]->uniforms[i]->size, r->shaders[program]->uniforms[i]->data);
+				((UNIFORM_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
 				//((UNIFORM_FUNC) uniformFuncs[2])(0, 1, color);
 				//glUniform4fv(shaders[program]->uniforms[i]->location, shaders[program]->uniforms[i]->size, (GLfloat*) shaders[program]->uniforms[i]->data);
 			}
-		}else if ( r->shaders[program]->uniforms[1]->semantic == EYEPOS){
+		}else if ( shdr->uniforms[1]->semantic == EYEPOS){
 			setShaderConstant3f(program, "EyePosition",  c.pos);
 		//}else if (r->shaders[program]->uniforms[i]->semantic == TIME)
 			//setShaderConstant1f(program, "Time", TIMER::getInstance().getElapsedTime());
@@ -853,11 +856,12 @@ void setShaderConstant4f(int shaderid, const char *name, const float constant[])
 }
 
 void setShaderConstantRaw(int shaderid, const char* name, const void* data, int size){
-	for(unsigned int i = 0; i < r->shaders[shaderid]->numUniforms; i++ ){
-		if (strcmp(name, r->shaders[shaderid]->uniforms[i]->name ) == 0 ){
-			if (memcmp(r->shaders[shaderid]->uniforms[i]->data, data, size)){
-				memcpy(r->shaders[shaderid]->uniforms[i]->data, data, size);
-				r->shaders[shaderid]->uniforms[i]->dirty = 1;
+    shader *shdr = fparray_getdata(shaderid, r->shaders);
+	for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
+		if (strcmp(name, shdr->uniforms[i]->name ) == 0 ){
+			if (memcmp(shdr->uniforms[i]->data, data, size)){
+				memcpy(shdr->uniforms[i]->data, data, size);
+				shdr->uniforms[i]->dirty = 1;
 			}
 		}
 	}
@@ -865,14 +869,20 @@ void setShaderConstantRaw(int shaderid, const char* name, const void* data, int 
 
 unsigned int initializeFramebuffer(void* data, int width, int height, int format, int internalFormat, int type, int  flags){
 
-	framebuffer *fb = dlmalloc(sizeof(framebuffer));
+	
 	unsigned int texid = initializeTextureFromMemory(data, width,  height, TEXTURE_2D, format, internalFormat, type, flags);
 	unsigned int id;
 	glGenFramebuffers(1, &id);
 	glBindFramebuffer(GL_FRAMEBUFFER, id);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texid, 0);
 
-	r->framebuffers[id] = id;
+	//r->framebuffers[id] = id;
+    framebuffer *fb = dlmalloc(sizeof(framebuffer));
+    fb->id = id;
+    fb->width = width;
+    fb->height = height;
+
+    fparray_inspos(fb, id, r->framebuffers);
 
 	bindMainFramebuffer();
 
@@ -882,8 +892,8 @@ void bindFramebuffer(int id){
 	if (r->prevFramebuffer != id){
 		r->prevFramebuffer = id;
 		glBindFramebuffer(GL_FRAMEBUFFER, id);
-		glViewport(0, 0, r->framebuffers[id]->width,  r->framebuffers[id]->height); 
-
+        framebuffer* fb = fparray_getdata(id, r->framebuffers);
+		glViewport(0, 0, fb->width,  fb->height); 
 	}
 }
 
