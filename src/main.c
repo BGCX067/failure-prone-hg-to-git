@@ -93,6 +93,8 @@ int main(){
 	quad->tris = fplist_init(NULL, dlfree);
 	fplist_insback( t, quad->tris);
 	createVBO(quad);
+    //quad->tris = fplist_init(NULL, dlfree);
+	//fplist_insback(t, quad->tris);
 	addMesh(s, quad);
 	addNode(s, &player);
 	

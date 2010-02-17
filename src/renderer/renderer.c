@@ -120,7 +120,12 @@ int render(float ifps, event *e, scene *s){
     glEnd();
 =======*/
    // gluQuadricNormals(quadric, GLU_SMOOTH);
-   begin2d();
+    fpnode *duckNode = duck->meshes->first;
+    mesh *duckMesh = duck->meshes->first->data;
+    bindTexture(0, tex);
+    triangles *duckTri = duckMesh->tris->first->data;
+    drawVBO(duckTri->indicesCount, duckTri->vboId, duckTri->indicesId, duckTri->vertexFormatId );
+/*   begin2d();
 	bindTexture(0, tex);
 	fpnode* iterator = s->nodes->first;
 	while ( iterator){
@@ -137,7 +142,7 @@ int render(float ifps, event *e, scene *s){
 //	endGUI();
 		iterator = iterator->next;
 	}
-	end2d();
+	end2d();*/
     glFinish();
     glFlush();
 }
@@ -147,7 +152,8 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	//FIXME se usar linkedlist ou map remover os memsets
 	//memset(r->vertexFormats, 0, MAX_VERTEX_FORMAT*sizeof(vertexFormat*));
     r->vertexFormats = fparray_init(NULL, destroyVertexFormat, sizeof(vertexFormat));
-	memset(r->textures, 0, MAX_TEXTURES*sizeof(texture*));
+	//memset(r->textures, 0, MAX_TEXTURES*sizeof(texture*));
+    r->textures = fparray_init(NULL, NULL, sizeof(texture));
 	//memset(r->shaders, 0, MAX_SHADERS*sizeof(shader*));
     r->shaders = fparray_init(NULL, NULL, sizeof(shader));
 	//memset(r->framebuffers, 0, MAX_FRAMEBUFFERS*sizeof(framebuffer*));
@@ -214,10 +220,10 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 
  	initCamera(&c);
  	
-    	tex = initializeTexture("data/textures/cthulhuship.png", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE,  (MIPMAP));
+//    	tex = initializeTexture("data/textures/cthulhuship.png", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE,  (MIPMAP));
 //	normalMap = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
 	phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
-// 	tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
+ 	tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
 	
 /*	phong = initializeShader( readTextFile("data/shaders/ppphong.vert"), readTextFile("data/shaders/ppphong.frag") );
 	float color[] = { 1.0, 0.0, 0.0, 1.0 };
@@ -333,41 +339,42 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
 	unsigned int textureID;
 	glGenTextures(1, &textureID);
 	glBindTexture(target, textureID);
-
+    
+    texture* prevTex = fparray_getdata(r->prevTexture, r->textures);
 	if (r->prevTexture >= 0){
-		if ( (flags & CLAMP) && !(r->textures[r->prevTexture]->flags  &CLAMP) ){
+		if ( (flags & CLAMP) && !(prevTex->flags  &CLAMP) ){
 			glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP);
 			glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP);
 			glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP);
 		}
-		if ((flags & CLAMP_TO_EDGE) && !(r->textures[r->prevTexture]->flags  &CLAMP_TO_EDGE) ){
+		if ((flags & CLAMP_TO_EDGE) && !(prevTex->flags  &CLAMP_TO_EDGE) ){
 			glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 		}
 
-		if ( (flags & NEAREST) &&  !(  r->textures[r->prevTexture]->flags & NEAREST) ){
+		if ( (flags & NEAREST) &&  !(prevTex->flags & NEAREST) ){
 			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		}
-		if ( (flags & BILINEAR) &&  !(r->textures[r->prevTexture]->flags & BILINEAR)){
+		if ( (flags & BILINEAR) &&  !(prevTex->flags & BILINEAR)){
 			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		}
-		if ( (flags & LINEAR) &&  !(r->textures[r->prevTexture]->flags & LINEAR) ){
+		if ( (flags & LINEAR) &&  !(prevTex->flags & LINEAR) ){
 			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		}
 
-		if ( (flags & ANISOTROPY_1) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_1))
+		if ( (flags & ANISOTROPY_1) && !(prevTex->flags & ANISOTROPY_1))
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0);
-		else if ((flags & ANISOTROPY_2) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_2))
+		else if ((flags & ANISOTROPY_2) && !(prevTex->flags & ANISOTROPY_2))
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0);
-		else if ((flags & ANISOTROPY_4) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_4))
+		else if ((flags & ANISOTROPY_4) && !(prevTex->flags & ANISOTROPY_4))
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
-		else if ((flags & ANISOTROPY_8) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_8))
+		else if ((flags & ANISOTROPY_8) && !(prevTex->flags & ANISOTROPY_8))
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0);
-		else if ((flags & ANISOTROPY_16) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_16))
+		else if ((flags & ANISOTROPY_16) && !(prevTex->flags & ANISOTROPY_16))
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);	
 
 		if (flags & MIPMAP)
@@ -418,8 +425,10 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
 	tex->id = textureID;
 	tex->target = target;
 
-	r->textures[textureID] = tex;
+	//r->textures[textureID] = tex;
 
+    fparray_inspos(tex, textureID, r->textures);
+    
 	if (r->prevTexture >= 0)
 		bindTexture(0, r->prevTexture);
 
@@ -433,41 +442,42 @@ unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, i
 	glGenTextures(1, &textureID);
 	glBindTexture(target, textureID);
 
+    texture* prevTex = fparray_getdata(r->prevTexture, r->textures);
 	if (r->prevTexture >= 0){
-		if ( (flags & CLAMP) && !(r->textures[r->prevTexture]->flags  &CLAMP) ){
+		if ( (flags & CLAMP) && !(prevTex->flags  &CLAMP) ){
 			glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP);
 			glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP);
 			glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP);
 		}
-		if ((flags & CLAMP_TO_EDGE) && !(r->textures[r->prevTexture]->flags  &CLAMP_TO_EDGE) ){
+		if ((flags & CLAMP_TO_EDGE) && !(prevTex->flags  &CLAMP_TO_EDGE) ){
 			glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 		}
 
-		if ( (flags & NEAREST) &&  !(  r->textures[r->prevTexture]->flags & NEAREST) ){
+		if ( (flags & NEAREST) &&  !(prevTex->flags & NEAREST) ){
 			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		}
-		if ( (flags & BILINEAR) &&  !(r->textures[r->prevTexture]->flags & BILINEAR)){
+		if ( (flags & BILINEAR) &&  !(prevTex->flags & BILINEAR)){
 			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		}
-		if ( (flags & LINEAR) &&  !(r->textures[r->prevTexture]->flags & LINEAR) ){
+		if ( (flags & LINEAR) &&  !(prevTex->flags & LINEAR) ){
 			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		}
 
-		if ( (flags & ANISOTROPY_1) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_1))
+		if ( (flags & ANISOTROPY_1) && !(prevTex->flags & ANISOTROPY_1))
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0);
-		else if ((flags & ANISOTROPY_2) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_2))
+		else if ((flags & ANISOTROPY_2) && !(prevTex->flags & ANISOTROPY_2))
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0);
-		else if ((flags & ANISOTROPY_4) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_4))
+		else if ((flags & ANISOTROPY_4) && !(prevTex->flags & ANISOTROPY_4))
 
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
-		else if ((flags & ANISOTROPY_8) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_8))
+		else if ((flags & ANISOTROPY_8) && !(prevTex->flags & ANISOTROPY_8))
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0);
-		else if ((flags & ANISOTROPY_16) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_16))
+		else if ((flags & ANISOTROPY_16) && !(prevTex->flags & ANISOTROPY_16))
 			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);	
 
 		if (flags & MIPMAP)
@@ -484,7 +494,8 @@ unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, i
 	tex->id = textureID;
 	tex->target = target;
 
-	r->textures[textureID] = tex;
+	//r->textures[textureID] = tex;
+    fparray_inspos(tex, textureID, r->textures);
 
 	if (r->prevTexture >= 0)
 		bindTexture(0, r->prevTexture);
@@ -495,65 +506,67 @@ unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, i
 }
 
 void bindTexture(int slot, int id){
+    texture* tex = fparray_getdata(id, r->textures);
+    texture* prevTex = fparray_getdata(r->prevTexture, r->textures);
 	if (r->prevTexture == -1){
 		r->prevTexture = id;
-		glEnable( r->textures[id]->target );
+		glEnable(tex->target );
 		glActiveTexture(GL_TEXTURE0 + slot);
 		//TODO nao precisa mais do enable quando usa shaders
-		glBindTexture(r->textures[id]->target, r->textures[id]->id );
+		glBindTexture(tex->target, tex->id );
 
 	}else{
-		if (r->textures[id]->target != r->textures[r->prevTexture]->target){
-			glDisable(r->textures[r->prevTexture]->target);
-			glEnable(r->textures[id]->target);
+		if (tex->target != prevTex->target){
+			glDisable(prevTex->target);
+			glEnable(tex->target);
 		}
 
 		glActiveTexture(GL_TEXTURE0 + slot);
 
-		if ( r->textures[id]->id != r->textures[r->prevTexture]->id )
-			glBindTexture(r->textures[id]->target, r->textures[id]->id );
+		if (tex->id != prevTex->id )
+			glBindTexture(tex->target, tex->id );
 
-		if ( (r->textures[id]->flags & CLAMP) && !(r->textures[r->prevTexture]->flags  &CLAMP) ){
-			glTexParameteri(r->textures[id]->target, GL_TEXTURE_WRAP_S, GL_CLAMP);
-			glTexParameteri(r->textures[id]->target, GL_TEXTURE_WRAP_T, GL_CLAMP);
-			glTexParameteri(r->textures[id]->target, GL_TEXTURE_WRAP_R, GL_CLAMP);
+		if ( (tex->flags & CLAMP) && !(prevTex->flags  &CLAMP) ){
+			glTexParameteri(tex->target, GL_TEXTURE_WRAP_S, GL_CLAMP);
+			glTexParameteri(tex->target, GL_TEXTURE_WRAP_T, GL_CLAMP);
+			glTexParameteri(tex->target, GL_TEXTURE_WRAP_R, GL_CLAMP);
 		}
-		if ((r->textures[id]->flags & CLAMP_TO_EDGE) && !(r->textures[r->prevTexture]->flags  &CLAMP_TO_EDGE) ){
-			glTexParameteri(r->textures[id]->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(r->textures[id]->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(r->textures[id]->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		if ((tex->flags & CLAMP_TO_EDGE) && !(prevTex->flags  &CLAMP_TO_EDGE) ){
+			glTexParameteri(tex->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(tex->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(tex->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 		}
 
-		if ( (r->textures[id]->flags & NEAREST) &&  !(  r->textures[r->prevTexture]-> flags & NEAREST) ){
-			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		if ( (tex->flags & NEAREST) &&  !(prevTex-> flags & NEAREST) ){
+			glTexParameteri(tex->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(tex->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		}
-		else if ( (r->textures[id]->flags & BILINEAR) &&  !(r->textures[r->prevTexture]->flags & BILINEAR)){
-			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		else if ( (tex->flags & BILINEAR) &&  !(prevTex->flags & BILINEAR)){
+			glTexParameteri(tex->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(tex->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		}
-		else if ( (r->textures[id]->flags & LINEAR) &&  !(r->textures[r->prevTexture]->flags & LINEAR) ){
-			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(r->textures[id]->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		else if ( (tex->flags & LINEAR) &&  !(prevTex->flags & LINEAR) ){
+			glTexParameteri(tex->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(tex->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		}
 
 		
 		//TODO uma maneira mais simples de 
-		if ( ((r->textures[r->prevTexture]->flags &ANISOTROPY_2) || (r->textures[r->prevTexture]->flags &ANISOTROPY_4) || (r->textures[r->prevTexture]->flags &ANISOTROPY_8) || (r->textures[r->prevTexture]->flags &ANISOTROPY_16) ) && ( !((r->textures[id]->flags & ANISOTROPY_2) || (r->textures[id]->flags & ANISOTROPY_4) || (r->textures[id]->flags & ANISOTROPY_8) || (r->textures[id]->flags & ANISOTROPY_16)  )  )){
-			glTexParameterf(r->textures[id]->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 0.0);
+		if ( ((prevTex->flags &ANISOTROPY_2) || (prevTex->flags &ANISOTROPY_4) || (prevTex->flags &ANISOTROPY_8) || (prevTex->flags &ANISOTROPY_16) ) && ( !((tex->flags & ANISOTROPY_2) || (tex->flags & ANISOTROPY_4) || (tex->flags & ANISOTROPY_8) || (tex->flags & ANISOTROPY_16)  )  )){
+			glTexParameterf(tex->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 0.0);
 			printf("anterior tinha anisotropy e atual nao tem, desativando \n");
 
 		}else{
-			if ( (r->textures[id]->flags & ANISOTROPY_1) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_1))
-				glTexParameterf(r->textures[id]->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0);
-			else if ((r->textures[id]->flags & ANISOTROPY_2) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_2))
-				glTexParameterf(r->textures[id]->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0);
-			else if ((r->textures[id]->flags & ANISOTROPY_4) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_4))
-				glTexParameterf(r->textures[id]->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
-			else if ((r->textures[id]->flags & ANISOTROPY_8) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_8))
-				glTexParameterf(r->textures[id]->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0);
-			else if ((r->textures[id]->flags & ANISOTROPY_16) && !(r->textures[r->prevTexture]->flags & ANISOTROPY_16)) 
-				glTexParameterf(r->textures[id]->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);	
+			if ( (tex->flags & ANISOTROPY_1) && !(prevTex->flags & ANISOTROPY_1))
+				glTexParameterf(tex->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0);
+			else if ((tex->flags & ANISOTROPY_2) && !(prevTex->flags & ANISOTROPY_2))
+				glTexParameterf(tex->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0);
+			else if ((tex->flags & ANISOTROPY_4) && !(prevTex->flags & ANISOTROPY_4))
+				glTexParameterf(tex->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
+			else if ((tex->flags & ANISOTROPY_8) && !(prevTex->flags & ANISOTROPY_8))
+				glTexParameterf(tex->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0);
+			else if ((tex->flags & ANISOTROPY_16) && !(prevTex->flags & ANISOTROPY_16)) 
+				glTexParameterf(tex->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);	
 		}
 
 

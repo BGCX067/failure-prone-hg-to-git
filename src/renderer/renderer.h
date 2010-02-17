@@ -162,7 +162,8 @@ typedef struct _renderer{
 	float fovy, znear, zfar;
 
 	int prevTexture;
-	texture* textures[MAX_TEXTURES];
+	//texture* textures[MAX_TEXTURES];
+    fparray* textures; 
 
 	int prevVBO;
 	int prevFormat;
