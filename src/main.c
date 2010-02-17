@@ -14,6 +14,15 @@ float    genericSpriteVerts[] = {
 	0.0,  50.0,
 	50.0,  50.0,  };
 
+float  genericTexCoords [] =  {
+
+	0.0, 0.0,
+	1.0, 0.0,
+	0.0, 1.0,
+	1.0, 1.0
+
+};
+
 unsigned int indices[] = { 0, 1, 2, 3, 2, 1};
 
 node player;
@@ -67,6 +76,14 @@ int main(){
 	t->verticesCount = 8;
 	t->vertices =  genericSpriteVerts;
 	t->indices = indices;
+	printf("configurando texsets \n");
+	t->texCoords[0] = dlmalloc(sizeof(texCoord));
+	t->numTexSets = 1;
+	t->texCoords[0]->count = 8;
+	t->texCoords[0]->set = 0;
+	t->texCoords[0]->components = 2;
+	t->texCoords[0]->texCoords = genericTexCoords;
+	printf("done  \n");
 
 	player.pos[0] =  400;  player.pos[1] = 300; player.pos[2] =  0;
 
@@ -76,11 +93,6 @@ int main(){
 	quad->tris = fplist_init(NULL, dlfree);
 	fplist_insback( t, quad->tris);
 	createVBO(quad);
-<<<<<<< local
-=======
-    //quad->tris = fplist_init(NULL, dlfree);
-	//fplist_insback(t, quad->tris);
->>>>>>> other
 	addMesh(s, quad);
 	addNode(s, &player);
 	
