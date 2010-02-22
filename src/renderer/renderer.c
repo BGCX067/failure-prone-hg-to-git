@@ -89,25 +89,16 @@ void beginRender(event *e) {
 int render(float ifps, event *e, scene *s){
     beginRender(e);
 	glTranslatef(0.0, 0.0, -5.0f);
-//	GLUquadric* quadric = gluNewQuadric();
-	//gluQuadricDrawStyle(quadric, GLU_FILL);
-//	gluQuadricTexture(quadric, GLU_TRUE);
-    //gluQuadricOrientation(quadric, GLU_INSIDE);
-/*<<<<<<< local
-    //gluQuadricNormals(quadric, GLU_SMOOTH);
-	//bindTexture(0, tex);
-    //gluSphere(quadric,  0.5, 20, 20);
-    bindTexture(0, normalMap);
-	//drawVBO(duck->meshes[0].tris[0].indicesCount, duck->meshes[0].tris[0].vboId, duck->meshes[0].tris[0].indicesId, duck->meshes[0].tris[0].vertexFormatId );
+    
     //glTranslatef(0.0, 0.0, -5.0f);
-	//GLUquadric* quadric = gluNewQuadric();
-	//gluQuadricDrawStyle(quadric, GLU_FILL);
-	//gluQuadricTexture(quadric, GLU_TRUE);
-    //gluQuadricOrientation(quadric, GLU_INSIDE);
-    //gluQuadricNormals(quadric, GLU_SMOOTH);
-    //gluSphere(quadric,  0.5, 20, 20);
-    //glNormal3f(0.0, 0.0, 1.0);
-    //glRectf(-10.0, -10.0, 10.0, 10.0);
+	/*GLUquadric* quadric = gluNewQuadric();
+	gluQuadricDrawStyle(quadric, GLU_FILL);
+	gluQuadricTexture(quadric, GLU_TRUE);
+    gluQuadricOrientation(quadric, GLU_INSIDE);
+    gluQuadricNormals(quadric, GLU_SMOOTH);
+    gluSphere(quadric,  0.5, 20, 20);*/
+    /*
+    glNormal3f(0.0, 0.0, 1.0);
     glBegin(GL_QUADS);
         glTexCoord2f(0.0, 1.0);
         glVertex3f(-10.0, -10.0, 0.0);
@@ -118,10 +109,20 @@ int render(float ifps, event *e, scene *s){
         glTexCoord2f(0.0, 0.0);
         glVertex3f(-10.0, 10.0, 0.0);
     glEnd();
-=======*/
-   // gluQuadricNormals(quadric, GLU_SMOOTH);
+    glNormal3f(0.0, 1.0, 0.0);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 1.0);
+        glVertex3f(-10.0, -10.0, 20.0);
+        glTexCoord2f(1.0, 1.0);
+        glVertex3f(10.0, -10.0, 20.0);
+        glTexCoord2f(1.0, .0);
+        glVertex3f(10.0, -10.0, 0.0);
+        glTexCoord2f(0.0, 0.0);
+        glVertex3f(-10.0, -10.0, 0.0);
+    glEnd();*/
     fpnode *duckNode = duck->meshes->first;
     mesh *duckMesh = duck->meshes->first->data;
+    bindTexture(1, normalMap);
     bindTexture(0, tex);
     triangles *duckTri = duckMesh->tris->first->data;
     drawVBO(duckTri->indicesCount, duckTri->vboId, duckTri->indicesId, duckTri->vertexFormatId );
@@ -220,28 +221,32 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 
  	initCamera(&c);
  	
-//    	tex = initializeTexture("data/textures/cthulhuship.png", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE,  (MIPMAP));
-//	normalMap = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
-	phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
- 	tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
-	
-/*	phong = initializeShader( readTextFile("data/shaders/ppphong.vert"), readTextFile("data/shaders/ppphong.frag") );
-	float color[] = { 1.0, 0.0, 0.0, 1.0 };
+    //tex = initializeTexture("data/textures/cthulhuship.png", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE,  (MIPMAP));
+    normalMap = initializeTexture("data/textures/rockwallnormal.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
+ 	tex = initializeTexture("data/textures/rockwall.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
+
+	phong = initializeShader( readTextFile("data/shaders/normal_map.vert"), readTextFile("data/shaders/normal_map.frag") );
+	float color[] = { 0.7, 0.7, 0.7, 1.0 };
 	setShaderConstant4f(phong, "LightColor", color);
-	float position[] = {1000, 1000, 1000};
+	float position[] = {0, 0, 1000};
 	setShaderConstant3f(phong, "LightPosition", position); 
 	//float eyep[] = {c->pos[0], c->pos[1], c->pos[2]};
 	setShaderConstant3f(phong, "EyePosition", c.pos);
     float shininess = 16.0;
     setShaderConstant1f(phong, "shininess", shininess);
-	//bindShader(phong);
-	//bindShader(phong);*/
-
-	duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
+    
+    bindShader(phong);
+	duck = initializeDae("data/models/triangle.dae");
 	createVBO(duck->meshes->first->data);
 	printf("initialize gui \n");
 	//initializeGUI(800, 600);
 	printf("gui done\n");
+
+    shader* shdr = fparray_getdata(1, r->shaders);
+    printf("\tNum samplers: %d\n", shdr->numSamplers);
+    for(int i = 0; i < shdr->numSamplers; i++) {
+        printf("\tsamplers[%d]->location: %d\n", i, shdr->samplers[i]->location);   
+    }
 	return r;
 }
 
@@ -747,6 +752,7 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 		GLint length, size;
 		glGetActiveUniform(shaderProgram, i, maxLength, &length, &size, &type, name);
 		if (type >= GL_SAMPLER_1D && type <= GL_SAMPLER_2D_RECT_SHADOW_ARB){
+            printf("\t\tshader sampler name: %s\n", name);
 			GLint location = glGetUniformLocation(shaderProgram, name);
 			glUniform1i(location, samplers); //informa o shader a texunit
 			sampler* sam = (sampler*) dlmalloc( sizeof(sampler));

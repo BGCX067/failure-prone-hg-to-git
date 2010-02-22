@@ -1,0 +1,351 @@
+<?xml version="1.0"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+    <asset>
+        <contributor>
+            <author>gcorson</author>
+            <authoring_tool>Maya 8.0 | ColladaMaya v3.02 | FCollada v3.2</authoring_tool>
+            <comments>Collada Maya Export Options: bakeTransforms=0;exportPolygonMeshes=1;bakeLighting=0;isSampling=0;
+curveConstrainSampling=0;exportCameraAsLookat=0;
+exportLights=1;exportCameras=1;exportJointsAndSkin=1;
+exportAnimations=1;exportTriangles=1;exportInvisibleNodes=0;
+exportNormals=1;exportTexCoords=1;exportVertexColors=1;exportTangents=0;
+exportTexTangents=0;exportConstraints=1;exportPhysics=0;exportXRefs=1;
+dereferenceXRefs=0;cameraXFov=0;cameraYFov=1</comments>
+            <copyright>
+Copyright 2006 Sony Computer Entertainment Inc.
+Licensed under the SCEA Shared Source License, Version 1.0 (the
+&quot;License&quot;); you may not use this file except in compliance with the
+License. You may obtain a copy of the License at:
+http://research.scea.com/scea_shared_source_license.html 
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+</copyright>
+            <source_data>file:///C:/vs2005/sample_data/Complete_Packages/SCEA_Private/Maya_MoonLander/Moonlander/untitled</source_data>
+        </contributor>
+        <created>2006-08-23T22:29:59Z</created>
+        <modified>2007-02-21T22:52:44Z</modified>
+        <unit meter="0.01" name="centimeter"/>
+        <up_axis>Y_UP</up_axis>
+    </asset>
+    <library_cameras>
+        <camera id="cameraShape1" name="cameraShape1">
+            <optics>
+                <technique_common>
+                    <perspective>
+                        <yfov>37.8492</yfov>
+                        <aspect_ratio>1.5</aspect_ratio>
+                        <znear>1</znear>
+                        <zfar>10000</zfar>
+                    </perspective>
+                </technique_common>
+            </optics>
+        </camera>
+    </library_cameras>
+    <library_lights>
+        <light id="directionalLightShape1-lib" name="directionalLightShape1">
+            <technique_common>
+                <directional>
+                    <color>1 1 1</color>
+                </directional>
+            </technique_common>
+        </light>
+    </library_lights>
+    <library_images>
+        <image id="file2" name="file2">
+            <init_from>./duckCM.tga</init_from>
+        </image>
+    </library_images>
+ <library_materials>
+   <material id="Textured_Bump_E0_MP_MAT" name="Textured_Bump_E0_MP_MAT">
+     <instance_effect url="#Textured_Bump_E0_MP_FX">
+       <technique_hint platform="PC-OGL" profile="GLSL" ref="Textured_Bump_E0_MP_TECH"></technique_hint>
+       <setparam ref="fSpecularPower_E0_P0">
+         <float>25</float>
+       </setparam>
+       <setparam ref="fvAmbient_E0_P0">
+         <float4>0.368627 0.368421 0.368421 1</float4>
+       </setparam>
+       <setparam ref="fvDiffuse_E0_P0">
+         <float4>0.886275 0.885003 0.885003 1</float4>
+       </setparam>
+       <setparam ref="fvEyePosition_E0_P0">
+         <float3>0 0 100</float3>
+       </setparam>
+       <setparam ref="fvLightPosition_E0_P0">
+         <float3>-100 100 100</float3>
+       </setparam>
+       <setparam ref="fvSpecular_E0_P0">
+         <float4>0.490196 0.488722 0.488722 1</float4>
+       </setparam>
+       <setparam ref="baseMap_Sampler">
+         <sampler2D>
+           <source>baseMap_Surface</source>
+           <minfilter>LINEAR_MIPMAP_LINEAR</minfilter>
+           <magfilter>LINEAR</magfilter>
+         </sampler2D>
+       </setparam>
+       <setparam ref="baseMap_Surface">
+         <surface type="2D">
+           <init_from>base_E0</init_from>
+           <format>A8R8G8B8</format>
+         </surface>
+       </setparam>
+       <setparam ref="bumpMap_Sampler">
+         <sampler2D>
+           <source>bumpMap_Surface</source>
+           <minfilter>LINEAR_MIPMAP_LINEAR</minfilter>
+           <magfilter>LINEAR</magfilter>
+         </sampler2D>
+       </setparam>
+       <setparam ref="bumpMap_Surface">
+         <surface type="2D">
+           <init_from>bump_E0</init_from>
+           <format>A8R8G8B8</format>
+         </surface>
+       </setparam>
+     </instance_effect>
+   </material>
+ </library_materials>
+ <library_effects>
+   <effect id="Textured_Bump_E0_MP_FX">
+     <profile_GLSL>
+       <code sid="Vertex_Program_E0_P0_VP">
+         uniform vec3 fvLightPosition;
+         uniform vec3 fvEyePosition;
+         varying vec2 Texcoord;
+         varying vec3 ViewDirection;
+         varying vec3 LightDirection;
+         attribute vec3 rm_Binormal;
+         attribute vec3 rm_Tangent;
+         void main( void )
+         {
+          gl_Position = ftransform();
+          Texcoord = gl_MultiTexCoord0.xy;
+          vec4 fvObjectPosition = gl_ModelViewMatrix * gl_Vertex;
+          vec3 fvViewDirection = fvEyePosition - fvObjectPosition.xyz;
+          vec3 fvLightDirection = fvLightPosition - fvObjectPosition.xyz;
+          vec3 fvNormal = gl_NormalMatrix * gl_Normal;
+          vec3 fvBinormal = gl_NormalMatrix * rm_Binormal;
+          vec3 fvTangent = gl_NormalMatrix * rm_Tangent;
+          ViewDirection.x = dot( fvTangent, fvViewDirection );
+          ViewDirection.y = dot( fvBinormal, fvViewDirection );
+          ViewDirection.z = dot( fvNormal, fvViewDirection );
+          LightDirection.x = dot( fvTangent, fvLightDirection.xyz );
+          LightDirection.y = dot( fvBinormal, fvLightDirection.xyz );
+          LightDirection.z = dot( fvNormal, fvLightDirection.xyz );
+          }
+       </code>
+       <code sid="Fragment_Program_E0_P0_FP">
+         uniform vec4 fvAmbient;
+         uniform vec4 fvSpecular;
+         uniform vec4 fvDiffuse;
+         uniform float fSpecularPower;
+         uniform sampler2D baseMap;
+         uniform sampler2D bumpMap;
+         varying vec2 Texcoord;
+         varying vec3 ViewDirection;
+         varying vec3 LightDirection;
+         void main( void )
+         {
+           vec3 fvLightDirection = normalize( LightDirection );
+           vec3 fvNormal = normalize( ( texture2D( bumpMap, Texcoord ).xyz * 2.0 ) - 1.0 );
+           float fNDotL = dot( fvNormal, fvLightDirection ); 
+           vec3 fvReflection = normalize( ( ( 2.0 * fvNormal ) * fNDotL ) - fvLightDirection ); 
+           vec3 fvViewDirection = normalize( ViewDirection );
+           float fRDotV = max( 0.0, dot( fvReflection, fvViewDirection ) );
+           vec4 fvBaseColor = texture2D( baseMap, Texcoord );
+           vec4 fvTotalAmbient = fvAmbient * fvBaseColor; 
+           vec4 fvTotalDiffuse = fvDiffuse * fNDotL * fvBaseColor; 
+           vec4 fvTotalSpecular = fvSpecular * ( pow( fRDotV, fSpecularPower ) );
+           gl_FragColor = ( fvTotalAmbient + fvTotalDiffuse + fvTotalSpecular );
+         }
+       </code>
+       <newparam sid="fSpecularPower_E0_P0">
+         <float>25</float>
+       </newparam>
+       <newparam sid="fvAmbient_E0_P0">
+         <float4>0.368627 0.368421 0.368421 1</float4>
+       </newparam>
+       <newparam sid="fvDiffuse_E0_P0">
+         <float4>0.886275 0.885003 0.885003 1</float4>
+       </newparam>
+       <newparam sid="fvEyePosition_E0_P0">
+         <float3>0 0 100</float3>
+       </newparam>
+       <newparam sid="fvLightPosition_E0_P0">
+         <float3>-100 100 100</float3>
+       </newparam>
+       <newparam sid="fvSpecular_E0_P0">
+         <float4>0.490196 0.488722 0.488722 1</float4>
+       </newparam>
+       <newparam sid="baseMap_Sampler">
+         <sampler2D>
+           <source>baseMap_Surface</source>
+           <minfilter>LINEAR_MIPMAP_LINEAR</minfilter>
+           <magfilter>LINEAR</magfilter>
+         </sampler2D>
+       </newparam>
+       <newparam sid="baseMap_Surface">
+         <surface type="2D">
+           <init_from>base_E0</init_from>
+           <format>A8R8G8B8</format>
+         </surface>
+       </newparam>
+       <newparam sid="bumpMap_Sampler">
+         <sampler2D>
+           <source>bumpMap_Surface</source>
+           <minfilter>LINEAR_MIPMAP_LINEAR</minfilter>
+           <magfilter>LINEAR</magfilter>
+         </sampler2D>
+       </newparam>
+       <newparam sid="bumpMap_Surface">
+         <surface type="2D">
+           <init_from>bump_E0</init_from>
+           <format>A8R8G8B8</format>
+         </surface>
+       </newparam>
+       <technique sid="Textured_Bump_E0_MP_TECH">
+         <pass sid="Pass_0">
+           <shader stage="VERTEXPROGRAM">
+             <compiler_target>110</compiler_target>
+             <name source="Vertex_Program_E0_P0_VP">main</name>
+             <bind symbol="fvEyePosition">
+               <param ref="fvEyePosition_E0_P0"></param>
+             </bind>
+             <bind symbol="fvLightPosition">
+               <param ref="fvLightPosition_E0_P0"></param>
+             </bind>
+           </shader>
+           <shader stage="FRAGMENTPROGRAM">
+             <compiler_target>110</compiler_target>
+             <name source="Fragment_Program_E0_P0_FP">main</name>
+             <bind symbol="fSpecularPower">
+               <param ref="fSpecularPower_E0_P0"></param>
+             </bind>
+             <bind symbol="fvAmbient">
+               <param ref="fvAmbient_E0_P0"></param>
+             </bind>
+             <bind symbol="fvDiffuse">
+               <param ref="fvDiffuse_E0_P0"></param>
+             </bind>
+             <bind symbol="fvSpecular">
+               <param ref="fvSpecular_E0_P0"></param>
+             </bind>
+             <bind symbol="baseMap">
+               <param ref="baseMap_Sampler"></param>
+             </bind>
+             <bind symbol="bumpMap">
+               <param ref="bumpMap_Sampler"></param>
+             </bind>
+           </shader>
+         </pass>
+       </technique>
+     </profile_GLSL>
+   </effect>
+ </library_effects>
+    <library_geometries>
+        <geometry id="LOD3spShape-lib" name="LOD3spShape">
+     <mesh>
+       <source id="Model_E0_MESH_0_REF_1_lib_positions" name="position">
+         <float_array id="Model_E0_MESH_0_REF_1_lib_positions_array" count="9">-50 -50 0 50 -50 0 0 50 0</float_array>
+         <technique_common>
+           <accessor count="3" source="#Model_E0_MESH_0_REF_1_lib_positions_array" stride="3">
+             <param name="X" type="float"></param>
+             <param name="Y" type="float"></param>
+             <param name="Z" type="float"></param>
+           </accessor>
+         </technique_common>
+       </source>
+       <source id="Model_E0_MESH_0_REF_1_lib_normals" name="normal">
+         <float_array id="Model_E0_MESH_0_REF_1_lib_normals_array" count="9">0 0 1 0 0 1 0 0 1</float_array>
+         <technique_common>
+           <accessor count="3" source="#Model_E0_MESH_0_REF_1_lib_normals_array" stride="3">
+             <param name="X" type="float"></param>
+             <param name="Y" type="float"></param>
+             <param name="Z" type="float"></param>
+           </accessor>
+         </technique_common>
+       </source>
+       <source id="Model_E0_MESH_0_REF_1_lib_texcoords" name="texcoords">
+         <float_array id="Model_E0_MESH_0_REF_1_lib_texcoords_array" count="6">0 0 1 0 0.5 1</float_array>
+         <technique_common>
+           <accessor count="3" source="#Model_E0_MESH_0_REF_1_lib_texcoords_array" stride="2">
+             <param name="X" type="float"></param>
+             <param name="Y" type="float"></param>
+           </accessor>
+         </technique_common>
+       </source>
+       <source id="Model_E0_MESH_0_REF_1_lib_tangents" name="tangent">
+         <float_array id="Model_E0_MESH_0_REF_1_lib_tangents_array" count="9">1 0 0 1 0 0 1 0 0</float_array>
+         <technique_common>
+           <accessor count="3" source="#Model_E0_MESH_0_REF_1_lib_tangents_array" stride="3">
+             <param name="X" type="float"></param>
+             <param name="Y" type="float"></param>
+             <param name="Z" type="float"></param>
+           </accessor>
+         </technique_common>
+       </source>
+       <source id="Model_E0_MESH_0_REF_1_lib_binormals" name="binormal">
+         <float_array id="Model_E0_MESH_0_REF_1_lib_binormals_array" count="9">0 1 0 0 0 0 0 1 0</float_array>
+         <technique_common>
+           <accessor count="3" source="#Model_E0_MESH_0_REF_1_lib_binormals_array" stride="3">
+             <param name="X" type="float"></param>
+             <param name="Y" type="float"></param>
+             <param name="Z" type="float"></param>
+           </accessor>
+         </technique_common>
+       </source>
+       <vertices id="Model_E0_MESH_0_REF_1_lib_vertices">
+         <input semantic="POSITION" source="#Model_E0_MESH_0_REF_1_lib_positions"></input>
+       </vertices>
+       <triangles count="1" material="Textured_Bump_E0_MP_MAT">
+         <input offset="0" semantic="VERTEX" source="#Model_E0_MESH_0_REF_1_lib_vertices"></input>
+         <input offset="0" semantic="NORMAL" source="#Model_E0_MESH_0_REF_1_lib_normals"></input>
+         <input offset="0" semantic="TEXCOORD" source="#Model_E0_MESH_0_REF_1_lib_texcoords" set="0"></input>
+         <input offset="0" semantic="TANGENT" source="#Model_E0_MESH_0_REF_1_lib_tangents"></input>
+         <input offset="0" semantic="BINORMAL" source="#Model_E0_MESH_0_REF_1_lib_binormals"></input>
+          <p>0 1 2</p>
+       </triangles>
+     </mesh>
+
+        </geometry>
+    </library_geometries>
+    <library_visual_scenes>
+        <visual_scene id="VisualSceneNode" name="untitled">
+            <node id="LOD3sp" name="LOD3sp">
+                <rotate sid="rotateZ">0 0 1 0</rotate>
+                <rotate sid="rotateY">0 1 0 0</rotate>
+                <rotate sid="rotateX">1 0 0 0</rotate>
+                <instance_geometry url="#LOD3spShape-lib">
+                    <bind_material>
+                        <technique_common>
+                            <instance_material symbol="blinn3SG" target="#blinn3">
+                                <bind_vertex_input semantic="TEX0" input_semantic="TEXCOORD" input_set="0"/>
+                            </instance_material>
+                        </technique_common>
+                    </bind_material>
+                </instance_geometry>
+            </node>
+            <node id="camera1" name="camera1">
+                <translate sid="translate">400.113 463.264 -431.078</translate>
+                <rotate sid="rotateZ">0 0 1 0</rotate>
+                <rotate sid="rotateY">0 1 0 -223.2</rotate>
+                <rotate sid="rotateX">1 0 0 -38.4</rotate>
+                <instance_camera url="#cameraShape1"/>
+            </node>
+            <node id="directionalLight1" name="directionalLight1">
+                <translate sid="translate">148.654 183.672 -292.179</translate>
+                <rotate sid="rotateZ">0 0 1 -12.8709</rotate>
+                <rotate sid="rotateY">0 1 0 -191.679</rotate>
+                <rotate sid="rotateX">1 0 0 -45.6358</rotate>
+                <instance_light url="#directionalLightShape1-lib"/>
+            </node>
+        </visual_scene>
+    </library_visual_scenes>
+    <scene>
+        <instance_visual_scene url="#VisualSceneNode"/>
+    </scene>
+</COLLADA>
