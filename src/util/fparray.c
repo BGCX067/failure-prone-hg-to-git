@@ -58,20 +58,15 @@ void fparray_inspos(void* data, int pos, fparray *a) {
         dlrealloc(a->data, a->elemsize*a->alloc_size);
     }
     
-    if(a->data[pos] != NULL) {
-        if (a->create)
-            a->data[pos] = a->create(data);
-        else
-            a->data[pos] = data;
-    } else {
-        for(int i = pos; i < a->size; i++)
-            a->data[i+1] = a->data[i];
-        if(a->create)
-            a->data[pos] = a->create(data);
-        else
-            a->data[pos] = data;
-    }
-    a->size++;
+    if(a->create)
+        a->data[pos] = a->create(data);
+    else
+        a->data[pos] = data;
+    
+    if(pos >= a->size)
+        a->size = pos + 1;
+    else
+        a->size++;
 }
 
 void fparray_rmback(fparray *a) {
