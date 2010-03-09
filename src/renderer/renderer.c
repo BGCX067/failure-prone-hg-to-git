@@ -84,6 +84,7 @@ void beginRender(event *e) {
     gluLookAt(c.pos[0], c.pos[1], c.pos[2], c.viewDir[0] + c.pos[0],
               c.viewDir[1] + c.pos[1], c.viewDir[2] + c.pos[2],
               c.up[0], c.up[1], c.up[2]);
+    setShaderConstant3f(phong, "eyePos", c.pos);
 }
 
 int render(float ifps, event *e, scene *s){
@@ -124,6 +125,7 @@ int render(float ifps, event *e, scene *s){
     mesh *duckMesh = duck->meshes->first->data;
     bindTexture(1, normalMap);
     bindTexture(0, tex);
+    bindShader(phong);
     triangles *duckTri = duckMesh->tris->first->data;
     drawVBO(duckTri->indicesCount, duckTri->vboId, duckTri->indicesId, duckTri->vertexFormatId );
 /*   begin2d();
@@ -225,18 +227,28 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
     normalMap = initializeTexture("data/textures/rockwallnormal.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
  	tex = initializeTexture("data/textures/rockwall.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
 
-	phong = initializeShader( readTextFile("data/shaders/normal_map.vert"), readTextFile("data/shaders/normal_map.frag") );
-	float color[] = { 0.7, 0.7, 0.7, 1.0 };
-	setShaderConstant4f(phong, "LightColor", color);
-	float position[] = {0, 0, 1000};
-	setShaderConstant3f(phong, "LightPosition", position); 
-	//float eyep[] = {c->pos[0], c->pos[1], c->pos[2]};
-	setShaderConstant3f(phong, "EyePosition", c.pos);
+	//phong = initializeShader( readTextFile("data/shaders/normal_map.vert"), readTextFile("data/shaders/normal_map.frag") );
+    phong = initializeShader( readTextFile("data/shaders/gouraud.vert"), readTextFile("data/shaders/gouraud.frag") );
+	float Ka[] = {0.0, 0.0, 0.0, 1.0};
+    setShaderConstant4f(phong, "Ka", Ka);
+    float Kd[] = {0.7, 0.7, 0.1, 1.0};
+    setShaderConstant4f(phong, "Kd", Kd);
+    float Ks[] = {0.7, 0.7, 0.3, 1.0};
+    setShaderConstant4f(phong, "Ks", Ks);
+
     float shininess = 16.0;
     setShaderConstant1f(phong, "shininess", shininess);
     
+    float ambientLight[] = { 0.4, 0.4, 0.4, 1.0 };
+	setShaderConstant4f(phong, "globalAmbient", ambientLight);
+    float color[] = { 0.8, 0.8, 0.8, 1.0 };
+	setShaderConstant4f(phong, "LightColor", color);
+	float position[] = {0, 0, 1000};
+	setShaderConstant3f(phong, "LightPosition", position); 
+	setShaderConstant3f(phong, "EyePosition", c.pos);
+    
     bindShader(phong);
-	duck = initializeDae("data/models/triangle.dae");
+	duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
 	createVBO(duck->meshes->first->data);
 	printf("initialize gui \n");
 	//initializeGUI(800, 600);
@@ -811,8 +823,9 @@ void bindShader(unsigned int program){
 				//((UNIFORM_FUNC) uniformFuncs[2])(0, 1, color);
 				//glUniform4fv(shaders[program]->uniforms[i]->location, shaders[program]->uniforms[i]->size, (GLfloat*) shaders[program]->uniforms[i]->data);
 			}
-		}else if ( shdr->uniforms[1]->semantic == EYEPOS){
+		}else if ( shdr->uniforms[i]->semantic == EYEPOS){
 			setShaderConstant3f(program, "EyePosition",  c.pos);
+            printf("c.pos: %f, %f, %f\n", c.pos[0], c.pos[1], c.pos[2]);
 		//}else if (r->shaders[program]->uniforms[i]->semantic == TIME)
 			//setShaderConstant1f(program, "Time", TIMER::getInstance().getElapsedTime());
 		//	  setShaderConstant1f(program, "Time", 0.1);
@@ -821,7 +834,6 @@ void bindShader(unsigned int program){
 		//	setShaderConstant3f(program, "LightPosition",  lightp);
 		}
 	}
-
 }
 
 int printShaderCompilerLog(unsigned int shader){
