@@ -1,29 +1,8 @@
+varying vec3 normal;
+varying vec3 position;
 
-uniform vec3 LightPosition;
-uniform vec3 EyePosition;
-uniform vec4 LightColor;
-uniform float shininess;
-
-varying vec4 color;
-
-void  main(){
-	float diffuse;
-
-	vec3 position = vec3(gl_ModelViewMatrix *gl_Vertex);
-	vec3 normal = gl_Normal; //normalize(gl_NormalMatrix * gl_Normal);
-	vec3 lightvec = normalize(LightPosition - position);
-	
-	diffuse = max(0.0, dot(normal, lightvec));
-
-	vec3 viewvec = normalize(EyePosition - position );
-	vec3 halfvec = normalize(lightvec + viewvec);
-	float spec  = pow(max( dot(normal, halfvec) ,0.0), shininess);
-
-	//if (diffuse <= 0.0) spec = 0.0;
-
-	color = diffuse*LightColor + spec*LightColor;
-	//color = LightColor;
-
-	gl_Position = ftransform();
-
+void main() {
+    gl_Position = ftransform();
+    position = gl_Vertex.xyz;//vec3(gl_ModelViewMatrix*gl_Vertex);
+    normal = gl_NormalMatrix*gl_Normal;   
 }

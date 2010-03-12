@@ -228,7 +228,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
  	tex = initializeTexture("data/textures/rockwall.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
 
 	//phong = initializeShader( readTextFile("data/shaders/normal_map.vert"), readTextFile("data/shaders/normal_map.frag") );
-    phong = initializeShader( readTextFile("data/shaders/gouraud.vert"), readTextFile("data/shaders/gouraud.frag") );
+    phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
 	float Ka[] = {0.0, 0.0, 0.0, 1.0};
     setShaderConstant4f(phong, "Ka", Ka);
     float Kd[] = {0.7, 0.7, 0.1, 1.0};
