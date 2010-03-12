@@ -10,6 +10,8 @@ uniform float shininess;
 uniform vec4 globalAmbient;
 uniform vec4 LightColor;
 
+uniform sampler2D texture;
+
 void main() {
     vec3 N = normalize(normal);
     
@@ -27,6 +29,6 @@ void main() {
     vec4 diffuse = Kd*LightColor*diffCoef;
     vec4 specular = Ks*LightColor*specCoef;
 
-    gl_FragColor = ambient + diffuse + specular;
+    gl_FragColor = (ambient + diffuse + specular)*texture2D(texture, gl_TexCoord[0].st);
     gl_FragColor.w = 1.0;
 }

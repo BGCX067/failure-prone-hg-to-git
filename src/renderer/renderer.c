@@ -123,7 +123,7 @@ int render(float ifps, event *e, scene *s){
     glEnd();*/
     fpnode *duckNode = duck->meshes->first;
     mesh *duckMesh = duck->meshes->first->data;
-    bindTexture(1, normalMap);
+    //bindTexture(1, tex);
     bindTexture(0, tex);
     bindShader(phong);
     triangles *duckTri = duckMesh->tris->first->data;
@@ -224,9 +224,9 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
  	initCamera(&c);
  	
     //tex = initializeTexture("data/textures/cthulhuship.png", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE,  (MIPMAP));
-    normalMap = initializeTexture("data/textures/rockwallnormal.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
- 	tex = initializeTexture("data/textures/rockwall.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
-
+    //normalMap = initializeTexture("data/textures/rockwallnormal.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
+ 	//tex = initializeTexture("data/textures/rockwall.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
+    tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
 	//phong = initializeShader( readTextFile("data/shaders/normal_map.vert"), readTextFile("data/shaders/normal_map.frag") );
     phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
 	float Ka[] = {0.0, 0.0, 0.0, 1.0};
