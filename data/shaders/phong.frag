@@ -6,6 +6,9 @@ uniform vec3 EyePosition;
 uniform vec4 Ka;
 uniform vec4 Kd;
 uniform vec4 Ks;
+uniform float Kc;
+uniform float Kl;
+uniform float Kq;
 uniform float shininess;
 uniform vec4 globalAmbient;
 uniform vec4 LightColor;
@@ -29,6 +32,8 @@ void main() {
     vec4 diffuse = Kd*LightColor*diffCoef;
     vec4 specular = Ks*LightColor*specCoef;
 
-    gl_FragColor = (ambient + diffuse + specular)*texture2D(texture, gl_TexCoord[0].st);
+    float d = distance(position, LightPosition); 
+    float attenuation = 1.0/(Kc + Kl*d + Kq*d*d);
+    gl_FragColor = (ambient + attenuation*(diffuse + specular))*texture2D(texture, gl_TexCoord[0].st);
     gl_FragColor.w = 1.0;
 }

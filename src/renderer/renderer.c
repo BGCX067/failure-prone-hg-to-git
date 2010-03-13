@@ -123,7 +123,7 @@ int render(float ifps, event *e, scene *s){
     glEnd();*/
     fpnode *duckNode = duck->meshes->first;
     mesh *duckMesh = duck->meshes->first->data;
-    bindTexture(1, normalMap);
+    //bindTexture(1, normalMap);
     bindTexture(0, tex);
     bindShader(phong);
     triangles *duckTri = duckMesh->tris->first->data;
@@ -224,17 +224,23 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
  	initCamera(&c);
  	
     //tex = initializeTexture("data/textures/cthulhuship.png", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE,  (MIPMAP));
-    normalMap = initializeTexture("data/textures/rockwallnormal.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
- 	tex = initializeTexture("data/textures/rockwall.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
-    //tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
-	phong = initializeShader( readTextFile("data/shaders/normal_map.vert"), readTextFile("data/shaders/normal_map.frag") );
-    //phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
-	float Ka[] = {0.3, 0.3, 0.3, 1.0};
+    //normalMap = initializeTexture("data/textures/rockwallnormal.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
+ 	//tex = initializeTexture("data/textures/rockwall.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
+    tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
+	//phong = initializeShader( readTextFile("data/shaders/normal_map.vert"), readTextFile("data/shaders/normal_map.frag") );
+    phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
+	float Ka[] = {0.4, 0.4, 0.4, 1.0};
     setShaderConstant4f(phong, "Ka", Ka);
     float Kd[] = {0.5, 0.5, 0.5, 1.0};
     setShaderConstant4f(phong, "Kd", Kd);
     float Ks[] = {0.9, 0.9, 0.9, 1.0};
     setShaderConstant4f(phong, "Ks", Ks);
+    float Kc = 0.0;
+    setShaderConstant1f(phong, "Kc", Kc);
+    float Kl = 0.0;
+    setShaderConstant1f(phong, "Kl", Kl);
+    float Kq = 0.00001;
+    setShaderConstant1f(phong, "Kq", Kq);
 
     float shininess = 16.0;
     setShaderConstant1f(phong, "shininess", shininess);
@@ -243,12 +249,12 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	setShaderConstant4f(phong, "globalAmbient", ambientLight);
     float color[] = { 0.8, 0.8, 0.8, 1.0 };
 	setShaderConstant4f(phong, "LightColor", color);
-	float position[] = {0, 0, 1000};
+	float position[] = {0, 0, 500};
 	setShaderConstant3f(phong, "LightPosition", position); 
 	setShaderConstant3f(phong, "EyePosition", c.pos);
     
     bindShader(phong);
-	duck = initializeDae("data/models/triangle.dae");
+	duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
 	createVBO(duck->meshes->first->data);
 	printf("initialize gui \n");
 	//initializeGUI(800, 600);
