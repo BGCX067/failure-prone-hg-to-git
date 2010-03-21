@@ -1,9 +1,10 @@
 #ifndef SHADERGEN_H
 #define SHADERGEN_H
 
-enum Shader_Format{
-    PHONG,
-    NORMAL_MAP
+enum {
+    PHONG = 1 << 0,
+    TEX = 1 << 1,
+    NORMAL_MAP = 1 << 2
 };
 
 typedef struct _material {

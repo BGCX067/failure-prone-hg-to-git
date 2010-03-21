@@ -8,6 +8,7 @@
 #include "../util/malloc.h"
 #include "../util/textfile.h"
 #include "mesh.h"
+#include "../util/shadergen.h"
 #include <GL/gl.h>
 #include <GL/glu.h>
   
@@ -222,13 +223,20 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	glEnableClientState(GL_VERTEX_ARRAY);
 
  	initCamera(&c);
- 	
+    
+    
     //tex = initializeTexture("data/textures/cthulhuship.png", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE,  (MIPMAP));
     //normalMap = initializeTexture("data/textures/rockwallnormal.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
  	//tex = initializeTexture("data/textures/rockwall.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
     tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
 	//phong = initializeShader( readTextFile("data/shaders/normal_map.vert"), readTextFile("data/shaders/normal_map.frag") );
-    phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
+    //phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
+    material m;
+    m.flags = PHONG | TEX;
+    char *vertShader, *fragShader;
+    shadergen(m, &vertShader, &fragShader);
+    phong = initializeShader( vertShader, fragShader );
+
 	float Ka[] = {0.4, 0.4, 0.4, 1.0};
     setShaderConstant4f(phong, "Ka", Ka);
     float Kd[] = {0.5, 0.5, 0.5, 1.0};
