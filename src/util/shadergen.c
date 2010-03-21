@@ -1,13 +1,6 @@
 #include "shadergen.h"
 #include "malloc.h"
 #include <string.h>
-#include <stdio.h>
-
-material* initMaterial(int flags) {
-    material *m = (material*) dlmalloc(sizeof(material));
-    m->flags = flags;
-    return m;
-}
 
 char* createVSGlobals(material m) {
     char* ret;
@@ -130,10 +123,19 @@ char* createFSGlobal(material m) {
 
 char* createFSFuncs(material m) {
     char* ret = "";
+    char* att = "";
     char* phong = "";
+    char* phongcolor = "";
     
     //cria a função de iluminação que recebe a normal
     //e a lightdir e retorna a cor
+    if(m.flags & ATTENUATION) {
+        att = "float attenuation(vec3 pos, vec3 lpos) {\n"
+              "\tfloat d = distance(pos, lpos);\n"
+              "\treturn 1.0/(Kc + Kl*d + Kq*d*d);\n"
+              "}\n\0";
+    }
+
     if(m.flags & PHONG) {
         phong = "vec4 phong(vec3 n, vec3 lightDir) {\n"
                 "\tvec3 viewVec = normalize(EyePosition - position);\n"
@@ -144,19 +146,27 @@ char* createFSFuncs(material m) {
                 "\t\tspecCoef = 0.0;\n"
                 "\tvec4 ambient = globalAmbient*Ka;\n"
                 "\tvec4 diffuse = Kd*LightColor*diffCoef;\n"
-                "\tvec4 specular = Ks*LightColor*specCoef;\n"
-                "\tfloat d = distance(position, LightPosition); \n"
-                "\tfloat attenuation = 1.0/(Kc + Kl*d + Kq*d*d);\n"
-                "\tvec4 color = (ambient + attenuation*(diffuse + specular));\n"
-                "\tcolor.w = 1.0;\n"
-                "\treturn color;\n"
-                "}\n\0";
+                "\tvec4 specular = Ks*LightColor*specCoef;\n\0";
+        if(m.flags & ATTENUATION) {
+            phongcolor = "\tvec4 color = ambient + (attenuation(position, LightPosition)*(diffuse + specular));\n"
+                         "\tcolor.w = 1.0;\n"
+                         "\treturn color;\n"
+                         "}\n\0";
+        } else {
+            phongcolor = "\tvec4 color = ambient + diffuse + specular;\n"
+                         "\tcolor.w = 1.0;\n"
+                         "\treturn color;\n"
+                         "}\n\0";
+        }
+
     }
 
-    size_t retlen = strlen(phong) + 1;
+    size_t retlen = strlen(phong) + strlen(att) + strlen(phongcolor) + 1;
     ret = dlmalloc(sizeof(char)*retlen);
     memset(ret, '\0', sizeof(char)*retlen);
+    strcat(ret, att);
     strcat(ret, phong);
+    strcat(ret, phongcolor);
 
     return ret;
 }
@@ -172,7 +182,6 @@ char* createFSMainBody(material m) {
                 "\tvec3 N = normalize(normal);\n"
                 "\tvec3 lightVec = normalize(LightPosition - position);\n"
                 "\tvec4 phongColor = phong(N, lightVec);\n\0";
-                
     }
 
     if(m.flags & TEX) {

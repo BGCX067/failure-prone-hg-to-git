@@ -4,14 +4,14 @@
 enum {
     PHONG = 1 << 0,
     TEX = 1 << 1,
-    NORMAL_MAP = 1 << 2
+    NORMAL_MAP = 1 << 2,
+    ATTENUATION = 1 << 3
 };
 
 typedef struct _material {
     int flags; 
 }material;
 
-material* initMaterial(int flags);
 void shadergen(material m, char** vertShader, char** fragShader);
 
 

@@ -232,7 +232,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	//phong = initializeShader( readTextFile("data/shaders/normal_map.vert"), readTextFile("data/shaders/normal_map.frag") );
     //phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
     material m;
-    m.flags = PHONG | TEX;
+    m.flags = PHONG | TEX | ATTENUATION;
     char *vertShader, *fragShader;
     shadergen(m, &vertShader, &fragShader);
     phong = initializeShader( vertShader, fragShader );
