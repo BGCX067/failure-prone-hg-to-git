@@ -5,7 +5,8 @@ enum {
     PHONG = 1 << 0,
     TEX = 1 << 1,
     NORMAL_MAP = 1 << 2,
-    ATTENUATION = 1 << 3
+    ATTENUATION = 1 << 3,
+    ENV_MAP = 1 << 4
 };
 
 typedef struct _material {

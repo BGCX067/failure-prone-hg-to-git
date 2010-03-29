@@ -7,6 +7,7 @@ char* createVSGlobals(material m) {
     char* ret;
     char* phong = ""; 
     char* normalmap = "";
+    char* envmap = "";
     if(m.flags & PHONG) {
         phong = "varying vec3 normal;\n"
                 "varying vec3 position;\n";
@@ -20,9 +21,15 @@ char* createVSGlobals(material m) {
                     "varying vec3 position;\n";
     }
     
-    size_t retlen = strlen(phong) + strlen(normalmap) + 1;
+    if(m.flags & ENV_MAP) {
+        envmap = "varying vec3 reflectDir;\n";
+                 //"varying vec3 normal;\n"
+                 //"varying vec3 position;\n"
+    }
+
+    size_t retlen = strlen(phong) + strlen(normalmap) + strlen(envmap) + 1;
     ret = dlmalloc(sizeof(char)*retlen);
-    sprintf(ret, "%s%s", phong, normalmap);
+    sprintf(ret, "%s%s%s", phong, normalmap, envmap);
 
     return ret;
 }
@@ -37,6 +44,7 @@ char* createVSMain(material m) {
     char* phong = ""; 
     char* normalmap = "";
     char* tex = "";
+    char* envmap = "";
     char* beginmain = "void main() {\n";
     char* endmain = "}\n";
     
@@ -61,11 +69,19 @@ char* createVSMain(material m) {
     if(m.flags & TEX) {
         tex = "\tgl_TexCoord[0] = gl_MultiTexCoord0;\n";
     }
+
+    if(m.flags & ENV_MAP) {
+        envmap = //"\tgl_Position = ftransform();\n"
+                 //"\tposition = gl_Vertex.xyz;\n"
+                 //"\tnormal = gl_NormalMatrix*gl_Normal;\n"
+                 "\tvec3 eyeDir = (gl_ModelViewMatrix*gl_Vertex).xyz;\n"
+                 "\treflectDir = reflect(eyeDir, normal);\n";
+    }
     
     size_t retlen = strlen(beginmain) + strlen(phong) + strlen(normalmap) 
-                    + strlen(tex) + strlen(endmain) + 1;
+                    + strlen(tex) + strlen(envmap)+ strlen(endmain) + 1;
     ret = dlmalloc(sizeof(char)*retlen);
-    sprintf(ret, "%s%s%s%s%s", beginmain, phong, normalmap, tex, endmain);
+    sprintf(ret, "%s%s%s%s%s%s", beginmain, phong, normalmap, tex, envmap, endmain);
 
     return ret;
 }
@@ -75,6 +91,7 @@ char* createFSGlobal(material m) {
     char* phong = "";
     char* normalmap = "";
     char* tex = "";
+    char* envmap = "";
 
     if(m.flags & PHONG) {
         phong = "varying vec3 normal;\n"
@@ -108,10 +125,16 @@ char* createFSGlobal(material m) {
                     "uniform vec4 LightColor;\n"
                     "uniform sampler2D normalMap;\n";
     }
+
+    if(m.flags & ENV_MAP) {
+        envmap = "uniform samplerCube envmap;\n"
+                 "varying vec3 reflectDir;\n";
+    }
     
-    size_t retlen = strlen(phong) + strlen(normalmap) + strlen(tex) + 1;
+    size_t retlen = strlen(phong) + strlen(normalmap) + strlen(tex) 
+                    + strlen(envmap) + 1;
     ret = dlmalloc(sizeof(char)*retlen);
-    sprintf(ret, "%s%s%s", phong, normalmap, tex);
+    sprintf(ret, "%s%s%s%s", phong, normalmap, tex, envmap);
 
     return ret;
 }
@@ -168,10 +191,11 @@ char* createFSMainBody(material m) {
     char* phong = ""; 
     char* tex = "";
     char* normalmap = "";
+    char* envmap;
+    char* beginmain = "void main() {\n";
     
     if(m.flags & PHONG) {
-        phong = "void main() {\n"
-                "\tvec3 N = normalize(normal);\n"
+        phong = "\tvec3 N = normalize(normal);\n"
                 "\tvec3 lightVec = normalize(LightPosition - position);\n"
                 "\tvec4 phongColor = phong(N, lightVec);\n";
     }
@@ -181,15 +205,19 @@ char* createFSMainBody(material m) {
     }
 
     if(m.flags & NORMAL_MAP) {
-        normalmap = "void main() {\n"
-                    "\tvec3 lightVec = normalize(lightDir);\n"
+        normalmap = "\tvec3 lightVec = normalize(lightDir);\n"
                     "\tvec3 N = normalize((texture2D(normalMap, gl_TexCoord[0].xy).xyz*2.0) - 1.0);\n";
                     "\tvec4 phongColor = phong(N, lightVec);\n";
     }
+
+    if(m.flags & ENV_MAP) {
+        envmap = "\tvec4 envcolor = textureCube(envmap, reflectDir);\n";
+    }
     
-    size_t retlen = strlen(phong) + strlen(normalmap) + strlen(tex) + 1;
+    size_t retlen = strlen(beginmain) + strlen(phong) + strlen(normalmap) 
+                    + strlen(tex) + strlen(envmap) + 1;
     ret = dlmalloc(sizeof(char)*retlen);
-    sprintf(ret, "%s%s%s", phong, normalmap, tex);
+    sprintf(ret, "%s%s%s%s%s", beginmain, phong, normalmap, tex, envmap);
 
     return ret;
 }
@@ -199,8 +227,12 @@ char* createFSMainFragColor(material m) {
     char* phong = ""; 
     char* tex = "";
     char* texphong = "";
-    
-    if(((m.flags & PHONG)|| (m.flags & NORMAL_MAP)) && (m.flags &TEX)) {
+    char* envmap = "";
+   
+    if((m.flags & PHONG) && (m.flags & ENV_MAP) && (m.flags & TEX)) {
+        envmap = "\tgl_FragColor = mix(texColor*phongColor, envcolor, 0.3);"
+                 "}\n";
+    } else if(((m.flags & PHONG)|| (m.flags & NORMAL_MAP)) && (m.flags &TEX)) {
         texphong = "\tgl_FragColor = phongColor*texColor;\n"
                    "}\n";
     } else if((m.flags & PHONG) || (m.flags & NORMAL_MAP)) {
@@ -209,11 +241,15 @@ char* createFSMainFragColor(material m) {
     } else if(m.flags & TEX) {
         tex = "\tgl_FragColor = texColor;\n"
               "}\n";
+    } else if (m.flags & ENV_MAP) {
+        envmap = "\tgl_FragColor = vec4(envcolor, 1.0);\n"
+                 "}\n";
     }
 
-    size_t retlen = strlen(texphong) + strlen(phong) + strlen(tex) + 1;
+    size_t retlen = strlen(texphong) + strlen(phong) + strlen(tex) 
+                    + strlen(envmap) + 1;
     ret = dlmalloc(sizeof(char)*retlen);
-    sprintf(ret, "%s%s%s", texphong, phong, tex);
+    sprintf(ret, "%s%s%s%s", texphong, phong, tex, envmap);
     
     return ret;
 }

@@ -69,6 +69,7 @@ renderer* r;
 camera c;
 
 unsigned int tex;
+unsigned int cm;
 unsigned int normalMap;
 unsigned int phong;
 scene *duck;
@@ -125,7 +126,8 @@ int render(float ifps, event *e, scene *s){
     fpnode *duckNode = duck->meshes->first;
     mesh *duckMesh = duck->meshes->first->data;
     //bindTexture(1, normalMap);
-    bindTexture(0, tex);
+    bindTexture(1, tex);
+    bindTexture(2, cm);
     bindShader(phong);
     triangles *duckTri = duckMesh->tris->first->data;
     drawVBO(duckTri->indicesCount, duckTri->vboId, duckTri->indicesId, duckTri->vertexFormatId );
@@ -229,10 +231,11 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
     //normalMap = initializeTexture("data/textures/rockwallnormal.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
  	//tex = initializeTexture("data/textures/rockwall.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
     tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
+    cm = initializeTexture("data/textures/cm1_%s.jpg", TEXTURE_CUBEMAP, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
 	//phong = initializeShader( readTextFile("data/shaders/normal_map.vert"), readTextFile("data/shaders/normal_map.frag") );
     //phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
     material m;
-    m.flags = PHONG | TEX | ATTENUATION;
+    m.flags = PHONG | ENV_MAP | TEX;
     char *vertShader, *fragShader;
     shadergen(m, &vertShader, &fragShader);
     phong = initializeShader( vertShader, fragShader );
@@ -367,103 +370,104 @@ void applySamplerState(int target, int flags){
 }
 
 unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type, int flags){
-	unsigned int textureID;
-	glGenTextures(1, &textureID);
-	glBindTexture(target, textureID);
-    
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(target, textureID);
+
     texture* prevTex = fparray_getdata(r->prevTexture, r->textures);
-	if (r->prevTexture >= 0){
-		if ( (flags & CLAMP) && !(prevTex->flags  &CLAMP) ){
-			glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP);
-			glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP);
-			glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP);
-		}
-		if ((flags & CLAMP_TO_EDGE) && !(prevTex->flags  &CLAMP_TO_EDGE) ){
-			glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		}
+    if (r->prevTexture >= 0){
+        if ( (flags & CLAMP) && !(prevTex->flags  &CLAMP) ){
+            glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP);
+            glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP);
+            glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP);
+        }
+        if ((flags & CLAMP_TO_EDGE) && !(prevTex->flags  &CLAMP_TO_EDGE) ){
+            glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        }
 
-		if ( (flags & NEAREST) &&  !(prevTex->flags & NEAREST) ){
-			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		}
-		if ( (flags & BILINEAR) &&  !(prevTex->flags & BILINEAR)){
-			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		}
-		if ( (flags & LINEAR) &&  !(prevTex->flags & LINEAR) ){
-			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		}
+        if ( (flags & NEAREST) &&  !(prevTex->flags & NEAREST) ){
+            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        }
+        if ( (flags & BILINEAR) &&  !(prevTex->flags & BILINEAR)){
+            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        }
+        if ( (flags & LINEAR) &&  !(prevTex->flags & LINEAR) ){
+            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        }
 
-		if ( (flags & ANISOTROPY_1) && !(prevTex->flags & ANISOTROPY_1))
-			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0);
-		else if ((flags & ANISOTROPY_2) && !(prevTex->flags & ANISOTROPY_2))
-			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0);
-		else if ((flags & ANISOTROPY_4) && !(prevTex->flags & ANISOTROPY_4))
-			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
-		else if ((flags & ANISOTROPY_8) && !(prevTex->flags & ANISOTROPY_8))
-			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0);
-		else if ((flags & ANISOTROPY_16) && !(prevTex->flags & ANISOTROPY_16))
-			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);	
+        if ( (flags & ANISOTROPY_1) && !(prevTex->flags & ANISOTROPY_1))
+            glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0);
+        else if ((flags & ANISOTROPY_2) && !(prevTex->flags & ANISOTROPY_2))
+            glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0);
+        else if ((flags & ANISOTROPY_4) && !(prevTex->flags & ANISOTROPY_4))
+            glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
+        else if ((flags & ANISOTROPY_8) && !(prevTex->flags & ANISOTROPY_8))
+            glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0);
+        else if ((flags & ANISOTROPY_16) && !(prevTex->flags & ANISOTROPY_16))
+            glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);	
 
-		if (flags & MIPMAP)
-			glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
-	}else
-		applySamplerState(target, flags);
+        if (flags & MIPMAP)
+            glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
+    }else
+        applySamplerState(target, flags);
 
-	if ( filename != NULL ){
-		//TODO fazer 1d e 3d
-		int x, y, n;
-		unsigned char* data = NULL;
-		if ((target == TEXTURE_2D) || (target == TEXTURE_RECTANGLE) ){
-			data = stbi_load(filename, &x, &y, &n, 0);
-			if (!data){
-				printf("Error loading: %s texture. \n", filename );
-				return 0;
-			}
-			glTexImage2D(target, 0, internalFormat, x, y, 0, imageFormat, type, data);
-		}else if ( target == TEXTURE_CUBEMAP ){
-			 char buff[1024];
-			 GLuint facetargets[] = {
-					 GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-					 GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-					 GL_TEXTURE_CUBE_MAP_POSITIVE_Z, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
-			 };
-			 char *facenames[] = {"posx", "negx", "posy", "negy", "posz", "negz" };
-			 for (int i = 0; i < 6; i++){
-				 sprintf(buff, filename, facenames[i]);
-				 buff[strlen(filename)+5] = '\0';
-				 data = stbi_load(buff, &x, &y, &n, 0);
-				 if (!data){
-				 	printf("Error loading: %s texture. \n", buff);
-					return 0;
-				}
-				 glTexImage2D(facetargets[i], 0, internalFormat, x, y, 0, imageFormat, type, data);
-				if (data){
-					stbi_image_free(data);
-					 data = NULL;
-				 }
-			 }
+    if ( filename != NULL ){
+        //TODO fazer 1d e 3d
+        int x, y, n;
+        unsigned char* data = NULL;
+        if ((target == TEXTURE_2D) || (target == TEXTURE_RECTANGLE) ){
+            data = stbi_load(filename, &x, &y, &n, 0);
+            if (!data){
+                printf("Error loading: %s texture. \n", filename );
+                return 0;
+            }
+            glTexImage2D(target, 0, internalFormat, x, y, 0, imageFormat, type, data);
+        }else if ( target == TEXTURE_CUBEMAP ){
+            printf("TEXTURE_CUBEMAP\n");
+            char buff[1024];
+            GLuint facetargets[] = {
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+                GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+                GL_TEXTURE_CUBE_MAP_POSITIVE_Z, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+            };
+            char *facenames[] = {"posx", "negx", "posy", "negy", "posz", "negz" };
+            for (int i = 0; i < 6; i++){
+                sprintf(buff, filename, facenames[i]);
+                buff[strlen(filename)+5] = '\0';
+                data = stbi_load(buff, &x, &y, &n, 0);
+                if (!data){
+                    printf("Error loading: %s texture. \n", buff);
+                    return 0;
+                }
+                glTexImage2D(facetargets[i], 0, internalFormat, x, y, 0, imageFormat, type, data);
+                if (data){
+                    stbi_image_free(data);
+                    data = NULL;
+                }
+            }
 
-		}
-		stbi_image_free(data);
-	}
+        }
+        stbi_image_free(data);
+    }
 
-	texture* tex = (texture*) dlmalloc(sizeof(texture));
-	tex->flags = flags;
-	tex->id = textureID;
-	tex->target = target;
+    texture* tex = (texture*) dlmalloc(sizeof(texture));
+    tex->flags = flags;
+    tex->id = textureID;
+    tex->target = target;
 
-	//r->textures[textureID] = tex;
+    //r->textures[textureID] = tex;
 
     fparray_inspos(tex, textureID, r->textures);
-    
-	if (r->prevTexture >= 0)
-		bindTexture(0, r->prevTexture);
 
-	return textureID;
+    if (r->prevTexture >= 0)
+        bindTexture(0, r->prevTexture);
+
+    return textureID;
 }
 
 unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type, int flags){
