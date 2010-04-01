@@ -9,10 +9,6 @@
 #include "../util/fparray.h"
 
 #define MAX_VERTEX_ATTRS 16
-#define MAX_TEXTURES 256
-#define MAX_VERTEX_FORMAT 256
-#define MAX_SHADERS 256
-#define MAX_FRAMEBUFFERS 10
 
 enum ConstantType {
 	CONSTANT_FLOAT,
@@ -84,21 +80,14 @@ enum TextureInternalFormat{
 	RGBA8 = GL_RGBA8
 };
 
+
 enum TextureFlags{
-	CLAMP  = 1 << 1,
-	CLAMP_TO_EDGE  = 1 << 2,
+	CLAMP  = GL_CLAMP,
+	CLAMP_TO_EDGE  = GL_CLAMP_TO_EDGE,
 
-	LINEAR = 1 << 3,
-	BILINEAR = 1 << 4,
-	NEAREST = 1 << 5,
-
-	ANISOTROPY_1 = 1 << 6,
-	ANISOTROPY_2 = 1 << 7,
-	ANISOTROPY_4 = 1 << 8,
-	ANISOTROPY_8 = 1 << 9,
-	ANISOTROPY_16= 1 << 10,
-
-	MIPMAP  = 1<< 17
+	LINEAR = GL_LINEAR,
+	BILINEAR = GL_LINEAR_MIPMAP_LINEAR,
+	NEAREST = GL_NEAREST
 };
 
 
@@ -130,9 +119,18 @@ enum AttributeType{
 
 typedef struct _texture{
 	unsigned int id;
-	int flags;
+	int state;
 	int target;
 }texture;
+
+typedef struct _samplerState{
+	unsigned int id;
+	int wrapmode;
+	int anisotropy;
+	int minfilter;
+	int magfilter;
+	//minlod, maxlod, lodbias, comparemode, comparefunc 
+} samplerState;
 
 typedef struct _vertexAttribute{
 	unsigned int count;
@@ -153,6 +151,7 @@ void destroyVertexFormat(void *ptr);
 typedef struct _framebuffer{
 	int width, height;
 	int id;
+	int texid;
 } framebuffer;
 
 typedef struct _renderer{
@@ -162,23 +161,21 @@ typedef struct _renderer{
 	float fovy, znear, zfar;
 
 	int prevTexture;
-	//texture* textures[MAX_TEXTURES];
-    fparray* textures; 
+    	fparray* textures; 
+
+	int prevSamplerState;
+	fparray* samplerStates;
 
 	int prevVBO;
 	int prevFormat;
-	//vertexFormat* vertexFormats[MAX_VERTEX_FORMAT];
-    fparray* vertexFormats;
-
+    	fparray* vertexFormats;
 
 	int prevShader;
-	//shader* shaders[MAX_SHADERS];
-    fparray* shaders;
+    	fparray* shaders;
 	void *uniformFuncs[CONSTANT_TYPE_COUNT];
 
 	int prevFramebuffer;
-	//framebuffer* framebuffers[MAX_FRAMEBUFFERS];
-    fparray* framebuffers; 
+    	fparray* framebuffers; 
     
     
 }renderer;
@@ -208,6 +205,10 @@ void enableDepth();
 unsigned int initializeTextureFromMemory(void* data, int x, int  y, int  target, int imageFormat, int internalFormat, int type, int flags);
 unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type, int flags);
 void bindTexture(int slot, int id);
+
+//sammplers
+unsigned int initialzeSamplerState(int wrapmode, int minfilter, int maagfilter, int anisotropy );
+void bindSamplerState(unsigned int unit, unsigned int sampler);
 
 //framebuffers
 void bindMainFramebuffer();

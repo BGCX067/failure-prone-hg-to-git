@@ -26,6 +26,8 @@ void fparray_destroy(fparray *a) {
 }
 
 void* fparray_getdata(int index, fparray *a) {
+    if (index < 0)
+    	return NULL;
     return a->data[index];
 }
 

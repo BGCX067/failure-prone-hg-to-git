@@ -11,7 +11,32 @@
 #include "../util/shadergen.h"
 #include <GL/gl.h>
 #include <GL/glu.h>
-  
+#include <GL/glext.h>
+
+typedef void (APIENTRYP PFNGLGENSAMPLERSPROC) (GLsizei count, GLuint *samplers);
+typedef void (APIENTRYP PFNGLDELETESAMPLERSPROC) (GLsizei count, const GLuint *samplers);
+typedef GLboolean (APIENTRYP PFNGLISSAMPLERPROC) (GLuint sampler);
+typedef void (APIENTRYP PFNGLBINDSAMPLERPROC) (GLenum unit, GLuint sampler);
+typedef void (APIENTRYP PFNGLSAMPLERPARAMETERIPROC) (GLuint sampler, GLenum pname, GLint param);
+typedef void (APIENTRYP PFNGLSAMPLERPARAMETERIVPROC) (GLuint sampler, GLenum pname, const GLint *param);
+typedef void (APIENTRYP PFNGLSAMPLERPARAMETERFPROC) (GLuint sampler, GLenum pname, GLfloat param);
+typedef void (APIENTRYP PFNGLSAMPLERPARAMETERFVPROC) (GLuint sampler, GLenum pname, const GLfloat *param);
+typedef void (APIENTRYP PFNGLSAMPLERPARAMETERIIVPROC) (GLuint sampler, GLenum pname, const GLint *param);
+typedef void (APIENTRYP PFNGLSAMPLERPARAMETERIUIVPROC) (GLuint sampler, GLenum pname, const GLuint *param);
+typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERIVPROC) (GLuint sampler, GLenum pname, GLint *params);
+typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERIIVPROC) (GLuint sampler, GLenum pname, GLint *params);
+typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERFVPROC) (GLuint sampler, GLenum pname, GLfloat *params);
+typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERIFVPROC) (GLuint sampler, GLenum pname, GLfloat *params);
+														
+
+PFNGLGENSAMPLERSPROC glGenSamplers = NULL;
+PFNGLDELETESAMPLERSPROC glDeleteSamplers = NULL;
+PFNGLISSAMPLERPROC glIsSampler = NULL;
+PFNGLBINDSAMPLERPROC glBindSampler = NULL;
+PFNGLSAMPLERPARAMETERIPROC  glSamplerParameteri = NULL;
+PFNGLSAMPLERPARAMETERFPROC  glSamplerParameterf = NULL;
+PFNGLSAMPLERPARAMETERIVPROC glSamplerParameteriv = NULL;
+PFNGLSAMPLERPARAMETERFVPROC glSamplerParameterfv = NULL;
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 typedef GLvoid (APIENTRY *UNIFORM_FUNC)(GLint location, GLsizei count, const void *value);
@@ -68,11 +93,15 @@ renderer* r;
 //FIXME camera global
 camera c;
 
+unsigned int texState;
 unsigned int tex;
 unsigned int cm;
 unsigned int normalMap;
 unsigned int phong;
 scene *duck;
+unsigned int fboid;
+
+unsigned int shockwave;
 
 void beginRender(event *e) { 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -90,11 +119,12 @@ void beginRender(event *e) {
 }
 
 int render(float ifps, event *e, scene *s){
+//	bindFramebuffer(fboid);
     beginRender(e);
 	glTranslatef(0.0, 0.0, -5.0f);
     
     //glTranslatef(0.0, 0.0, -5.0f);
-	/*GLUquadric* quadric = gluNewQuadric();
+/*	GLUquadric* quadric = gluNewQuadric();
 	gluQuadricDrawStyle(quadric, GLU_FILL);
 	gluQuadricTexture(quadric, GLU_TRUE);
     gluQuadricOrientation(quadric, GLU_INSIDE);
@@ -112,6 +142,14 @@ int render(float ifps, event *e, scene *s){
         glTexCoord2f(0.0, 0.0);
         glVertex3f(-10.0, 10.0, 0.0);
     glEnd();
+<<<<<<< local
+=======*/
+   // gluQuadricNormals(quadric, GLU_SMOOTH);
+
+//	printf("fboid :%d \n", fboid);
+//   bindFramebuffer(fboid);
+  /* begin2d();
+=======
     glNormal3f(0.0, 1.0, 0.0);
     glBegin(GL_QUADS);
         glTexCoord2f(0.0, 1.0);
@@ -126,12 +164,15 @@ int render(float ifps, event *e, scene *s){
     fpnode *duckNode = duck->meshes->first;
     mesh *duckMesh = duck->meshes->first->data;
     //bindTexture(1, normalMap);
-    bindTexture(1, tex);
-    bindTexture(2, cm);
+  //  bindTexture(6, tex);
+  //  bindTexture(9, cm);
+  //  bindSamplerState(6, texState);
+  //  bindSamplerState(9, texState);
     bindShader(phong);
     triangles *duckTri = duckMesh->tris->first->data;
     drawVBO(duckTri->indicesCount, duckTri->vboId, duckTri->indicesId, duckTri->vertexFormatId );
 /*   begin2d();
+>>>>>>> other
 	bindTexture(0, tex);
 	fpnode* iterator = s->nodes->first;
 	while ( iterator){
@@ -148,6 +189,45 @@ int render(float ifps, event *e, scene *s){
 //	endGUI();
 		iterator = iterator->next;
 	}
+<<<<<<< local
+	end2d();
+    bindMainFramebuffer();
+    beginRender(e);
+  begin2d();
+  	framebuffer* f = r->framebuffers->data[fboid];
+	bindTexture(0, f->texid);
+	bindShader(shockwave);
+	printf("shockwave id: %d \n",  shockwave);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0.0, 0.0);
+		glVertex2f( 0.0, 0.0);
+		glTexCoord2f(1.0, 0.0);
+		glVertex2f( 800.0, 0);
+		glTexCoord2f(1.0, 1.0);
+		glVertex2f( 800.0, 600.0);
+		glTexCoord2f(0.0, 1.0);
+		glVertex2f( 0.0, 600.0 );
+	glEnd();
+/*	iterator = s->nodes->first;
+	while ( iterator){
+//	gluSphere(quadric,  0.5, 20, 20);
+		node* n = iterator->data;
+		mesh *m = n->model;
+		triangles* t = m->tris->first->data;
+		glPushMatrix();
+		glTranslatef(n->pos[0], n->pos[1], n->pos[2]);
+		drawVBO(t->indicesCount, t->vboId, t->indicesId, t->vertexFormatId );
+		glPopMatrix();
+//	beginGUI();
+//		doButton(NULL, NULL, NULL, 0);
+//	endGUI();
+		iterator = iterator->next;
+	}
+
+	end2d();
+	printf("bind shader 0\n");
+	bindShader(0);
+	printf("bind shader 0\n");
 	end2d();*/
     glFinish();
     glFlush();
@@ -155,20 +235,17 @@ int render(float ifps, event *e, scene *s){
 
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	r = (renderer*) dlmalloc(sizeof(renderer));
-	//FIXME se usar linkedlist ou map remover os memsets
-	//memset(r->vertexFormats, 0, MAX_VERTEX_FORMAT*sizeof(vertexFormat*));
-    r->vertexFormats = fparray_init(NULL, destroyVertexFormat, sizeof(vertexFormat));
-	//memset(r->textures, 0, MAX_TEXTURES*sizeof(texture*));
-    r->textures = fparray_init(NULL, NULL, sizeof(texture));
-	//memset(r->shaders, 0, MAX_SHADERS*sizeof(shader*));
-    r->shaders = fparray_init(NULL, NULL, sizeof(shader));
-	//memset(r->framebuffers, 0, MAX_FRAMEBUFFERS*sizeof(framebuffer*));
-    r->framebuffers = fparray_init(NULL, dlfree, sizeof(framebuffer));
+    	r->vertexFormats = fparray_init(NULL, destroyVertexFormat, sizeof(vertexFormat));
+   	r->textures = fparray_init(NULL, NULL, sizeof(texture));
+    	r->shaders = fparray_init(NULL, NULL, sizeof(shader));
+    	r->framebuffers = fparray_init(NULL, dlfree, sizeof(framebuffer));
+	r->samplerStates = fparray_init(NULL, dlfree, sizeof(samplerState));
 	r->fovy = fovy;
 	r->zfar = zfar;
 	r->znear = znear;
 	r->prevTexture = -1;
 	r->prevVBO = -1;
+	r->prevSamplerState = -1;
 	r->prevShader = 0;
 	r->viewPortWidth = w;
 	r->viewPortHeight = h;
@@ -230,12 +307,12 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
     //tex = initializeTexture("data/textures/cthulhuship.png", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE,  (MIPMAP));
     //normalMap = initializeTexture("data/textures/rockwallnormal.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
  	//tex = initializeTexture("data/textures/rockwall.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
-    tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
-    cm = initializeTexture("data/textures/cm1_%s.jpg", TEXTURE_CUBEMAP, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
+    tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (CLAMP_TO_EDGE));
+    cm = initializeTexture("data/textures/cm1_%s.jpg", TEXTURE_CUBEMAP, RGB, RGB8, UNSIGNED_BYTE,  (CLAMP_TO_EDGE));
 	//phong = initializeShader( readTextFile("data/shaders/normal_map.vert"), readTextFile("data/shaders/normal_map.frag") );
     //phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
     material m;
-    m.flags = PHONG | ENV_MAP | TEX;
+    m.flags = PHONG;
     char *vertShader, *fragShader;
     shadergen(m, &vertShader, &fragShader);
     phong = initializeShader( vertShader, fragShader );
@@ -270,12 +347,33 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	printf("initialize gui \n");
 	//initializeGUI(800, 600);
 	printf("gui done\n");
+	
+	/*fboid = initializeFramebuffer(NULL, 800, 600, RGB, RGB8, UNSIGNED_BYTE, LINEAR);
+	shockwave = initializeShader( readTextFile("data/shaders/sockwave2d.vert"), readTextFile("data/shaders/shockwave2d.frag")  );
+	float shock[] = { 10.0, 0.8,  0.1};
+	setShaderConstant3f(shockwave, "shockParams", shock);
+	float center[] = {0.5, 0.5};
+	setShaderConstant2f(shockwave, "center", center);
+	*/	
 
+	glGenSamplers = (PFNGLGENSAMPLERSPROC)glXGetProcAddress("glGenSamplers");
+	glDeleteSamplers = (PFNGLDELETESAMPLERSPROC)glXGetProcAddress("glDeleteSamplers");
+	glIsSampler = (PFNGLISSAMPLERPROC)glXGetProcAddress("glIsSampler");
+	glBindSampler = (PFNGLBINDSAMPLERPROC)glXGetProcAddress("glBindSampler");
+	glSamplerParameteri = (PFNGLSAMPLERPARAMETERIPROC)glXGetProcAddress("glSamplerParameteri");
+	glSamplerParameteriv = (PFNGLSAMPLERPARAMETERIVPROC)glXGetProcAddress("glSamplerParameteriv");
+	glSamplerParameterf = (PFNGLSAMPLERPARAMETERFPROC)glXGetProcAddress("glSamplerParameterf");
+	glSamplerParameterfv = (PFNGLSAMPLERPARAMETERFVPROC)glXGetProcAddress("glSamplerParameterfv");
+	//glSamplerParameterIiv = (PFNGLSAMPLERPARAMETERIIVPROC)glXGetProcAddress("glSamplerParameterIiv");
+	//glSamplerParameterIuiv = (PFNGLSAMPLERPARAMETERIUIVPROC)glXGetProcAddress("glSamplerParameterIuiv");
+
+	texState = initializeSamplerState(CLAMP_TO_EDGE, LINEAR, LINEAR, 0);
     shader* shdr = fparray_getdata(1, r->shaders);
     printf("\tNum samplers: %d\n", shdr->numSamplers);
     for(int i = 0; i < shdr->numSamplers; i++) {
         printf("\tsamplers[%d]->location: %d\n", i, shdr->samplers[i]->location);   
     }
+    printf("initiaization done\n");
 	return r;
 }
 
@@ -325,96 +423,61 @@ void disableDepth(){
 }
 
 
-//funcao auxiliar pra tirar o codigo repetido nas duas funcoes abaixo
-////TODO melhorar isso =[
-void applySamplerState(int target, int flags){
+int initializeSamplerState(int wrapmode, int minfilter, int magfilter, int anisotropy){
 
-	if ( (flags & CLAMP) ){
-		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP);
-	}
-	if ((flags & CLAMP_TO_EDGE) ){
-		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	//se ja tem um state igual  retorna o id dele
+	for(int i = 0; i < r->samplerStates->size; i++){
+		samplerState* state = fparray_getdata(i, r->samplerStates);
+		if ( (state->minfilter == minfilter) && (state->wrapmode == wrapmode) && (state->wrapmode == wrapmode) && (state->anisotropy == anisotropy)){
+			printf("ja tem um sampler state igual\n");
+			return state->id;
+		}
 	}
 
-	if ( (flags & NEAREST) ){
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	}
-	if ( (flags & BILINEAR) ){
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	}
-	if ( (flags & LINEAR) ){
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	}
+	printf("criando sampler state \n");
 
-	if ( (flags & ANISOTROPY_1) )
-		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0);
-	else if ((flags & ANISOTROPY_2) )
-		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0);
-	else if ((flags & ANISOTROPY_4) )
-		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
-	else if ((flags & ANISOTROPY_8) )
-		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0);
-	else if ((flags & ANISOTROPY_16) )
-		glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);	
+	//se nao cria um
+	unsigned int samplerID;
+	glGenSamplers(1, &samplerID);
+	glSamplerParameteri(samplerID, GL_TEXTURE_MIN_FILTER, minfilter);
+	glSamplerParameteri(samplerID, GL_TEXTURE_MAG_FILTER, magfilter);
+	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_S, wrapmode);
+	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_T, wrapmode);
+	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_R, wrapmode);
+	glSamplerParameteri(samplerID, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
+	
+	samplerState* state = (samplerState*) dlmalloc(sizeof(samplerState));
+	state->id = samplerID;
+	state->minfilter = minfilter;
+	state->magfilter = magfilter;
+	state->wrapmode = wrapmode;
+	state->anisotropy = anisotropy;
 
-	if (flags & MIPMAP)
-		glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
+	fparray_inspos(state, state->id, r->samplerStates);
 
+	return state->id;
+}
+
+void bindSamplerState(unsigned int unit, unsigned int id){
+	samplerState* samplerid = fparray_getdata(id, r->samplerStates);
+	samplerState* prevSampler = fparray_getdata(r->prevSamplerState, r->samplerStates);
+
+	if (r->prevSamplerState == -1){
+		r->prevSamplerState = id;
+		glBindSampler(unit, samplerid->id);
+	}else{
+		if (samplerid->id != prevSampler->id){
+			glBindSampler(unit, samplerid->id);
+			r->prevSamplerState = id;
+		}
+
+	}
 }
 
 unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type, int flags){
     unsigned int textureID;
     glGenTextures(1, &textureID);
     glBindTexture(target, textureID);
-
-    texture* prevTex = fparray_getdata(r->prevTexture, r->textures);
-    if (r->prevTexture >= 0){
-        if ( (flags & CLAMP) && !(prevTex->flags  &CLAMP) ){
-            glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP);
-            glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP);
-            glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP);
-        }
-        if ((flags & CLAMP_TO_EDGE) && !(prevTex->flags  &CLAMP_TO_EDGE) ){
-            glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-        }
-
-        if ( (flags & NEAREST) &&  !(prevTex->flags & NEAREST) ){
-            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        }
-        if ( (flags & BILINEAR) &&  !(prevTex->flags & BILINEAR)){
-            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        }
-        if ( (flags & LINEAR) &&  !(prevTex->flags & LINEAR) ){
-            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        }
-
-        if ( (flags & ANISOTROPY_1) && !(prevTex->flags & ANISOTROPY_1))
-            glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0);
-        else if ((flags & ANISOTROPY_2) && !(prevTex->flags & ANISOTROPY_2))
-            glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0);
-        else if ((flags & ANISOTROPY_4) && !(prevTex->flags & ANISOTROPY_4))
-            glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
-        else if ((flags & ANISOTROPY_8) && !(prevTex->flags & ANISOTROPY_8))
-            glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0);
-        else if ((flags & ANISOTROPY_16) && !(prevTex->flags & ANISOTROPY_16))
-            glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);	
-
-        if (flags & MIPMAP)
-            glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
-    }else
-        applySamplerState(target, flags);
 
     if ( filename != NULL ){
         //TODO fazer 1d e 3d
@@ -428,7 +491,6 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
             }
             glTexImage2D(target, 0, internalFormat, x, y, 0, imageFormat, type, data);
         }else if ( target == TEXTURE_CUBEMAP ){
-            printf("TEXTURE_CUBEMAP\n");
             char buff[1024];
             GLuint facetargets[] = {
                 GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
@@ -456,11 +518,8 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
     }
 
     texture* tex = (texture*) dlmalloc(sizeof(texture));
-    tex->flags = flags;
     tex->id = textureID;
     tex->target = target;
-
-    //r->textures[textureID] = tex;
 
     fparray_inspos(tex, textureID, r->textures);
 
@@ -477,60 +536,15 @@ unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, i
 	glGenTextures(1, &textureID);
 	glBindTexture(target, textureID);
 
-    texture* prevTex = fparray_getdata(r->prevTexture, r->textures);
-	if (r->prevTexture >= 0){
-		if ( (flags & CLAMP) && !(prevTex->flags  &CLAMP) ){
-			glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP);
-			glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP);
-			glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP);
-		}
-		if ((flags & CLAMP_TO_EDGE) && !(prevTex->flags  &CLAMP_TO_EDGE) ){
-			glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		}
-
-		if ( (flags & NEAREST) &&  !(prevTex->flags & NEAREST) ){
-			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		}
-		if ( (flags & BILINEAR) &&  !(prevTex->flags & BILINEAR)){
-			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		}
-		if ( (flags & LINEAR) &&  !(prevTex->flags & LINEAR) ){
-			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		}
-
-		if ( (flags & ANISOTROPY_1) && !(prevTex->flags & ANISOTROPY_1))
-			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0);
-		else if ((flags & ANISOTROPY_2) && !(prevTex->flags & ANISOTROPY_2))
-			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0);
-		else if ((flags & ANISOTROPY_4) && !(prevTex->flags & ANISOTROPY_4))
-
-			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
-		else if ((flags & ANISOTROPY_8) && !(prevTex->flags & ANISOTROPY_8))
-			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0);
-		else if ((flags & ANISOTROPY_16) && !(prevTex->flags & ANISOTROPY_16))
-			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);	
-
-		if (flags & MIPMAP)
-			glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
-	}else
-		applySamplerState(target, flags);
-
 	if ((target == TEXTURE_2D) || (target == TEXTURE_RECTANGLE) ){
 		glTexImage2D(target, 0, internalFormat, x, y, 0, imageFormat, type, data);
 	}
 
 	texture* tex = (texture*) dlmalloc(sizeof(texture));
-	tex->flags = flags;
 	tex->id = textureID;
 	tex->target = target;
 
-	//r->textures[textureID] = tex;
-    fparray_inspos(tex, textureID, r->textures);
+    	fparray_inspos(tex, textureID, r->textures);
 
 	if (r->prevTexture >= 0)
 		bindTexture(0, r->prevTexture);
@@ -541,8 +555,10 @@ unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, i
 }
 
 void bindTexture(int slot, int id){
-    texture* tex = fparray_getdata(id, r->textures);
-    texture* prevTex = fparray_getdata(r->prevTexture, r->textures);
+
+	texture* tex = fparray_getdata(id, r->textures);
+	texture* prevTex = fparray_getdata(r->prevTexture, r->textures);
+
 	if (r->prevTexture == -1){
 		r->prevTexture = id;
 		glEnable(tex->target );
@@ -555,56 +571,10 @@ void bindTexture(int slot, int id){
 			glDisable(prevTex->target);
 			glEnable(tex->target);
 		}
+		if (tex->id != prevTex->id)
+			glBindTexture(tex->target, tex->id);
 
 		glActiveTexture(GL_TEXTURE0 + slot);
-
-		if (tex->id != prevTex->id )
-			glBindTexture(tex->target, tex->id );
-
-		if ( (tex->flags & CLAMP) && !(prevTex->flags  &CLAMP) ){
-			glTexParameteri(tex->target, GL_TEXTURE_WRAP_S, GL_CLAMP);
-			glTexParameteri(tex->target, GL_TEXTURE_WRAP_T, GL_CLAMP);
-			glTexParameteri(tex->target, GL_TEXTURE_WRAP_R, GL_CLAMP);
-		}
-		if ((tex->flags & CLAMP_TO_EDGE) && !(prevTex->flags  &CLAMP_TO_EDGE) ){
-			glTexParameteri(tex->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(tex->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(tex->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		}
-
-		if ( (tex->flags & NEAREST) &&  !(prevTex-> flags & NEAREST) ){
-			glTexParameteri(tex->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(tex->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		}
-		else if ( (tex->flags & BILINEAR) &&  !(prevTex->flags & BILINEAR)){
-			glTexParameteri(tex->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(tex->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		}
-		else if ( (tex->flags & LINEAR) &&  !(prevTex->flags & LINEAR) ){
-			glTexParameteri(tex->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(tex->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		}
-
-		
-		//TODO uma maneira mais simples de 
-		if ( ((prevTex->flags &ANISOTROPY_2) || (prevTex->flags &ANISOTROPY_4) || (prevTex->flags &ANISOTROPY_8) || (prevTex->flags &ANISOTROPY_16) ) && ( !((tex->flags & ANISOTROPY_2) || (tex->flags & ANISOTROPY_4) || (tex->flags & ANISOTROPY_8) || (tex->flags & ANISOTROPY_16)  )  )){
-			glTexParameterf(tex->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 0.0);
-			printf("anterior tinha anisotropy e atual nao tem, desativando \n");
-
-		}else{
-			if ( (tex->flags & ANISOTROPY_1) && !(prevTex->flags & ANISOTROPY_1))
-				glTexParameterf(tex->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0);
-			else if ((tex->flags & ANISOTROPY_2) && !(prevTex->flags & ANISOTROPY_2))
-				glTexParameterf(tex->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0);
-			else if ((tex->flags & ANISOTROPY_4) && !(prevTex->flags & ANISOTROPY_4))
-				glTexParameterf(tex->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0);
-			else if ((tex->flags & ANISOTROPY_8) && !(prevTex->flags & ANISOTROPY_8))
-				glTexParameterf(tex->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0);
-			else if ((tex->flags & ANISOTROPY_16) && !(prevTex->flags & ANISOTROPY_16)) 
-				glTexParameterf(tex->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0);	
-		}
-
-
 		r->prevTexture = id;
 	}
 
@@ -627,10 +597,7 @@ unsigned int initializeVBO(unsigned int size, const void* data){
 //TODO usar draw rande elements pros indices
 void drawVBO(unsigned int triCount, unsigned int vertexID, unsigned int indicesID, int formatID){
 
-
-	//vertexFormat* current = r->vertexFormats[formatID];
-    vertexFormat* current = fparray_getdata(formatID, r->vertexFormats);
-	//vertexFormat* prev = r->vertexFormats[r->prevFormat];
+    	vertexFormat* current = fparray_getdata(formatID, r->vertexFormats);
 	vertexFormat* prev = fparray_getdata(r->prevFormat, r->vertexFormats);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexID);
 
@@ -671,17 +638,7 @@ unsigned int addVertexFormat(vertexAttribute** attrs,  unsigned int num){
 	format->attributes = (vertexAttribute*) dlmalloc(sizeof(vertexAttribute*[MAX_VERTEX_ATTRS]));
 	format->numAttrs = num;
 	format->attributes = attrs;
-	/*unsigned int indice;
-	//pega o primeiro valor do array de ponteiros que esta vazio
-	for (unsigned int i = 0; i < MAX_VERTEX_FORMAT; i++){
-		if (!r->vertexFormats[i]){
-			indice = i;
-			break;
-		}
-	}
-	r->vertexFormats[indice] = format;
-	return indice;*/
-    return fparray_insback(format, r->vertexFormats);
+    	return fparray_insback(format, r->vertexFormats);
 }
 
 
@@ -809,7 +766,7 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 					uni->semantic = LIGHTPOS;
 				if (strcmp(uni->name, "EyePosition") == 0)
 					uni->semantic = EYEPOS;
-				if (strcmp(uni->name, "Timer") == 0)
+				if (strcmp(uni->name, "Time") == 0)
 					uni->semantic = TIME;
 				newShader->uniforms[numUniforms] = uni;
 				numUniforms++;
@@ -826,6 +783,13 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 }
 
 void bindShader(unsigned int program){
+
+	if (program == 0){
+		glUseProgram(0);
+		r->prevShader = 0;
+		return;
+	}
+
 	if (program != r->prevShader){
 		r->prevShader = program;
 		glUseProgram(program);
@@ -843,10 +807,9 @@ void bindShader(unsigned int program){
 			}
 		}else if ( shdr->uniforms[i]->semantic == EYEPOS){
 			setShaderConstant3f(program, "EyePosition",  c.pos);
-            printf("c.pos: %f, %f, %f\n", c.pos[0], c.pos[1], c.pos[2]);
-		//}else if (r->shaders[program]->uniforms[i]->semantic == TIME)
-			//setShaderConstant1f(program, "Time", TIMER::getInstance().getElapsedTime());
-		//	  setShaderConstant1f(program, "Time", 0.1);
+		}else if (shdr->uniforms[i]->semantic == TIME){
+		//	setShaderConstant1f(program, "Time", ifps);
+			  setShaderConstant1f(program, "Time", 0.016);
 		//else if (r->shaders[program]->uniforms[i]->semantic == LIGHTPOS){
 		//	float lightp[3] = {10.0, 10.0, 10.0 };
 		//	setShaderConstant3f(program, "LightPosition",  lightp);
@@ -916,6 +879,41 @@ void setShaderConstantRaw(int shaderid, const char* name, const void* data, int 
 	}
 }
 
+int checkFramebufferStatus( int silent)
+{
+    GLenum status;
+    status = (GLenum) glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+    switch(status) {
+        case GL_FRAMEBUFFER_COMPLETE_EXT:
+            break;
+        case GL_FRAMEBUFFER_UNSUPPORTED_EXT:
+            if (!silent) printf("Unsupported framebuffer format\n");
+            return 0;
+        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
+            if (!silent) printf("Framebuffer incomplete, missing attachment\n");
+            return 0;
+        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
+            if (!silent) printf("Framebuffer incomplete, duplicate attachment\n");
+            return 0;
+        case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
+            if (!silent) printf("Framebuffer incomplete, attached images must have same dimensions\n");
+            return 0;
+        case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
+            if (!silent) printf("Framebuffer incomplete, attached images must have same format\n");
+            return 0;
+        case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
+            if (!silent) printf("Framebuffer incomplete, missing draw buffer\n");
+            return 0;
+        case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
+            if (!silent) printf("Framebuffer incomplete, missing read buffer\n");
+            return 0;
+        default:
+            printf("Framebuffer unknow error\n");
+            return 0;
+    }
+    return 1;
+}
+
 unsigned int initializeFramebuffer(void* data, int width, int height, int format, int internalFormat, int type, int  flags){
 
 	
@@ -925,15 +923,22 @@ unsigned int initializeFramebuffer(void* data, int width, int height, int format
 	glBindFramebuffer(GL_FRAMEBUFFER, id);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texid, 0);
 
+	printf("fbo id criado: %d \n", id);
+
 	//r->framebuffers[id] = id;
     framebuffer *fb = dlmalloc(sizeof(framebuffer));
     fb->id = id;
     fb->width = width;
     fb->height = height;
+    fb->texid = texid;
 
     fparray_inspos(fb, id, r->framebuffers);
 
+	checkFramebufferStatus(0);
+
 	bindMainFramebuffer();
+
+	return id;
 
 }
 
@@ -941,8 +946,11 @@ void bindFramebuffer(int id){
 	if (r->prevFramebuffer != id){
 		r->prevFramebuffer = id;
 		glBindFramebuffer(GL_FRAMEBUFFER, id);
+		printf("vai pegar o array\n");
         framebuffer* fb = fparray_getdata(id, r->framebuffers);
+		printf("fb array done\n");
 		glViewport(0, 0, fb->width,  fb->height); 
+		printf("viewport configurado \n");
 	}
 }
 
