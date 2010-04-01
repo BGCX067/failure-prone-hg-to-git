@@ -55,7 +55,6 @@ int idle(float ifps, event* e, scene* s){
 		}
 	}
 
-	//cpSpaceStep(space, 1.0f/60.0f);
 	//printf("x:  %f y: %f \n ",playerBody->p.x, playerBody->p.y );
 	
 	return 1;
@@ -104,18 +103,20 @@ int main(){
 	addMesh(s, quad);
 	addNode(s, &player);
 	
-	//space = cpSpaceNew();
-	//space->iterations = 10;
-	//space->gravity = cpv(0, -100);
+
+/*	space = cpSpaceNew();
+	space->iterations = 10;
+	space->gravity = cpv(0, -100);
 
 	//playerBody = cpBodyNew(10, cpMomentForCircle(10, 0.0f, 25, cpvzero));
 	//playerBody->p = cpv(400, 300);
 	//cpSpaceAddBody(space, playerBody);
 
-	//cpShape* playerShape = cpSpaceAddShape(space, cpCircleShapeNew(playerBody, 25, cpvzero));
-	//playerShape->e = 0;
-	//playerShape->u = 0.9;
 
+	cpShape* playerShape = cpSpaceAddShape(space, cpCircleShapeNew(playerBody, 25, cpvzero));
+	playerShape->e = 0;
+	playerShape->u = 0.9;
+*/
 	mainloop(app, idle, render, s );
 
 	closeVideo();

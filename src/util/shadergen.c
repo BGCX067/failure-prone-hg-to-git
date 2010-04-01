@@ -186,7 +186,7 @@ char* createFSFuncs(material m) {
                          "\treturn color;\n"
                          "}\n";
         } else {
-            phongcolor = "\tvec4 color = ambient + diffuse + specular;\n"
+            phongcolor = "\tvec4 color = (ambient + diffuse) + specular;\n"
                          "\tcolor.w = 1.0;\n"
                          "\treturn color;\n"
                          "}\n";
