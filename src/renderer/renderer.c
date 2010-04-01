@@ -126,10 +126,10 @@ int render(float ifps, event *e, scene *s){
     fpnode *duckNode = duck->meshes->first;
     mesh *duckMesh = duck->meshes->first->data;
     //bindTexture(1, normalMap);
-    bindTexture(6, tex);
-    bindTexture(9, cm);
-    bindSamplerState(6, texState);
-    bindSamplerState(9, texState);
+    bindTexture(1, tex);
+    bindTexture(0, cm);
+    bindSamplerState(1, texState);
+    bindSamplerState(0, texState);
     bindShader(phong);
     triangles *duckTri = duckMesh->tris->first->data;
     drawVBO(duckTri->indicesCount, duckTri->vboId, duckTri->indicesId, duckTri->vertexFormatId );
@@ -399,8 +399,6 @@ int initializeSamplerState(int wrapmode, int minfilter, int magfilter, int aniso
 		}
 	}
 
-	printf("criando sampler state \n");
-
 	//se nao cria um
 	unsigned int samplerID;
 	glGenSamplers(1, &samplerID);
@@ -427,12 +425,13 @@ void bindSamplerState(unsigned int unit, unsigned int id){
 	samplerState* samplerid = fparray_getdata(id, r->samplerStates);
 	samplerState* prevSampler = fparray_getdata(r->prevSamplerState, r->samplerStates);
 
+	//FIXME driver da nvidia ta com um bug, 
 	if (r->prevSamplerState == -1){
 		r->prevSamplerState = id;
-		glBindSampler(unit, samplerid->id);
+		glBindSampler(GL_TEXTURE0+unit, samplerid->id);
 	}else{
 		if (samplerid->id != prevSampler->id){
-			glBindSampler(unit, samplerid->id);
+			glBindSampler(GL_TEXTURE0+unit, samplerid->id);
 			r->prevSamplerState = id;
 		}
 
