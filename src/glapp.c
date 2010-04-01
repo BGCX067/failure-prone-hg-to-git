@@ -1,7 +1,7 @@
 
 #include "glapp.h"
 
-#ifndef WIN
+//#ifndef WIN
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,6 +9,7 @@
 #include <X11/keysym.h>
 #include <X11/extensions/xf86vmode.h>
 #include <GL/glx.h>
+#include <GL/glxext.h>
 #include <sys/time.h>
 #include <time.h>
 
@@ -35,31 +36,56 @@ glapp* setVideoMode(int w, int h, int fullscreen){
 	}
 
 	int attrib [] = {
-		GLX_RGBA,
+		GLX_X_RENDERABLE    , True,
+	        GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,
+	        GLX_RENDER_TYPE     , GLX_RGBA_BIT,
+	        GLX_X_VISUAL_TYPE   , GLX_TRUE_COLOR,
 		GLX_RED_SIZE, 8,
 		GLX_BLUE_SIZE, 8,
 		GLX_GREEN_SIZE, 8,
 		GLX_ALPHA_SIZE, 8,
 		GLX_DEPTH_SIZE, 24,
 		GLX_STENCIL_SIZE, 8,
-		GLX_DOUBLEBUFFER,
+		GLX_DOUBLEBUFFER, True,
 		None
 	};
 
 	display = XOpenDisplay(NULL);
+
 	screen = DefaultScreen(display);
 	Window  rootWindow = RootWindow(display, screen);
 	glapp* appwin =  (glapp*)malloc(sizeof(glapp));
 	appwin->width = w;
 	appwin->height = h;
 
-	XVisualInfo* visualInfo  =glXChooseVisual(display, screen, attrib);
+	GLXFBConfig* fbc = None;
+	int fbcCount = 0;
+	fbc =  glXChooseFBConfig( display, screen, attrib, &fbcCount );
+	if (!fbc){
+		printf("Invalid framebuffer config. \n");
+		return;
+	}
+		
+	XVisualInfo* visualInfo  = glXGetVisualFromFBConfig( display, fbc[ 0 ] ); // glXChooseVisual(display, screen, attrib);
 	if (!visualInfo){
 		printf("Invalid visual info\n");
 		return NULL;
 	}
 
-	if(fullscreen) {
+	Colormap currentColormap  = XCreateColormap(display, rootWindow, visualInfo->visual, AllocNone);
+ 	XSetWindowAttributes currentSetWindowAttibutes;
+	currentSetWindowAttibutes.colormap = currentColormap;
+	currentSetWindowAttibutes.event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | StructureNotifyMask;
+	window = XCreateWindow(display, rootWindow, 0, 0, appwin->width, appwin->height, 0, visualInfo->depth, InputOutput, visualInfo->visual, CWColormap | CWEventMask, &currentSetWindowAttibutes);
+
+	if (!window){
+		printf("Cant create window\n");
+		return NULL;
+	}
+
+	XMapWindow(display, window);
+
+	/*if(fullscreen) {
 		int i, nmodes;
 		XF86VidModeModeLine mode;
 		if(XF86VidModeGetModeLine(display,screen,&nmodes,&mode) && XF86VidModeGetAllModeLines(display,screen,&nmodes,&modes)) {
@@ -77,12 +103,8 @@ glapp* setVideoMode(int w, int h, int fullscreen){
 		}
 	}
 		
-	XSetWindowAttributes attr;
-	unsigned long mask;
 	attr.background_pixel = 0;
 	attr.border_pixel = 0;
-	attr.colormap = XCreateColormap(display,rootWindow,visualInfo->visual,AllocNone);
-	attr.event_mask = StructureNotifyMask | KeyPressMask | KeyReleaseMask | PointerMotionMask | ButtonPressMask | ButtonReleaseMask;
 	if(fullscreen) {
 		mask = CWBackPixel | CWColormap | CWOverrideRedirect | CWSaveUnder | CWBackingStore | CWEventMask;
 		attr.override_redirect = True;
@@ -93,9 +115,8 @@ glapp* setVideoMode(int w, int h, int fullscreen){
 	}
 	
 	appwin->depth = visualInfo->depth;
-	window = XCreateWindow(display,rootWindow,0,0,appwin->width,appwin->height,0,visualInfo->depth,InputOutput,visualInfo->visual,mask,&attr);
-	XMapWindow(display,window);
-		
+	*/	
+	
 	if(fullscreen) {
 		XMoveWindow(display,window,0,0);
 		XRaiseWindow(display,window);
@@ -110,12 +131,45 @@ glapp* setVideoMode(int w, int h, int fullscreen){
 	}
 		
 	XFlush(display);
-		
-	if(!context) 
-		context = glXCreateContext(display, visualInfo, NULL, True);
-		
-	if (!context)
+
+
+	// criacao de contexto anterior ao opengl 3
+	//context = glXCreateContext(display, visualInfo, NULL, True);
+
+	 PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB = NULL;
+
+        unsigned int attribList[] =
+        {
+		GLX_CONTEXT_MAJOR_VERSION_ARB, 1,
+		GLX_CONTEXT_MINOR_VERSION_ARB, 0,
+		GLX_CONTEXT_FLAGS_ARB, 0,
+		GLX_CONTEXT_PROFILE_MASK_ARB, 0,
+		0
+	};
+
+	//TODO passar por parametro?
+	attribList[1] = 3;
+	attribList[3] = 2;
+	attribList[5] = GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+	attribList[7] = GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+
+	//inicializa a extension na mao
+	glXCreateContextAttribsARB = (PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddress( (const unsigned  char *)"glXCreateContextAttribsARB");
+	if (!glXCreateContextAttribsARB){
+		printf("glCreateContextAttribs not supported.\n");
 		return NULL;
+	}
+
+	 if (!(context = glXCreateContextAttribsARB( display, fbc[ 0 ], 0, True, attribList ))){
+	 	printf("glCreateContetAttribs returned null.");
+	 	return  NULL;
+	}
+
+		
+	if (!context){
+		printf("context ta null\n");
+		return NULL;
+	}
 
 	glXMakeCurrent(display, window, context);
 	
@@ -254,4 +308,5 @@ void mainloop(glapp* app, int(idle)(float, event*, scene *), int(render)(float, 
 	}
 }
 
-#endif
+//#endif
+

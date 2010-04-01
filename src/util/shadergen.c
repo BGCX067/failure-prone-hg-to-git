@@ -269,7 +269,7 @@ char* createFSMainFragColor(material m) {
     } else if (m.flags & ENV_MAP) {
         envmap = "\tgl_FragColor = vec4(envcolor, 1.0);\n"
                  "}\n";
-    }
+    } 
 
     size_t retlen = strlen(texphong) + strlen(phong) + strlen(tex) 
                     + strlen(envmap) + strlen(refract) + 1;
