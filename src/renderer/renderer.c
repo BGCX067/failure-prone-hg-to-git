@@ -235,11 +235,13 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	//phong = initializeShader( readTextFile("data/shaders/normal_map.vert"), readTextFile("data/shaders/normal_map.frag") );
     //phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
     material m;
-    m.flags = PHONG | ENV_MAP | TEX;
+    m.flags = PHONG | REFRACT | TEX | ATTENUATION;
     char *vertShader, *fragShader;
     shadergen(m, &vertShader, &fragShader);
     phong = initializeShader( vertShader, fragShader );
-
+    
+    float etaRatio = 0.412;
+    setShaderConstant1f(phong, "etaRatio", etaRatio);
 	float Ka[] = {0.4, 0.4, 0.4, 1.0};
     setShaderConstant4f(phong, "Ka", Ka);
     float Kd[] = {0.5, 0.5, 0.5, 1.0};
