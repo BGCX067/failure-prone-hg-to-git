@@ -126,10 +126,10 @@ int render(float ifps, event *e, scene *s){
     fpnode *duckNode = duck->meshes->first;
     mesh *duckMesh = duck->meshes->first->data;
     //bindTexture(1, normalMap);
-  //  bindTexture(6, tex);
-  //  bindTexture(9, cm);
-  //  bindSamplerState(6, texState);
-  //  bindSamplerState(9, texState);
+    bindTexture(6, tex);
+    bindTexture(9, cm);
+    bindSamplerState(6, texState);
+    bindSamplerState(9, texState);
     bindShader(phong);
     triangles *duckTri = duckMesh->tris->first->data;
     drawVBO(duckTri->indicesCount, duckTri->vboId, duckTri->indicesId, duckTri->vertexFormatId );
@@ -274,7 +274,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	//phong = initializeShader( readTextFile("data/shaders/normal_map.vert"), readTextFile("data/shaders/normal_map.frag") );
     //phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
     material m;
-    m.flags = PHONG;
+    m.flags = PHONG | TEX | ENV_MAP;
     
     char *vertShader, *fragShader;
     shadergen(m, &vertShader, &fragShader);

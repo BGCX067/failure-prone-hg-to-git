@@ -75,7 +75,7 @@ glapp* setVideoMode(int w, int h, int fullscreen){
 	Colormap currentColormap  = XCreateColormap(display, rootWindow, visualInfo->visual, AllocNone);
  	XSetWindowAttributes currentSetWindowAttibutes;
 	currentSetWindowAttibutes.colormap = currentColormap;
-	currentSetWindowAttibutes.event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | StructureNotifyMask;
+	currentSetWindowAttibutes.event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | StructureNotifyMask | PointerMotionMask;
 	window = XCreateWindow(display, rootWindow, 0, 0, appwin->width, appwin->height, 0, visualInfo->depth, InputOutput, visualInfo->visual, CWColormap | CWEventMask, &currentSetWindowAttibutes);
 
 	if (!window){
