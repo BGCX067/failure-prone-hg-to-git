@@ -98,6 +98,7 @@ char* createVSMain(material m) {
 char* createFSGlobal(material m) {
     char* ret;
     char* phong = "";
+    char* spotlight = "";
     char* normalmap = "";
     char* tex = "";
     char* envmap = "";
@@ -117,6 +118,12 @@ char* createFSGlobal(material m) {
                 "uniform float shininess;\n"
                 "uniform vec4 globalAmbient;\n"
                 "uniform vec4 LightColor;\n";
+    }
+
+    if(m.flags & SPOTLIGHT) {
+        spotlight = "uniform float cosOuterCone;\n"
+                    "uniform float cosInnerCone;\n"
+                    "uniform vec3 coneDir;\n";
     }
 
     if(m.flags & TEX) {
@@ -146,10 +153,10 @@ char* createFSGlobal(material m) {
                   "varying vec3 refractDir;\n";
     }
     
-    size_t retlen = strlen(phong) + strlen(normalmap) + strlen(tex) 
-                    + strlen(envmap) + strlen(refract) + 1;
+    size_t retlen = strlen(phong) + strlen(spotlight) + strlen(normalmap) 
+                    + strlen(tex) + strlen(envmap) + strlen(refract) + 1;
     ret = dlmalloc(sizeof(char)*retlen);
-    sprintf(ret, "%s%s%s%s%s", phong, normalmap, tex, envmap, refract);
+    sprintf(ret, "%s%s%s%s%s%s", phong, spotlight, normalmap, tex, envmap, refract);
 
     return ret;
 }
@@ -158,7 +165,7 @@ char* createFSFuncs(material m) {
     char* ret = "";
     char* att = "";
     char* phong = "";
-    char* phongcolor = "";
+    char* spotlight = "";
     
     //cria a função de iluminação que recebe a normal
     //e a lightdir e retorna a cor
@@ -169,8 +176,17 @@ char* createFSFuncs(material m) {
               "}\n";
     }
 
+    if(m.flags & SPOTLIGHT) {
+        spotlight = "float spotlight(vec3 p, vec3 lightpos) {\n"
+                    "\tvec3 v = p - lightpos;\n"
+                    "\tfloat cosDir = dot(v, coneDir);\n"
+                    "\treturn cosOuterCone*cosDir +  (1.0 - cosDir)*cosInnerCone;\n"
+                    "}\n";
+
+    }
+
     if(m.flags & PHONG) {
-        phong = "vec4 phong(vec3 n, vec3 lightDir) {\n"
+        char* beginphong = "vec4 phong(vec3 n, vec3 lightDir) {\n"
                 "\tvec3 viewVec = normalize(EyePosition - position);\n"
                 "\tvec3 halfVec = normalize(lightDir + viewVec);\n"
                 "\tfloat diffCoef = max(dot(n, lightDir), 0.0);\n"
@@ -180,23 +196,28 @@ char* createFSFuncs(material m) {
                 "\tvec4 ambient = globalAmbient*Ka;\n"
                 "\tvec4 diffuse = Kd*LightColor*diffCoef;\n"
                 "\tvec4 specular = Ks*LightColor*specCoef;\n";
+        char* color = "";
+        char* spotmult = "";
+        char* endphong = "\tcolor.w = 1.0;\n"
+                         "\treturn color;\n"
+                         "}\n";
         if(m.flags & ATTENUATION) {
-            phongcolor = "\tvec4 color = ambient + (attenuation(position, LightPosition)*(diffuse + specular));\n"
-                         "\tcolor.w = 1.0;\n"
-                         "\treturn color;\n"
-                         "}\n";
+            color = "\tvec4 color = ambient + (attenuation(position, LightPosition)*(diffuse + specular));\n";
         } else {
-            phongcolor = "\tvec4 color = (ambient + diffuse) + specular;\n"
-                         "\tcolor.w = 1.0;\n"
-                         "\treturn color;\n"
-                         "}\n";
+            color = "\tvec4 color = (ambient + diffuse) + specular;\n";
+        }
+        if(m.flags & SPOTLIGHT) {
+            spotmult = "\tcolor = color*spotlight(position, LightPosition);\n";
         }
 
+        size_t phonglen = strlen(beginphong) + strlen(color) + strlen(spotmult) + strlen(endphong) + 1;
+        phong = dlmalloc(sizeof(char)*phonglen);
+        sprintf(phong, "%s%s%s%s", beginphong, color, spotmult, endphong);
     }
 
-    size_t retlen = strlen(phong) + strlen(att) + strlen(phongcolor) + 1;
+    size_t retlen = strlen(phong) + strlen(att) + strlen(spotlight) + 1;
     ret = dlmalloc(sizeof(char)*retlen);
-    sprintf(ret, "%s%s%s", att, phong, phongcolor);
+    sprintf(ret, "%s%s%s", att, spotlight, phong);
 
     return ret;
 }

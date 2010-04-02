@@ -277,12 +277,18 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	//phong = initializeShader( readTextFile("data/shaders/normal_map.vert"), readTextFile("data/shaders/normal_map.frag") );
     //phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
     material m;
-    m.flags = PHONG | TEX;
+    m.flags = PHONG | SPOTLIGHT;
     
     char *vertShader, *fragShader;
     shadergen(m, &vertShader, &fragShader);
     phong = initializeShader( vertShader, fragShader );
     
+    float cosInnerCone = 0.5;    
+    setShaderConstant1f(phong, "cosInnerCone", cosInnerCone);
+    float cosOuterCone = 0.17;
+    setShaderConstant1f(phong, "cosOuterCone", cosOuterCone);
+    float coneDir[] = {0.0, 0.0, -1.0};
+    setShaderConstant3f(phong, "coneDir", coneDir);
     float etaRatio = 0.412;
     setShaderConstant1f(phong, "etaRatio", etaRatio);
 	float Ka[] = {0.4, 0.4, 0.4, 1.0};
@@ -305,16 +311,16 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	setShaderConstant4f(phong, "globalAmbient", ambientLight);
     float color[] = { 0.8, 0.8, 0.8, 1.0 };
 	setShaderConstant4f(phong, "LightColor", color);
-	float position[] = {0, 0, 500};
+	float position[] = {0, 0, 40};
 	setShaderConstant3f(phong, "LightPosition", position); 
 	setShaderConstant3f(phong, "EyePosition", c.pos);
     
     bindShader(phong);
 	duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
 	createVBO(duck->meshes->first->data);
-	printf("initialize gui \n");
-	initializeGUI(800, 600);
-	printf("gui done\n");
+	//printf("initialize gui \n");
+	//initializeGUI(800, 600);
+	//printf("gui done\n");
 	
 	/*fboid = initializeFramebuffer(NULL, 800, 600, RGB, RGB8, UNSIGNED_BYTE, LINEAR);
 	shockwave = initializeShader( readTextFile("data/shaders/sockwave2d.vert"), readTextFile("data/shaders/shockwave2d.frag")  );

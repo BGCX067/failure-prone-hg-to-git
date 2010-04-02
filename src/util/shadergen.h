@@ -7,7 +7,8 @@ enum {
     NORMAL_MAP = 1 << 2,
     ATTENUATION = 1 << 3,
     ENV_MAP = 1 << 4,
-    REFRACT = 1 << 5
+    REFRACT = 1 << 5,
+    SPOTLIGHT = 1 << 6
 };
 
 typedef struct _material {
