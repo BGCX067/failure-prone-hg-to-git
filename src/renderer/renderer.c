@@ -12,6 +12,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glext.h>
+//#include "gui.h"
 
 typedef void (APIENTRYP PFNGLGENSAMPLERSPROC) (GLsizei count, GLuint *samplers);
 typedef void (APIENTRYP PFNGLDELETESAMPLERSPROC) (GLsizei count, const GLuint *samplers);
@@ -126,34 +127,36 @@ int render(float ifps, event *e, scene *s){
     fpnode *duckNode = duck->meshes->first;
     mesh *duckMesh = duck->meshes->first->data;
     //bindTexture(1, normalMap);
-    bindTexture(1, tex);
-    bindTexture(0, cm);
-    bindSamplerState(1, texState);
+    bindTexture(0, tex);
+//    bindTexture(0, cm);
     bindSamplerState(0, texState);
+//    bindSamplerState(0, texState);
     bindShader(phong);
     triangles *duckTri = duckMesh->tris->first->data;
     drawVBO(duckTri->indicesCount, duckTri->vboId, duckTri->indicesId, duckTri->vertexFormatId );
-/*   begin2d();
->>>>>>> other
-	bindTexture(0, tex);
-	fpnode* iterator = s->nodes->first;
-	while ( iterator){
+//   begin2d();
+//>>>>>>> other
+//	bindTexture(0, tex);
+//	fpnode* iterator = s->nodes->first;
+//	while ( iterator){
 //	gluSphere(quadric,  0.5, 20, 20);
-		node* n = iterator->data;
-		mesh *m = n->model;
-		triangles* t = m->tris->first->data;
-		glPushMatrix();
-		glTranslatef(n->pos[0], n->pos[1], n->pos[2]);
-		drawVBO(t->indicesCount, t->vboId, t->indicesId, t->vertexFormatId );
-		glPopMatrix();
+//		node* n = iterator->data;
+//		mesh *m = n->model;
+//		triangles* t = m->tris->first->data;
+//		glPushMatrix();
+//		glTranslatef(n->pos[0], n->pos[1], n->pos[2]);
+//		drawVBO(t->indicesCount, t->vboId, t->indicesId, t->vertexFormatId );
+//		glPopMatrix();
 //	beginGUI();
-//		doButton(NULL, NULL, NULL, 0);
+	//	doButton(NULL, NULL, NULL, 0);
 //	endGUI();
-		iterator = iterator->next;
-	}
-<<<<<<< local
-	end2d();
-    bindMainFramebuffer();
+//		iterator = iterator->next;
+//	}
+//<<<<<<< local
+	//stbtt_print(100, 100, "Noobs");
+
+//	end2d();
+/*    bindMainFramebuffer();
     beginRender(e);
   begin2d();
   	framebuffer* f = r->framebuffers->data[fboid];
@@ -274,7 +277,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	//phong = initializeShader( readTextFile("data/shaders/normal_map.vert"), readTextFile("data/shaders/normal_map.frag") );
     //phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
     material m;
-    m.flags = PHONG | TEX | ENV_MAP;
+    m.flags = PHONG | TEX;
     
     char *vertShader, *fragShader;
     shadergen(m, &vertShader, &fragShader);
@@ -310,7 +313,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
 	createVBO(duck->meshes->first->data);
 	printf("initialize gui \n");
-	//initializeGUI(800, 600);
+	initializeGUI(800, 600);
 	printf("gui done\n");
 	
 	/*fboid = initializeFramebuffer(NULL, 800, 600, RGB, RGB8, UNSIGNED_BYTE, LINEAR);
@@ -338,6 +341,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
     for(int i = 0; i < shdr->numSamplers; i++) {
         printf("\tsamplers[%d]->location: %d\n", i, shdr->samplers[i]->location);   
     }
+   // initfont();
     printf("initiaization done\n");
 	return r;
 }
