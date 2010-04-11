@@ -283,11 +283,11 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
     shadergen(m, &vertShader, &fragShader);
     phong = initializeShader( vertShader, fragShader );
     
-    float cosInnerCone = 0.5;    
+    float cosInnerCone = 0.86;    
     setShaderConstant1f(phong, "cosInnerCone", cosInnerCone);
-    float cosOuterCone = 0.17;
+    float cosOuterCone = 0.2;
     setShaderConstant1f(phong, "cosOuterCone", cosOuterCone);
-    float coneDir[] = {0.0, 0.0, -1.0};
+    float coneDir[] = {0.0, -1.0, -1.0};
     setShaderConstant3f(phong, "coneDir", coneDir);
     float etaRatio = 0.412;
     setShaderConstant1f(phong, "etaRatio", etaRatio);
@@ -311,7 +311,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	setShaderConstant4f(phong, "globalAmbient", ambientLight);
     float color[] = { 0.8, 0.8, 0.8, 1.0 };
 	setShaderConstant4f(phong, "LightColor", color);
-	float position[] = {0, 0, 40};
+	float position[] = {0, 60, 100};
 	setShaderConstant3f(phong, "LightPosition", position); 
 	setShaderConstant3f(phong, "EyePosition", c.pos);
     

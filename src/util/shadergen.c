@@ -178,9 +178,11 @@ char* createFSFuncs(material m) {
 
     if(m.flags & SPOTLIGHT) {
         spotlight = "float spotlight(vec3 p, vec3 lightpos) {\n"
-                    "\tvec3 v = p - lightpos;\n"
-                    "\tfloat cosDir = dot(v, coneDir);\n"
-                    "\treturn cosOuterCone*cosDir +  (1.0 - cosDir)*cosInnerCone;\n"
+                    "\tvec3 v = normalize(p - lightpos);\n"
+                    "\tfloat cosDir = dot(v, normalize(coneDir));\n"
+                    //"\treturn cosOuterCone*cosDir +  (1.0 - cosDir)*cosInnerCone;\n"
+                    "\tfloat res = smoothstep(cosOuterCone, cosInnerCone, cosDir);\n"
+                    "\treturn res;\n"
                     "}\n";
 
     }
@@ -207,7 +209,8 @@ char* createFSFuncs(material m) {
             color = "\tvec4 color = (ambient + diffuse) + specular;\n";
         }
         if(m.flags & SPOTLIGHT) {
-            spotmult = "\tcolor = color*spotlight(position, LightPosition);\n";
+            spotmult = "\tfloat spotContrib = spotlight(position, LightPosition);\n"
+                       "\tcolor = color*spotContrib;\n";
         }
 
         size_t phonglen = strlen(beginphong) + strlen(color) + strlen(spotmult) + strlen(endphong) + 1;
