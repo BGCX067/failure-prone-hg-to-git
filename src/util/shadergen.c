@@ -180,10 +180,10 @@ char* createFSFuncs(material m) {
     if(m.flags & SPOTLIGHT) {
         spotlight = "float spotlight(vec3 p, vec3 lightpos) {\n"
                     "\tvec3 v = normalize(p - lightpos);\n"
-                    "\tvec4 ld = vec4(coneDir, 0.0);\n"
-                    "\tld = gl_ModelViewMatrix*ld;\n"
-                    "\tld = normalize(ld);\n"
-                    "\tfloat cosDir = dot(v, ld.xyz);\n"
+                    "\tvec4 lightDir = vec4(coneDir, 0.0);\n"
+                    "\tlightDir = gl_ModelViewMatrix*lightDir;\n"
+                    "\tlightDir = normalize(lightDir);\n"
+                    "\tfloat cosDir = dot(v, lightDir.xyz);\n"
                     "\tfloat res = smoothstep(cosOuterCone, cosInnerCone, cosDir);\n"
                     "\treturn res;\n"
                     "}\n";
@@ -212,9 +212,9 @@ char* createFSFuncs(material m) {
             color = "\tvec4 color = (ambient + diffuse) + specular;\n";
         }
         if(m.flags & SPOTLIGHT) {
-            spotmult = "\tvec4 lp = vec4(LightPosition, 1.0);\n"
-                       "\tlp = gl_ModelViewMatrix*lp;\n"
-                       "\tcolor = color*spotlight(position, lp.xyz);\n";
+            spotmult = "\tvec4 lightPos = vec4(LightPosition, 1.0);\n"
+                       "\tlightPos = gl_ModelViewMatrix*lightPos;\n"
+                       "\tcolor = color*spotlight(position, lightPos.xyz);\n";
         }
 
         size_t phonglen = strlen(beginphong) + strlen(color) + strlen(spotmult) + strlen(endphong) + 1;
@@ -240,9 +240,9 @@ char* createFSMainBody(material m) {
     
     if(m.flags & PHONG) {
         phong = "\tvec3 N = normalize(normal);\n"
-                "\tvec4 lp = vec4(LightPosition, 1.0);\n"
-                "\tlp = gl_ModelViewMatrix*lp;\n"
-                "\tvec3 lightVec = normalize(lp.xyz - position);\n"
+                "\tvec4 lightPos = vec4(LightPosition, 1.0);\n"
+                "\tlightPos = gl_ModelViewMatrix*lightPos;\n"
+                "\tvec3 lightVec = normalize(lightPos.xyz - position);\n"
                 "\tvec4 phongColor = phong(N, lightVec);\n";
     }
 
