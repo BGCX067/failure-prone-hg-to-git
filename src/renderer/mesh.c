@@ -102,7 +102,7 @@ void createVBO(mesh* m){
 
 
 		tri->vboId = initializeVBO(vboSize*sizeof(float), alldata);
-		tri->vertexFormatId  = addVertexFormat(attrs, tri->totalAttrs);
+		tri->vaoId = initializeVAO(tri->vboId, tri->indicesId, attrs, tri->totalAttrs);
 
 		n = n->next;
 		printf("vbo criada\n");

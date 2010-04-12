@@ -18,7 +18,7 @@ typedef struct _triangles{
 
 	unsigned int indicesCount, verticesCount, normalsCount, tangentsCount, binormalsCount;
 	unsigned int verticesComponents;
-	unsigned int vboId, indicesId;
+	unsigned int vboId, indicesId, vaoId;
 	unsigned int vertexFormatId;
 	unsigned int totalAttrs;
 

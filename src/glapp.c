@@ -293,6 +293,7 @@ void mainloop(glapp* app, int(idle)(float, event*, scene *), int(render)(float, 
 			fps = counter * 1000.0/ (float) (elapsedTime);
 			counter= 0;
 		}
+		printf("FPS: %f\n", fps);
 		ifps = 1/fps;
 
 

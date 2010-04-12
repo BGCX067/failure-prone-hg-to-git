@@ -68,6 +68,7 @@ enum TextureTarget{
 	TEXTURE_3D = GL_TEXTURE_3D,
 	TEXTURE_CUBEMAP = GL_TEXTURE_CUBE_MAP,
 	TEXTURE_RECTANGLE = GL_TEXTURE_RECTANGLE_ARB
+
 };
 
 enum TextureFormat{
@@ -77,7 +78,11 @@ enum TextureFormat{
 
 enum TextureInternalFormat{
 	RGB8 = GL_RGB8,
-	RGBA8 = GL_RGBA8
+	RGBA8 = GL_RGBA8,
+	RGB_DXT1 = GL_COMPRESSED_RGB_S3TC_DXT1_EXT,
+	RGBA_DXT1 = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
+	RGBA_DXT3 = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
+	RGBA_DXT5 = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
 };
 
 
@@ -140,14 +145,6 @@ typedef struct _vertexAttribute{
 	int type;
 }vertexAttribute;
 
-typedef struct _vertexFormat{
-	vertexAttribute** attributes;
-	short int numAttrs;
-}vertexFormat;
-
-//void* createVertexFormat();
-void destroyVertexFormat(void *ptr);
-
 typedef struct _framebuffer{
 	int width, height;
 	int id;
@@ -167,8 +164,6 @@ typedef struct _renderer{
 	fparray* samplerStates;
 
 	int prevVBO;
-	int prevFormat;
-    	fparray* vertexFormats;
 
 	int prevShader;
     	fparray* shaders;
@@ -177,7 +172,9 @@ typedef struct _renderer{
 	int prevFramebuffer;
     	fparray* framebuffers; 
     
-    
+   
+   	int prevVAO;
+
 }renderer;
 
 //Primitivas mais high level do renderer FIXME: colocar em outro file?
@@ -218,9 +215,10 @@ unsigned int initializeFramebuffer(void* data, int width, int height, int format
 //VBOS
 unsigned int initializeVBO(unsigned int size, const void* data);
 void killVBO(unsigned int id);
-void drawVBO(unsigned int triCount, unsigned int vertexId, unsigned int indicesID,  int fmt);
 
-unsigned int addVertexFormat(vertexAttribute** attrs, unsigned int num);
+//VAO
+unsigned int initializeVAO(unsigned int vboID,  unsigned int indicesID, vertexAttribute** attrs,  unsigned int num);
+unsigned int  drawVAO(unsigned int  vaoID,  unsigned int triCount);
 
 //shaders
 unsigned int initializeShader(const char* vertexSource, const char* fragmentSource);

@@ -282,7 +282,7 @@ char* createFSMainFragColor(material m) {
     char* refract = "";
    
     if((m.flags & PHONG) && (m.flags & ENV_MAP) && (m.flags & TEX)) {
-        envmap = "\tgl_FragColor = mix(texColor*phongColor, envcolor, 0.3);\n"
+        envmap = "\tgl_FragColor =  mix( (texColor*phongColor), envcolor, 0.3);\n"
                  "}\n";
     } else if((m.flags & PHONG) && (m.flags & REFRACT) && (m.flags & TEX)) {
         refract = "\tgl_FragColor = mix(texColor*phongColor, envcolor, 0.3);\n"

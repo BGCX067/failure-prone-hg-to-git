@@ -12,7 +12,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glext.h>
-//#include "gui.h"
+#include "gui.h"
 
 typedef void (APIENTRYP PFNGLGENSAMPLERSPROC) (GLsizei count, GLuint *samplers);
 typedef void (APIENTRYP PFNGLDELETESAMPLERSPROC) (GLsizei count, const GLuint *samplers);
@@ -43,12 +43,6 @@ PFNGLSAMPLERPARAMETERFVPROC glSamplerParameterfv = NULL;
 typedef GLvoid (APIENTRY *UNIFORM_FUNC)(GLint location, GLsizei count, const void *value);
 typedef GLvoid (APIENTRY *UNIFORM_MAT_FUNC)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
 void *uniformFuncs[CONSTANT_TYPE_COUNT];
-
-void destroyVertexFormat(void *ptr) {
-    for(int i = 0; i < ((vertexFormat*)ptr)->numAttrs; i++)
-        dlfree(((vertexFormat*)ptr)->attributes);
-    dlfree(ptr);
-}
 
 int getConstantType(GLenum type){
 	switch (type){
@@ -111,8 +105,6 @@ void beginRender(event *e) {
     mat4 m;
     cameraHandleEvent(&c, e);
     setupViewMatrix(&c, m);
-    //glMultMatrixf(m);
-    //glTranslated(-c.pos[0], -c.pos[1], -c.pos[2]);
     gluLookAt(c.pos[0], c.pos[1], c.pos[2], c.viewDir[0] + c.pos[0],
               c.viewDir[1] + c.pos[1], c.viewDir[2] + c.pos[2],
               c.up[0], c.up[1], c.up[2]);
@@ -127,13 +119,14 @@ int render(float ifps, event *e, scene *s){
     fpnode *duckNode = duck->meshes->first;
     mesh *duckMesh = duck->meshes->first->data;
     //bindTexture(1, normalMap);
-    bindTexture(0, tex);
-//    bindTexture(0, cm);
+    bindTexture(1, tex);
+    bindTexture(0, cm);
+    bindSamplerState(1, texState);
     bindSamplerState(0, texState);
-//    bindSamplerState(0, texState);
     bindShader(phong);
     triangles *duckTri = duckMesh->tris->first->data;
-    drawVBO(duckTri->indicesCount, duckTri->vboId, duckTri->indicesId, duckTri->vertexFormatId );
+    //drawVBO(duckTri->indicesCount, duckTri->vboId, duckTri->indicesId, duckTri->vertexFormatId );
+     drawVAO(duckTri->vaoId, duckTri->indicesCount);
 //   begin2d();
 //>>>>>>> other
 //	bindTexture(0, tex);
@@ -200,7 +193,6 @@ int render(float ifps, event *e, scene *s){
 
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	r = (renderer*) dlmalloc(sizeof(renderer));
-    	r->vertexFormats = fparray_init(NULL, destroyVertexFormat, sizeof(vertexFormat));
    	r->textures = fparray_init(NULL, NULL, sizeof(texture));
     	r->shaders = fparray_init(NULL, NULL, sizeof(shader));
     	r->framebuffers = fparray_init(NULL, dlfree, sizeof(framebuffer));
@@ -210,15 +202,12 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	r->znear = znear;
 	r->prevTexture = -1;
 	r->prevVBO = -1;
+	r->prevVAO = 0;
 	r->prevSamplerState = -1;
 	r->prevShader = 0;
 	r->viewPortWidth = w;
 	r->viewPortHeight = h;
 	r->prevFramebuffer = -1;
-	vertexAttribute** defaultAttr = dlmalloc(sizeof(vertexAttribute*)*MAX_VERTEX_ATTRS);
-	for(int i  = 0; i < MAX_VERTEX_ATTRS; i++)
-		defaultAttr[i] = NULL;
-	r->prevFormat = addVertexFormat(defaultAttr, 16);
 
 	//FIXME  gambi feia, o glee so inicializa as fncoes quando sao chamadas
 	//mas o ponteiro pra funcao uniformFuncs nao chama elas, logo nao inicializa
@@ -272,17 +261,19 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
     //tex = initializeTexture("data/textures/cthulhuship.png", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE,  (MIPMAP));
     //normalMap = initializeTexture("data/textures/rockwallnormal.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
  	//tex = initializeTexture("data/textures/rockwall.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
-    tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (CLAMP_TO_EDGE));
-    cm = initializeTexture("data/textures/cm1_%s.jpg", TEXTURE_CUBEMAP, RGB, RGB8, UNSIGNED_BYTE,  (CLAMP_TO_EDGE));
+    tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB_DXT1, UNSIGNED_BYTE,  (CLAMP_TO_EDGE));
+    cm = initializeTexture("data/textures/cm1_%s.jpg", TEXTURE_CUBEMAP, RGB, RGB_DXT1, UNSIGNED_BYTE,  (CLAMP_TO_EDGE));
 	//phong = initializeShader( readTextFile("data/shaders/normal_map.vert"), readTextFile("data/shaders/normal_map.frag") );
     //phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
     material m;
-    m.flags = PHONG | SPOTLIGHT;
+    m.flags = PHONG | TEX | ENV_MAP;
     
     char *vertShader, *fragShader;
     shadergen(m, &vertShader, &fragShader);
     phong = initializeShader( vertShader, fragShader );
     
+    printf("fragShader %s \n", fragShader);
+
     float cosInnerCone = 0.9659;    
     setShaderConstant1f(phong, "cosInnerCone", cosInnerCone);
     float cosOuterCone = 0.866;
@@ -345,10 +336,11 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
     shader* shdr = fparray_getdata(1, r->shaders);
     printf("\tNum samplers: %d\n", shdr->numSamplers);
     for(int i = 0; i < shdr->numSamplers; i++) {
-        printf("\tsamplers[%d]->location: %d\n", i, shdr->samplers[i]->location);   
+        printf("\tsamplers[%d]->location: %d name: %s \n", i, shdr->samplers[i]->location, shdr->samplers[i]->name);   
     }
-   // initfont();
+    //initfont();
     printf("initiaization done\n");
+    printf("GL_TEXTURE0: %d\n", GL_TEXTURE0);
 	return r;
 }
 
@@ -558,6 +550,34 @@ void killVBO(unsigned int id){
 	glDeleteBuffers(1, &id);
 }
 
+unsigned int initializeVAO(unsigned int vboID,  unsigned int  indicesID, vertexAttribute** attrs,  unsigned int num){
+	unsigned int vaoID;
+	glGenVertexArrays(1, &vaoID);
+	glBindVertexArray(vaoID);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, vboID);
+	for(unsigned int i = 0; i < MAX_VERTEX_ATTRS; i++){
+		if (attrs[i]){
+			glEnableVertexAttribArray(i);
+			glVertexAttribPointer(i, attrs[i]->components, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(attrs[i]->offset));
+		}
+	}
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,  indicesID);
+
+	glBindVertexArray(r->prevVAO);
+	return vaoID;
+}
+
+unsigned int drawVAO(unsigned int vaoID, unsigned int triCount){
+
+	if (vaoID != r->prevVAO){
+		r->prevVAO = vaoID;
+		glBindVertexArray(vaoID);
+	}
+	glDrawElements(GL_TRIANGLES, triCount, GL_UNSIGNED_INT, NULL);
+}
+
 unsigned int initializeVBO(unsigned int size, const void* data){
 	unsigned int vboID;
 	glGenBuffers(1, &vboID);
@@ -567,54 +587,6 @@ unsigned int initializeVBO(unsigned int size, const void* data){
 	glBindBuffer(GL_ARRAY_BUFFER, r->prevVBO); //volta
 	return vboID;
 }
-
-//TODO usar draw rande elements pros indices
-void drawVBO(unsigned int triCount, unsigned int vertexID, unsigned int indicesID, int formatID){
-
-    	vertexFormat* current = fparray_getdata(formatID, r->vertexFormats);
-	vertexFormat* prev = fparray_getdata(r->prevFormat, r->vertexFormats);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexID);
-
-	//primeiro ativa e desativa as vertex attrib arrays necessarias
-	for ( unsigned int i = 0; i < MAX_VERTEX_ATTRS; i++ ){
-		if ( current->attributes[i] ){
-			if ( !prev->attributes[i] ){
-				printf("enabling: %d \n",  i);
-				glEnableVertexAttribArray(i);
-			}
-		}
-		if ( !current->attributes[i] && prev->attributes[i]  ){
-			printf("disabling: %d \n", i);
-			glDisableVertexAttribArray(i);
-		}
-	}
-
-	//seta o attrib pointer, so necessario caso nao tenha sido feito antes
-	if ( r->prevVBO != vertexID ){
-		r->prevVBO = vertexID;
-		for ( unsigned int i = 0; i < MAX_VERTEX_ATTRS; i++ )
-			if ( current->attributes[i]){
-				printf("vertex attrib pointer: %d %d \n", i, current->attributes[i]->components);
-				glVertexAttribPointer(i, current->attributes[i]->components, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(current->attributes[i]->offset));
-				}
-	}
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesID);
-	//TODO pode ser interessante usar GL_SHORT
-	glDrawElements(GL_TRIANGLES, triCount, GL_UNSIGNED_INT, NULL);
-
-	r->prevFormat = formatID;
-}
-
-unsigned int addVertexFormat(vertexAttribute** attrs,  unsigned int num){
-
-	vertexFormat* format = (vertexFormat*) dlmalloc(sizeof(vertexFormat));
-	format->attributes = (vertexAttribute*) dlmalloc(sizeof(vertexAttribute*[MAX_VERTEX_ATTRS]));
-	format->numAttrs = num;
-	format->attributes = attrs;
-    	return fparray_insback(format, r->vertexFormats);
-}
-
 
 unsigned int initializeShader(const char* vertexSource, const char* fragmentSource){
 
@@ -715,6 +687,7 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 		if (type >= GL_SAMPLER_1D && type <= GL_SAMPLER_2D_RECT_SHADOW_ARB){
             printf("\t\tshader sampler name: %s\n", name);
 			GLint location = glGetUniformLocation(shaderProgram, name);
+			printf("location e unit: %d %d  \n", location, samplers );
 			glUniform1i(location, samplers); //informa o shader a texunit
 			sampler* sam = (sampler*) dlmalloc( sizeof(sampler));
 			sam->name = (char*) dlmalloc( sizeof( char)*(length + 1));
@@ -749,7 +722,6 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 	}
 
 	dlfree(name);
-	//r->shaders[shaderProgram] = newShader;
     fparray_inspos(newShader, shaderProgram, r->shaders);
 	glUseProgram(r->prevShader);
 	
