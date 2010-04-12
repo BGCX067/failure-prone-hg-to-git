@@ -56,12 +56,13 @@ char* createVSMain(material m) {
     
     if(m.flags & PHONG) {
         phong = "\tgl_Position = ftransform();\n"
-                "\tposition = gl_Vertex.xyz;\n"
-                "\tnormal = gl_NormalMatrix*gl_Normal;\n";
+                "\tposition = (gl_ModelViewMatrix*gl_Vertex).xyz;\n"
+                "\tnormal = normalize(gl_NormalMatrix*gl_Normal);\n";
     }
 
     if(m.flags & NORMAL_MAP) {
         normalmap = "\tgl_Position = ftransform();\n"
+                    //TODO: pegar a posição em coordenadas do mundo
                     "\tposition = gl_Vertex.xyz;\n"
                     "\tvec3 lightDirection = LightPosition - position.xyz;\n"
                     "\tvec3 normal = gl_NormalMatrix*gl_Normal;\n"
@@ -179,8 +180,10 @@ char* createFSFuncs(material m) {
     if(m.flags & SPOTLIGHT) {
         spotlight = "float spotlight(vec3 p, vec3 lightpos) {\n"
                     "\tvec3 v = normalize(p - lightpos);\n"
-                    "\tfloat cosDir = dot(v, normalize(coneDir));\n"
-                    //"\treturn cosOuterCone*cosDir +  (1.0 - cosDir)*cosInnerCone;\n"
+                    "\tvec4 ld = vec4(coneDir, 0.0);\n"
+                    "\tld = gl_ModelViewMatrix*ld;\n"
+                    "\tld = normalize(ld);\n"
+                    "\tfloat cosDir = dot(v, ld.xyz);\n"
                     "\tfloat res = smoothstep(cosOuterCone, cosInnerCone, cosDir);\n"
                     "\treturn res;\n"
                     "}\n";
@@ -209,8 +212,9 @@ char* createFSFuncs(material m) {
             color = "\tvec4 color = (ambient + diffuse) + specular;\n";
         }
         if(m.flags & SPOTLIGHT) {
-            spotmult = "\tfloat spotContrib = spotlight(position, LightPosition);\n"
-                       "\tcolor = color*spotContrib;\n";
+            spotmult = "\tvec4 lp = vec4(LightPosition, 1.0);\n"
+                       "\tlp = gl_ModelViewMatrix*lp;\n"
+                       "\tcolor = color*spotlight(position, lp.xyz);\n";
         }
 
         size_t phonglen = strlen(beginphong) + strlen(color) + strlen(spotmult) + strlen(endphong) + 1;
@@ -236,7 +240,9 @@ char* createFSMainBody(material m) {
     
     if(m.flags & PHONG) {
         phong = "\tvec3 N = normalize(normal);\n"
-                "\tvec3 lightVec = normalize(LightPosition - position);\n"
+                "\tvec4 lp = vec4(LightPosition, 1.0);\n"
+                "\tlp = gl_ModelViewMatrix*lp;\n"
+                "\tvec3 lightVec = normalize(lp.xyz - position);\n"
                 "\tvec4 phongColor = phong(N, lightVec);\n";
     }
 
