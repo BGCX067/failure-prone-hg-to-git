@@ -427,13 +427,12 @@ void bindSamplerState(unsigned int unit, unsigned int id){
 	samplerState* samplerid = fparray_getdata(id, r->samplerStates);
 	samplerState* prevSampler = fparray_getdata(r->prevSamplerState, r->samplerStates);
 
-	//FIXME driver da nvidia ta com um bug, 
 	if (r->prevSamplerState == -1){
 		r->prevSamplerState = id;
-		glBindSampler(GL_TEXTURE0+unit, samplerid->id);
+		glBindSampler(unit, samplerid->id);
 	}else{
 		if (samplerid->id != prevSampler->id){
-			glBindSampler(GL_TEXTURE0+unit, samplerid->id);
+			glBindSampler(unit, samplerid->id);
 			r->prevSamplerState = id;
 		}
 
