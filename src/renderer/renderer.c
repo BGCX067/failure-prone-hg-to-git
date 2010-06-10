@@ -103,13 +103,8 @@ void beginRender(event *e) {
     glLoadIdentity();
     
     cameraHandleEvent(&c, e);
- //   translate(m, -c.pos[0], -c.pos[1], -c.pos[2]);
-    gluLookAt(c.pos[0], c.pos[1], c.pos[2], c.viewDir[0] + c.pos[0],
-              c.viewDir[1] + c.pos[1], c.viewDir[2] + c.pos[2],
-              c.up[0], c.up[1], c.up[2]);
- //   glTranslatef(-c.pos[0], -c.pos[1], -c.pos[2]);
-    setShaderConstant3f(phong, "eyePos", c.pos);
     fpMultMatrix(c.mvp, c.projection, c.modelview);
+    setShaderConstant4x4f(phong, "MVP", c.mvp);
     //setupViewMatrix(&c, m);
     //gluLookAt(c.pos[0], c.pos[1], c.pos[2], c.viewDir[0] + c.pos[0],
     //          c.viewDir[1] + c.pos[1], c.viewDir[2] + c.pos[2],
@@ -123,9 +118,9 @@ int render(float ifps, event *e, scene *s){
     fpnode *duckNode = duck->meshes->first;
     mesh *duckMesh = duck->meshes->first->data;
     triangles *duckTri = duckMesh->tris->first->data;
-    printf("draw vao\n");
+    //printf("draw vao\n");
     drawVAO(duckTri->vaoId, duckTri->indicesCount);
-    printf("draw done \n");
+    //printf("draw done \n");
     glFinish();
     glFlush();
 }
@@ -689,7 +684,6 @@ void setShaderConstantRaw(int shaderid, const char* name, const void* data, int 
     shader *shdr = fparray_getdata(shaderid, r->shaders);
 	for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
 		if (strcmp(name, shdr->uniforms[i]->name ) == 0 ){
-            printf("name: %s\n", name);
 			if (memcmp(shdr->uniforms[i]->data, data, size)){
 				memcpy(shdr->uniforms[i]->data, data, size);
 				shdr->uniforms[i]->dirty = 1;

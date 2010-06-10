@@ -11,6 +11,7 @@ void initCamera(camera *c) {
     c->viewDir[2] = -1;
 
     fpIdentity(c->modelview);
+    fpIdentity(c->projection);
 }
 
 //FIXME fazer um setupViewMatrix de verdade
