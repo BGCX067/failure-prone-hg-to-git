@@ -74,7 +74,7 @@ int main(){
 	renderer* renderer  = initializeRenderer(app->width, app->height, 1.0, 1000.0, 75.0 );
 	scene* s = initializeScene();
 
-	triangles*  t  = dlmalloc(sizeof(triangles));
+/*	triangles*  t  = dlmalloc(sizeof(triangles));
 	memset(t, 0, sizeof(triangles));
 	t->indicesCount = 6;
 	t->verticesComponents = 2;
@@ -89,19 +89,19 @@ int main(){
 	t->texCoords[0]->components = 2;
 	t->texCoords[0]->texCoords = genericTexCoords;
 	printf("done  \n");
+*/
+//	player.pos[0] =  400;  player.pos[1] = 300; player.pos[2] =  0;
 
-	player.pos[0] =  400;  player.pos[1] = 300; player.pos[2] =  0;
-
-	mesh *quad = dlmalloc(sizeof(mesh));
-	player.model = quad;
-	quad->trianglesCount = 1;
-	quad->tris = fplist_init(NULL, dlfree);
-	fplist_insback( t, quad->tris);
-	createVBO(quad);
+//	mesh *quad = dlmalloc(sizeof(mesh));
+//	player.model = quad;
+//	quad->trianglesCount = 1;
+//	quad->tris = fplist_init(NULL, dlfree);
+//	fplist_insback( t, quad->tris);
+//	createVBO(quad);
     //quad->tris = fplist_init(NULL, dlfree);
 	//fplist_insback(t, quad->tris);
-	addMesh(s, quad);
-	addNode(s, &player);
+//	addMesh(s, quad);
+//	addNode(s, &player);
 	
 
 /*	space = cpSpaceNew();
