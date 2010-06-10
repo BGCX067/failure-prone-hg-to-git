@@ -9,13 +9,37 @@ void initCamera(camera *c) {
 
     VEC3_ZERO(c->viewDir);
     c->viewDir[2] = -1;
+
+    fpIdentity(c->modelview);
 }
 
+//FIXME fazer um setupViewMatrix de verdade
 void setupViewMatrix(camera *c, mat4 m) {
     quatToMatrix(c->orientation, m);
     //m[12] = -c->pos[0];
     //m[13] = -c->pos[1];
     //m[14] = -c->pos[2];
+
+    //encontrar forward
+    //forward é o viewDir!
+
+ /*   m[0] = side[0];
+    matrix2[4] = side[1];
+    matrix2[8] = side[2];
+    matrix2[12] = 0.0;
+    //------------------
+    matrix2[1] = up[0];
+    matrix2[5] = up[1];
+    matrix2[9] = up[2];
+    matrix2[13] = 0.0;
+    //------------------
+    matrix2[2] = -forward[0];
+    matrix2[6] = -forward[1];
+    matrix2[10] = -forward[2];
+    matrix2[14] = 0.0;
+    //------------------
+    matrix2[3] = matrix2[7] = matrix2[11] = 0.0;
+    matrix2[15] = 1.0;*/
 }
 
 void cameraHandleEvent(camera *c, event *e) {
@@ -61,6 +85,23 @@ void cameraHandleEvent(camera *c, event *e) {
         cross(right, c->viewDir, c->up);
         vecNormalize(c->up);
 
+        c->modelview[0] = right[0];
+        c->modelview[4] = right[1];
+        c->modelview[8] = right[2];
+
+        c->modelview[1] = c->up[0];
+        c->modelview[5] = c->up[1];
+        c->modelview[9] = c->up[2];
+
+        c->modelview[2] = -c->viewDir[0];
+        c->modelview[6] = -c->viewDir[1];
+        c->modelview[10] = -c->viewDir[2];
+
+        c->modelview[3] = c->modelview[7] = c->modelview[11] = 0.0;
+        c->modelview[12] = c->modelview[13] = c->modelview[14] = 0.0; 
+        c->modelview[15] = 1.0;
+        
+        fptranslatef(c->modelview, -c->pos[0], -c->pos[1], -c->pos[2]);
 
         /*cross(right, c->viewDir, c->up);
         fromAxisAngle(c->up, rotationUp, q2);

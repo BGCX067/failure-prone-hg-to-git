@@ -12,7 +12,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glext.h>
-#include "gui.h"
+//#include "gui.h"
 
 typedef void (APIENTRYP PFNGLGENSAMPLERSPROC) (GLsizei count, GLuint *samplers);
 typedef void (APIENTRYP PFNGLDELETESAMPLERSPROC) (GLsizei count, const GLuint *samplers);
@@ -102,31 +102,40 @@ void beginRender(event *e) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
     
-    mat4 m;
+    
     cameraHandleEvent(&c, e);
-    setupViewMatrix(&c, m);
-    gluLookAt(c.pos[0], c.pos[1], c.pos[2], c.viewDir[0] + c.pos[0],
-              c.viewDir[1] + c.pos[1], c.viewDir[2] + c.pos[2],
-              c.up[0], c.up[1], c.up[2]);
-    setShaderConstant3f(phong, "eyePos", c.pos);
+    fpMultMatrix(c.mvp, c.projection, c.modelview);
+    //setupViewMatrix(&c, m);
+    //gluLookAt(c.pos[0], c.pos[1], c.pos[2], c.viewDir[0] + c.pos[0],
+    //          c.viewDir[1] + c.pos[1], c.viewDir[2] + c.pos[2],
+    //          c.up[0], c.up[1], c.up[2]);
+//    setShaderConstant3f(phong, "eyePos", c.pos);
 }
 
 int render(float ifps, event *e, scene *s){
 //	bindFramebuffer(fboid);
     beginRender(e);
-	glTranslatef(0.0, 0.0, -5.0f);
+	//glTranslatef(0.0, 0.0, -5.0f);
 
     fpnode *duckNode = duck->meshes->first;
     mesh *duckMesh = duck->meshes->first->data;
     //bindTexture(1, normalMap);
-    bindTexture(1, tex);
-    bindTexture(0, cm);
-    bindSamplerState(1, texState);
-    bindSamplerState(0, texState);
-    bindShader(phong);
+//    bindTexture(1, tex);
+//    bindTexture(0, cm);
+//    bindSamplerState(1, texState);
+//    bindSamplerState(0, texState);
+//    bindShader(phong);
     triangles *duckTri = duckMesh->tris->first->data;
     //drawVBO(duckTri->indicesCount, duckTri->vboId, duckTri->indicesId, duckTri->vertexFormatId );
      drawVAO(duckTri->vaoId, duckTri->indicesCount);
+    /*glBegin(GL_TRIANGLES);
+        glColor3f(1.0, 0.0, 0.0);
+        glVertex3f(-10.0, -10.0, -5.0);
+        glColor3f(0.0, 10.0, 0.0);
+        glVertex3f(10.0, -10.0, -5.0);
+        glColor3f(0.0, 0.0, 1.0);
+        glVertex3f(5.0, 10.0, -5.0);
+    glEnd();*/
 //   begin2d();
 //>>>>>>> other
 //	bindTexture(0, tex);
@@ -236,19 +245,21 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	float ratio = (float) w / (float) h;
 	glEnable(GL_DEPTH_TEST);
 	glViewport(0, 0, w, h);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+	//glMatrixMode(GL_PROJECTION);
+	//glLoadIdentity();
 
-	gluPerspective(fovy, ratio, znear, zfar);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	//gluPerspective(fovy, ratio, znear, zfar);
+	//glMatrixMode(GL_MODELVIEW);
+	//glLoadIdentity();
 
 	glClearColor( 0.7, 0.7, 0.7, 1.0 );
 	glClearDepth(1.0f);
 	glDepthFunc(GL_LEQUAL);
 	glShadeModel(GL_SMOOTH);
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+
+    //FIXME ainda funcionam?
+	//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	//glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
 
 	glClearStencil(0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -256,25 +267,26 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	glEnableClientState(GL_VERTEX_ARRAY);
 
  	initCamera(&c);
-    
+    fpperspective(c.projection, fovy, ratio, znear, zfar);
     
     //tex = initializeTexture("data/textures/cthulhuship.png", TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE,  (MIPMAP));
     //normalMap = initializeTexture("data/textures/rockwallnormal.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE, (MIPMAP | CLAMP_TO_EDGE));
  	//tex = initializeTexture("data/textures/rockwall.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE,  (MIPMAP |CLAMP_TO_EDGE));
     tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB_DXT1, UNSIGNED_BYTE,  (CLAMP_TO_EDGE));
-    cm = initializeTexture("data/textures/cm1_%s.jpg", TEXTURE_CUBEMAP, RGB, RGB_DXT1, UNSIGNED_BYTE,  (CLAMP_TO_EDGE));
+    //cm = initializeTexture("data/textures/cm1_%s.jpg", TEXTURE_CUBEMAP, RGB, RGB_DXT1, UNSIGNED_BYTE,  (CLAMP_TO_EDGE));
 	//phong = initializeShader( readTextFile("data/shaders/normal_map.vert"), readTextFile("data/shaders/normal_map.frag") );
     //phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
+    phong = initializeShader( readTextFile("data/shaders/minimal.vert"), readTextFile("data/shaders/minimal.frag") );
     material m;
-    m.flags = PHONG | TEX | ENV_MAP;
+    m.flags = PHONG | TEX;
     
     char *vertShader, *fragShader;
     shadergen(m, &vertShader, &fragShader);
-    phong = initializeShader( vertShader, fragShader );
+    //phong = initializeShader( vertShader, fragShader );
     
-    printf("fragShader %s \n", fragShader);
+    //printf("fragShader %s \n", fragShader);
 
-    float cosInnerCone = 0.9659;    
+    /*float cosInnerCone = 0.9659;    
     setShaderConstant1f(phong, "cosInnerCone", cosInnerCone);
     float cosOuterCone = 0.866;
     setShaderConstant1f(phong, "cosOuterCone", cosOuterCone);
@@ -304,11 +316,17 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	setShaderConstant4f(phong, "LightColor", color);
 	float position[] = {0, 200, 100};
 	setShaderConstant3f(phong, "LightPosition", position); 
-	setShaderConstant3f(phong, "EyePosition", c.pos);
+	setShaderConstant3f(phong, "EyePosition", c.pos);*/
+
+    //setShaderConstant4x4f(phong, "MVP", c.mvp);
     
     bindShader(phong);
-	duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
+	//duck = initializeDae("data/models/duck_triangulate_deindexer.dae");
+    duck = initializeDae("data/models/triangle.dae");
+
+    printf("fim de initrender\n");
 	createVBO(duck->meshes->first->data);
+
 	//printf("initialize gui \n");
 	//initializeGUI(800, 600);
 	//printf("gui done\n");
@@ -321,7 +339,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	setShaderConstant2f(shockwave, "center", center);
 	*/	
 
-	glGenSamplers = (PFNGLGENSAMPLERSPROC)glXGetProcAddress("glGenSamplers");
+	/*glGenSamplers = (PFNGLGENSAMPLERSPROC)glXGetProcAddress("glGenSamplers");
 	glDeleteSamplers = (PFNGLDELETESAMPLERSPROC)glXGetProcAddress("glDeleteSamplers");
 	glIsSampler = (PFNGLISSAMPLERPROC)glXGetProcAddress("glIsSampler");
 	glBindSampler = (PFNGLBINDSAMPLERPROC)glXGetProcAddress("glBindSampler");
@@ -340,7 +358,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
     }
     //initfont();
     printf("initiaization done\n");
-    printf("GL_TEXTURE0: %d\n", GL_TEXTURE0);
+    printf("GL_TEXTURE0: %d\n", GL_TEXTURE0);*/
 	return r;
 }
 
@@ -812,10 +830,15 @@ void setShaderConstant4f(int shaderid, const char *name, const float constant[])
 	setShaderConstantRaw(shaderid, name, constant, sizeof(constant)*4);
 }
 
+void setShaderConstant4x4f(int shaderid, const char *name, const float constant[]) {
+	setShaderConstantRaw(shaderid, name, constant, sizeof(constant)*16);
+}
+
 void setShaderConstantRaw(int shaderid, const char* name, const void* data, int size){
     shader *shdr = fparray_getdata(shaderid, r->shaders);
 	for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
 		if (strcmp(name, shdr->uniforms[i]->name ) == 0 ){
+            printf("name: %s\n", name);
 			if (memcmp(shdr->uniforms[i]->data, data, size)){
 				memcpy(shdr->uniforms[i]->data, data, size);
 				shdr->uniforms[i]->dirty = 1;

@@ -149,7 +149,7 @@ glapp* setVideoMode(int w, int h, int fullscreen){
 
 	//TODO passar por parametro?
 	attribList[1] = 3;
-	attribList[3] = 2;
+	attribList[3] = 3;
 	attribList[5] = GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
 	attribList[7] = GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
 
@@ -293,7 +293,7 @@ void mainloop(glapp* app, int(idle)(float, event*, scene *), int(render)(float, 
 			fps = counter * 1000.0/ (float) (elapsedTime);
 			counter= 0;
 		}
-		printf("FPS: %f\n", fps);
+		//printf("FPS: %f\n", fps);
 		ifps = 1/fps;
 
 
