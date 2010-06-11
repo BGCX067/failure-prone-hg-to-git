@@ -103,13 +103,28 @@ void beginRender(event *e) {
     glLoadIdentity();
     
     cameraHandleEvent(&c, e);
+    setupViewMatrix(&c);
+    bindShader(phong);
+    
+    //FIXME perspective divide não está sendo feito em canto nenhum
+    //FIXME multiplicação mais rápida na gpu? tentar montar MVP na gpu passando modelview e projection apenas
+    //FIXME tentar usar 2 uniforms do tipo mat4 dá erro
+    //FIXME para correção de perspectiva (substituir aqueles GL_PERSPECTIVE_CORRECTION_HINT)
     fpMultMatrix(c.mvp, c.projection, c.modelview);
-    setShaderConstant4x4f(phong, "MVP", c.mvp);
-    //setupViewMatrix(&c, m);
+    setShaderConstant4x4f(phong, "mvp", c.mvp);
+   
+    /*printf("projection da camera:\n");
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++){
+            printf("m[%d] = %f\t\t", i + 4*j, c.projection[i + 4*j]);
+        }
+        printf("\n");
+    }
+    printf("\n\n");*/
+
     //gluLookAt(c.pos[0], c.pos[1], c.pos[2], c.viewDir[0] + c.pos[0],
     //          c.viewDir[1] + c.pos[1], c.viewDir[2] + c.pos[2],
     //          c.up[0], c.up[1], c.up[2]);
-//    setShaderConstant3f(phong, "eyePos", c.pos);
 }
 
 int render(float ifps, event *e, scene *s){
@@ -118,9 +133,7 @@ int render(float ifps, event *e, scene *s){
     fpnode *duckNode = duck->meshes->first;
     mesh *duckMesh = duck->meshes->first->data;
     triangles *duckTri = duckMesh->tris->first->data;
-    //printf("draw vao\n");
     drawVAO(duckTri->vaoId, duckTri->indicesCount);
-    //printf("draw done \n");
     glFinish();
     glFlush();
 }
@@ -170,21 +183,20 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	float ratio = (float) w / (float) h;
 	glEnable(GL_DEPTH_TEST);
 	glViewport(0, 0, w, h);
-	//glMatrixMode(GL_PROJECTION);
-	//glLoadIdentity();
-
-	//gluPerspective(fovy, ratio, znear, zfar);
-	//glMatrixMode(GL_MODELVIEW);
-	//glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(fovy, ratio, znear, zfar);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 
 	glClearColor( 0.7, 0.7, 0.7, 1.0 );
 	glClearDepth(1.0f);
 	glDepthFunc(GL_LEQUAL);
 	glShadeModel(GL_SMOOTH);
 
-    	//FIXME ainda funcionam?
-	//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-	//glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+    //FIXME ainda funcionam?
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
 
 	glClearStencil(0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -192,16 +204,15 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	glEnableClientState(GL_VERTEX_ARRAY);
 
  	initCamera(&c);
-    	fpperspective(c.projection, fovy, ratio, znear, zfar);
+    fpperspective(c.projection, fovy, ratio, znear, zfar);
     
-    	tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB_DXT1, UNSIGNED_BYTE,  (CLAMP_TO_EDGE));
-    	phong = initializeShader( readTextFile("data/shaders/minimal.vert"), readTextFile("data/shaders/minimal.frag") );
-    	material m;
+    tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB_DXT1, UNSIGNED_BYTE,  (CLAMP_TO_EDGE));
+    phong = initializeShader( readTextFile("data/shaders/minimal.vert"), readTextFile("data/shaders/minimal.frag") );
+    material m;
     
-    	bindShader(phong);
-    	duck = initializeDae("data/models/triangle.dae");
+    bindShader(phong);
+    duck = initializeDae("data/models/triangle.dae");
 
-    	printf("fim de initrender\n");
 	createVBO(duck->meshes->first->data);
 	printf("Renderer inicializado.\n");
 
@@ -608,7 +619,7 @@ void bindShader(unsigned int program){
 		if (shdr->uniforms[i]->dirty ){
 			shdr->uniforms[i]->dirty = 0;
 			if (shdr->uniforms[i]->type >= CONSTANT_MAT2){
-				((UNIFORM_MAT_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_TRUE, (float *) shdr->uniforms[i]->data);
+				((UNIFORM_MAT_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) shdr->uniforms[i]->data);
 			} else {
 				((UNIFORM_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
 				//((UNIFORM_FUNC) uniformFuncs[2])(0, 1, color);
@@ -687,6 +698,7 @@ void setShaderConstantRaw(int shaderid, const char* name, const void* data, int 
 			if (memcmp(shdr->uniforms[i]->data, data, size)){
 				memcpy(shdr->uniforms[i]->data, data, size);
 				shdr->uniforms[i]->dirty = 1;
+                break;
 			}
 		}
 	}

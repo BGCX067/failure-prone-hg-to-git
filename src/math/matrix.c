@@ -1,6 +1,11 @@
 #include "matrix.h"
 #include <math.h>
 
+
+/* Por algum motivo M_PI nao aparece definido em math.h */
+#ifndef M_PI
+#define M_PI	3.14159265358979323846
+#endif
 void fpIdentity(mat4 m) {
     for(int i = 0; i < 16; i++)
         m[i] = 0.0;
@@ -26,6 +31,13 @@ void fpMultMatrix(mat4 res, mat4 a, mat4 b) {
     res[15] = a[3]*b[12] + a[7]*b[13] + a[11]*b[14] + a[15]*b[15];
 }
 
+
+void fpTranspose(mat4 t, mat4 m) {
+    for(int i = 0; i < 4; i++)
+        for(int j = 0; j < 4; j++)
+            t[i + 4*j] = m[j + 4*i];
+}
+
 void fptranslatefv(mat4 m, vec3 v) {
     m[12]= v[0]*m[0] + v[1]*m[4] + v[2]*m[8] + m[12];
 	m[13]= v[0]*m[1] + v[1]*m[5] + v[2]*m[9] + m[13]; 
@@ -41,25 +53,25 @@ void fptranslatef(mat4 m, float x, float y, float z) {
 }
 
 void fpperspective(mat4 m, float fovy, float ratio, float znear, float zfar) {
-    float xmax = znear * tan(fovy/2.0);
+    float xmax = znear*tan(fovy*M_PI/360.0);
     float xmin = -xmax;
 
     float ymax = xmax/ratio;
     float ymin = -ymax;
 
-    float doubleznear = 2.0f * znear;
+    float doubleznear = 2.0f*znear;
     float one_deltax = 1.0f/(xmax - xmin);
     float one_deltay = 1.0f/(ymax - ymin);
     float one_deltaz = 1.0f/(zfar - znear);
 
     for(int i = 0; i < 16; i++)
-        m[i] = 0.0;
+        m[i] = 0;
 
     m[0] = doubleznear*one_deltax;
     m[5] = doubleznear*one_deltay;
     m[8] = (xmax + xmin)*one_deltax;
     m[9] = (ymax + ymin)*one_deltay;
-    m[8] = -(zfar + znear)*one_deltaz;
+    m[10] = -(zfar + znear)*one_deltaz;
     m[11] = -1.0f;
     m[14] = -(zfar*doubleznear) * one_deltaz;
 }

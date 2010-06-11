@@ -16,6 +16,6 @@ typedef struct camera {
 
 void initCamera(camera *c);
 void cameraHandleEvent(camera *c, event *e);
-void setupViewMatrix(camera *c, mat4 m);
+void setupViewMatrix(camera *c);
 
 #endif

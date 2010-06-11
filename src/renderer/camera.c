@@ -1,4 +1,5 @@
 #include "camera.h"
+#include <stdio.h>
 
 void initCamera(camera *c) {
     QUAT_IDENTITY(c->orientation);
@@ -15,32 +16,43 @@ void initCamera(camera *c) {
 }
 
 //FIXME fazer um setupViewMatrix de verdade
-void setupViewMatrix(camera *c, mat4 m) {
-    quatToMatrix(c->orientation, m);
-    //m[12] = -c->pos[0];
-    //m[13] = -c->pos[1];
-    //m[14] = -c->pos[2];
+void setupViewMatrix(camera *c) {
+    vec3 right;
+    cross(c->viewDir, c->up, right);
+    vecNormalize(right);
+    
+    vec3 up;
+    cross(right, c->viewDir, up);
+    vecNormalize(up);
 
-    //encontrar forward
-    //forward é o viewDir!
+    c->modelview[0] = right[0];
+    c->modelview[4] = right[1];
+    c->modelview[8] = right[2];
 
- /*   m[0] = side[0];
-    matrix2[4] = side[1];
-    matrix2[8] = side[2];
-    matrix2[12] = 0.0;
-    //------------------
-    matrix2[1] = up[0];
-    matrix2[5] = up[1];
-    matrix2[9] = up[2];
-    matrix2[13] = 0.0;
-    //------------------
-    matrix2[2] = -forward[0];
-    matrix2[6] = -forward[1];
-    matrix2[10] = -forward[2];
-    matrix2[14] = 0.0;
-    //------------------
-    matrix2[3] = matrix2[7] = matrix2[11] = 0.0;
-    matrix2[15] = 1.0;*/
+    c->modelview[1] = up[0];
+    c->modelview[5] = up[1];
+    c->modelview[9] = up[2];
+
+    c->modelview[2] = -c->viewDir[0];
+    c->modelview[6] = -c->viewDir[1];
+    c->modelview[10] = -c->viewDir[2];
+
+    c->modelview[3] = c->modelview[7] = c->modelview[11] = 0.0;
+    c->modelview[12] = c->modelview[13] = c->modelview[14] = 0.0; 
+    c->modelview[15] = 1.0;
+
+/*    printf("viewDir: %f, %f, %f\n", c->viewDir[0], c->viewDir[1], c->viewDir[2]);
+    printf("right: %f, %f, %f\n", right[0], right[1], right[2]);
+    printf("up: %f, %f, %f\n", up[0], up[1], up[2]);
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++){
+            printf("m[%d] = %f\t", i + 4*j, c->modelview[i + 4*j]);
+        }
+        printf("\n");
+    }
+    printf("====================================\n\n\n");*/
+
+    fptranslatef(c->modelview, -c->pos[0], -c->pos[1], -c->pos[2]);
 }
 
 void cameraHandleEvent(camera *c, event *e) {
@@ -86,7 +98,7 @@ void cameraHandleEvent(camera *c, event *e) {
         cross(right, c->viewDir, c->up);
         vecNormalize(c->up);
 
-        c->modelview[0] = right[0];
+        /*c->modelview[0] = right[0];
         c->modelview[4] = right[1];
         c->modelview[8] = right[2];
 
@@ -102,7 +114,7 @@ void cameraHandleEvent(camera *c, event *e) {
         c->modelview[12] = c->modelview[13] = c->modelview[14] = 0.0; 
         c->modelview[15] = 1.0;
         
-        fptranslatef(c->modelview, -c->pos[0], -c->pos[1], -c->pos[2]);
+        fptranslatef(c->modelview, -c->pos[0], -c->pos[1], -c->pos[2]);*/
 
         /*cross(right, c->viewDir, c->up);
         fromAxisAngle(c->up, rotationUp, q2);
