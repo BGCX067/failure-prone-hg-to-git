@@ -104,7 +104,6 @@ void beginRender(event *e) {
     
     cameraHandleEvent(&c, e);
     setupViewMatrix(&c);
-    bindShader(phong);
     
     //FIXME perspective divide não está sendo feito em canto nenhum
     //FIXME multiplicação mais rápida na gpu? tentar montar MVP na gpu passando modelview e projection apenas
@@ -122,6 +121,8 @@ void beginRender(event *e) {
     }
     printf("\n\n");*/
 
+    bindSamplerState(0, tex);
+    bindShader(phong);
     //gluLookAt(c.pos[0], c.pos[1], c.pos[2], c.viewDir[0] + c.pos[0],
     //          c.viewDir[1] + c.pos[1], c.viewDir[2] + c.pos[2],
     //          c.up[0], c.up[1], c.up[2]);
@@ -129,7 +130,6 @@ void beginRender(event *e) {
 
 int render(float ifps, event *e, scene *s){
     beginRender(e);
-    
     fpnode *duckNode = duck->meshes->first;
     mesh *duckMesh = duck->meshes->first->data;
     triangles *duckTri = duckMesh->tris->first->data;
@@ -210,6 +210,8 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
     phong = initializeShader( readTextFile("data/shaders/minimal.vert"), readTextFile("data/shaders/minimal.frag") );
     material m;
     
+
+    bindTexture(0, tex);
     bindShader(phong);
     duck = initializeDae("data/models/triangle.dae");
 

@@ -2,10 +2,13 @@
 
 uniform mat4 mvp;
 
-out vec4 color;
-layout(location = 0) in vec3 Pos;
-void main() {
-    gl_Position = mvp*vec4(Pos, 1.0);
 
-    color = vec4(0.2, 0.4, 0.6, 1.0);
+out vec2 texCoord;
+
+layout(location = 0) in vec3 Pos;
+layout(location = 8) in vec2 inTexCoord;
+void main() {
+    texCoord = inTexCoord;
+
+    gl_Position = mvp*vec4(Pos, 1.0);
 }

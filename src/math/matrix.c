@@ -53,7 +53,7 @@ void fptranslatef(mat4 m, float x, float y, float z) {
 }
 
 void fpperspective(mat4 m, float fovy, float ratio, float znear, float zfar) {
-    float xmax = znear*tan(fovy*M_PI/360.0);
+    float xmax = znear*tan(0.5*fovy*M_PI/180.0);
     float xmin = -xmax;
 
     float ymax = xmax/ratio;
