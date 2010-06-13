@@ -95,6 +95,7 @@ unsigned int normalMap;
 unsigned int phong;
 scene *duck;
 unsigned int fboid;
+int samplerstate;
 
 unsigned int shockwave;
 
@@ -121,7 +122,7 @@ void beginRender(event *e) {
     }
     printf("\n\n");*/
 
-    bindSamplerState(0, tex);
+//    bindSamplerState(0, tex);
     bindShader(phong);
     //gluLookAt(c.pos[0], c.pos[1], c.pos[2], c.viewDir[0] + c.pos[0],
     //          c.viewDir[1] + c.pos[1], c.viewDir[2] + c.pos[2],
@@ -180,6 +181,19 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	uniformFuncs[CONSTANT_MAT4]  = (void *) glUniformMatrix4fv;
 
 
+
+	glGenSamplers = (PFNGLGENSAMPLERSPROC)glXGetProcAddress("glGenSamplers");
+        glDeleteSamplers = (PFNGLDELETESAMPLERSPROC)glXGetProcAddress("glDeleteSamplers");
+	glIsSampler = (PFNGLISSAMPLERPROC)glXGetProcAddress("glIsSampler");
+	glBindSampler = (PFNGLBINDSAMPLERPROC)glXGetProcAddress("glBindSampler");
+	glSamplerParameteri = (PFNGLSAMPLERPARAMETERIPROC)glXGetProcAddress("glSamplerParameteri");
+	glSamplerParameteriv = (PFNGLSAMPLERPARAMETERIVPROC)glXGetProcAddress("glSamplerParameteriv");
+	glSamplerParameterf = (PFNGLSAMPLERPARAMETERFPROC)glXGetProcAddress("glSamplerParameterf");
+	glSamplerParameterfv = (PFNGLSAMPLERPARAMETERFVPROC)glXGetProcAddress("glSamplerParameterfv");
+	//glSamplerParameterIiv = (PFNGLSAMPLERPARAMETERIIVPROC)glXGetProcAddress("glSamplerParameterIiv");
+	//glSamplerParameterIuiv = (PFNGLSAMPLERPARAMETERIUIVPROC)glXGetProcAddress("glSamplerParameterIuiv");
+
+
 	float ratio = (float) w / (float) h;
 	glEnable(GL_DEPTH_TEST);
 	glViewport(0, 0, w, h);
@@ -194,10 +208,6 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	glDepthFunc(GL_LEQUAL);
 	glShadeModel(GL_SMOOTH);
 
-    //FIXME ainda funcionam?
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
-
 	glClearStencil(0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -208,9 +218,8 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
     
     tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB_DXT1, UNSIGNED_BYTE,  (CLAMP_TO_EDGE));
     phong = initializeShader( readTextFile("data/shaders/minimal.vert"), readTextFile("data/shaders/minimal.frag") );
-    material m;
-    
-
+    samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
+    bindSamplerState(0, samplerstate);
     bindTexture(0, tex);
     bindShader(phong);
     duck = initializeDae("data/models/triangle.dae");
@@ -273,12 +282,12 @@ int initializeSamplerState(int wrapmode, int minfilter, int magfilter, int aniso
 	for(int i = 0; i < r->samplerStates->size; i++){
 		samplerState* state = fparray_getdata(i, r->samplerStates);
 		if ( (state->minfilter == minfilter) && (state->wrapmode == wrapmode) && (state->wrapmode == wrapmode) && (state->anisotropy == anisotropy)){
-			printf("ja tem um sampler state igual\n");
 			return state->id;
 		}
 	}
 
 	//se nao cria um
+	//TODO da pra adicionar outras coisas no sampler state alem dessas
 	unsigned int samplerID;
 	glGenSamplers(1, &samplerID);
 	glSamplerParameteri(samplerID, GL_TEXTURE_MIN_FILTER, minfilter);

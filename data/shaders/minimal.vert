@@ -1,8 +1,6 @@
-#version 330 core
+#version 330 compatibility
 
 uniform mat4 mvp;
-
-
 out vec2 texCoord;
 
 layout(location = 0) in vec3 Pos;
