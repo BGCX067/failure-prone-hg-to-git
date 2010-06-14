@@ -111,6 +111,7 @@ void beginRender(event *e) {
     //FIXME tentar usar 2 uniforms do tipo mat4 dá erro
     //FIXME para correção de perspectiva (substituir aqueles GL_PERSPECTIVE_CORRECTION_HINT)
     fpMultMatrix(c.mvp, c.projection, c.modelview);
+
     setShaderConstant4x4f(phong, "mvp", c.mvp);
    
     /*printf("projection da camera:\n");
@@ -122,7 +123,8 @@ void beginRender(event *e) {
     }
     printf("\n\n");*/
 
-//    bindSamplerState(0, tex);
+    bindSamplerState(0, tex);
+
     bindShader(phong);
     //gluLookAt(c.pos[0], c.pos[1], c.pos[2], c.viewDir[0] + c.pos[0],
     //          c.viewDir[1] + c.pos[1], c.viewDir[2] + c.pos[2],
@@ -131,9 +133,11 @@ void beginRender(event *e) {
 
 int render(float ifps, event *e, scene *s){
     beginRender(e);
+
     fpnode *duckNode = duck->meshes->first;
     mesh *duckMesh = duck->meshes->first->data;
     triangles *duckTri = duckMesh->tris->first->data;
+
     drawVAO(duckTri->vaoId, duckTri->indicesCount);
     glFinish();
     glFlush();
@@ -290,12 +294,28 @@ int initializeSamplerState(int wrapmode, int minfilter, int magfilter, int aniso
 	//TODO da pra adicionar outras coisas no sampler state alem dessas
 	unsigned int samplerID;
 	glGenSamplers(1, &samplerID);
-	glSamplerParameteri(samplerID, GL_TEXTURE_MIN_FILTER, minfilter);
-	glSamplerParameteri(samplerID, GL_TEXTURE_MAG_FILTER, magfilter);
-	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_S, wrapmode);
-	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_T, wrapmode);
-	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_R, wrapmode);
-	glSamplerParameteri(samplerID, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
+	glSamplerParameteri(samplerID, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glSamplerParameteri(samplerID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    float someVec[4];
+    someVec[0] = 1.0;
+    someVec[1] = 1.0;
+    someVec[2] = 0.0;
+    someVec[3] = 0.0;
+	glSamplerParameterfv(samplerID, GL_TEXTURE_BORDER_COLOR, someVec);
+	glSamplerParameterf(samplerID, GL_TEXTURE_MIN_LOD, -1000.f);
+	glSamplerParameterf(samplerID, GL_TEXTURE_MAX_LOD, 1000.f);
+	glSamplerParameterf(samplerID, GL_TEXTURE_LOD_BIAS, 0.0f);
+	glSamplerParameteri(samplerID, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+	glSamplerParameteri(samplerID, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+	//glSamplerParameteri(samplerID, GL_TEXTURE_MIN_FILTER, minfilter);
+	//glSamplerParameteri(samplerID, GL_TEXTURE_MAG_FILTER, magfilter);
+	//glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_S, wrapmode);
+	//glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_T, wrapmode);
+	//glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_R, wrapmode);
+	//glSamplerParameteri(samplerID, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
 	
 	samplerState* state = (samplerState*) dlmalloc(sizeof(samplerState));
 	state->id = samplerID;
