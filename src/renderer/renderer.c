@@ -113,11 +113,17 @@ void beginRender(event *e) {
     fpMultMatrix(c.mvp, c.projection, c.modelview);
 
     setShaderConstant4x4f(phong, "mvp", c.mvp);
+    setShaderConstant4x4f(phong, "modelview", c.modelview);
+    mat4 invmodelview;
+    fpInverse(invmodelview, c.modelview);
+    mat4 normalmat;
+    fpTranspose(normalmat, invmodelview);
+    setShaderConstant4x4f(phong, "normalmatrix", normalmat);
    
-    /*printf("projection da camera:\n");
+    /*printf("normal matrix:\n");
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++){
-            printf("m[%d] = %f\t\t", i + 4*j, c.projection[i + 4*j]);
+            printf("m[%d] = %f\t\t", i + 4*j, normalmat[i + 4*j]);
         }
         printf("\n");
     }
@@ -221,10 +227,53 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
     fpperspective(c.projection, fovy, ratio, znear, zfar);
     
     tex = initializeTexture("data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB_DXT1, UNSIGNED_BYTE,  (CLAMP_TO_EDGE));
-    phong = initializeShader( readTextFile("data/shaders/minimal.vert"), readTextFile("data/shaders/minimal.frag") );
+    //phong = initializeShader( readTextFile("data/shaders/minimal.vert"), readTextFile("data/shaders/minimal.frag") );
+    material m;
+    m.flags = PHONG;
+    
+    char *vertShader, *fragShader;
+    shadergen(m, &vertShader, &fragShader);
+    //phong = initializeShader( vertShader, readTextFile("data/shaders/phong.frag") );
+    phong = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
+    
+    printf("vertShader %s \n", vertShader);
+    printf("fragShader %s \n", fragShader);
+
+    /*float cosInnerCone = 0.9659;    
+    setShaderConstant1f(phong, "cosInnerCone", cosInnerCone);
+    float cosOuterCone = 0.866;
+    setShaderConstant1f(phong, "cosOuterCone", cosOuterCone);
+    float coneDir[] = {0.0, -1.0, -1.0};
+    setShaderConstant3f(phong, "coneDir", coneDir);
+    float etaRatio = 0.412;
+    setShaderConstant1f(phong, "etaRatio", etaRatio);*/
+    float Ka[] = {0.4, 0.4, 0.4, 1.0};
+    setShaderConstant4f(phong, "Ka", Ka);
+    float Kd[] = {0.5, 0.5, 0.5, 1.0};
+    setShaderConstant4f(phong, "Kd", Kd);
+    float Ks[] = {0.9, 0.9, 0.9, 1.0};
+    setShaderConstant4f(phong, "Ks", Ks);
+/*    float Kc = 0.0;
+    setShaderConstant1f(phong, "Kc", Kc);
+    float Kl = 0.0;
+    setShaderConstant1f(phong, "Kl", Kl);
+    float Kq = 0.00001;
+    setShaderConstant1f(phong, "Kq", Kq);*/
+
+    float shininess = 16.0;
+    setShaderConstant1f(phong, "shininess", shininess);
+    
+    float ambientLight[] = { 0.4, 0.4, 0.4, 1.0 };
+    setShaderConstant4f(phong, "globalAmbient", ambientLight);
+    float color[] = { 0.4, 0.1, 0.1, 1.0 };
+        setShaderConstant4f(phong, "LightColor", color);
+        float position[] = {0, 200, 100, 1.0};
+        setShaderConstant4f(phong, "LightPosition", position); 
+        setShaderConstant3f(phong, "EyePosition", c.pos);
+
     samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
-    bindSamplerState(0, samplerstate);
-    bindTexture(0, tex);
+    //bindSamplerState(0, samplerstate);
+    //bindTexture(0, tex);
     bindShader(phong);
     duck = initializeDae("data/models/triangle.dae");
 
@@ -294,7 +343,7 @@ int initializeSamplerState(int wrapmode, int minfilter, int magfilter, int aniso
 	//TODO da pra adicionar outras coisas no sampler state alem dessas
 	unsigned int samplerID;
 	glGenSamplers(1, &samplerID);
-	glSamplerParameteri(samplerID, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glSamplerParameteri(samplerID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glSamplerParameteri(samplerID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -729,7 +778,6 @@ void setShaderConstantRaw(int shaderid, const char* name, const void* data, int 
 			if (memcmp(shdr->uniforms[i]->data, data, size)){
 				memcpy(shdr->uniforms[i]->data, data, size);
 				shdr->uniforms[i]->dirty = 1;
-                break;
 			}
 		}
 	}

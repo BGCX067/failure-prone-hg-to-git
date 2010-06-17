@@ -1,4 +1,4 @@
-#version 330 compatibility
+#version 330 core
 
 uniform mat4 mvp;
 out vec2 texCoord;
