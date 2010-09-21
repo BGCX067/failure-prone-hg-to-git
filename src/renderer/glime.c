@@ -197,155 +197,154 @@ batch* makeCube(float radius){
 	begin(b, GL_TRIANGLES, 36, 1);
 	
 	//top
-	vertex3f(b, radius, radius, radius);
 	normal3f(b, 0.0, 1.0, 0.0);
 	texCoord2f(b, 0, radius, radius);
+	vertex3f(b, radius, radius, radius);
 
-	vertex3f(b, radius, radius, -radius);
 	normal3f(b, 0.0, 1.0, 0.0);
 	texCoord2f(b, 0, radius, 0.0 );
+	vertex3f(b, radius, radius, -radius);
 
-	vertex3f(b, -radius, radius, -radius);
 	normal3f(b, 0.0, 1.0, 0.0);
 	texCoord2f(b, 0, 0.0, 0.0);
+	vertex3f(b, -radius, radius, -radius);
 
-	vertex3f(b, radius, radius, radius);
 	normal3f(b, 0.0, 1.0, 0.0);
 	texCoord2f(b, 0, radius, radius);
+	vertex3f(b, radius, radius, radius);
 
-	vertex3f(b, -radius, radius, -radius);
 	normal3f(b, 0.0, 1.0, 0.0);
 	texCoord2f(b, 0, 0.0, 0.0);
+	vertex3f(b, -radius, radius, -radius);
 
-	vertex3f(b, -radius, radius, radius);
 	normal3f(b,  0.0, 1.0, 0.0);
 	texCoord2f(b, 0, 0.0, radius);
+	vertex3f(b, -radius, radius, radius);
 
 	//bottom
-	vertex3f(b, -radius, -radius, -radius);
 	normal3f(b, 0.0, -1.0, 0.0);
 	texCoord2f(b, 0, 0.0, 0.0);
+	vertex3f(b, -radius, -radius, -radius);
 
-	vertex3f(b, radius, -radius, -radius);
 	normal3f(b, 0.0, -1.0, 0.0);
 	texCoord2f(b, 0, radius, 0.0);
+	vertex3f(b, radius, -radius, -radius);
 
-	vertex3f(b, radius, -radius, radius);
 	normal3f(b, 0.0, -1.0, 0.0);
 	texCoord2f(b, 0, radius, radius);
+	vertex3f(b, radius, -radius, radius);
 
-	vertex3f(b, -radius, -radius, radius);
 	normal3f(b, 0.0, -1.0, 0.0);
 	texCoord2f(b,  0, 0.0, radius);
+	vertex3f(b, -radius, -radius, radius);
 
-	vertex3f(b, -radius, -radius, -radius);
 	normal3f(b,  0.0, -1.0, 0.0);
 	texCoord2f(b, 0, 0.0, 0.0);
+	vertex3f(b, -radius, -radius, -radius);
 
-	vertex3f(b, radius, -radius, radius);
 	normal3f(b, 0.0, -1.0, 0.0);
 	texCoord2f(b, 0, radius, radius);
+	vertex3f(b, radius, -radius, radius);
 
 	//left
-	vertex3f(b, -radius, radius, radius);
 	normal3f(b, -1.0, 0.0, 0.0);
 	texCoord2f(b, 0, radius, radius);
+	vertex3f(b, -radius, radius, radius);
 
-	vertex3f(b, -radius, radius, -radius);
 	normal3f(b, -1.0, 0.0, 0.0);
 	texCoord2f(b, 0, radius, 0.0);
+	vertex3f(b, -radius, radius, -radius);
 
-	vertex3f(b, -radius, -radius, -radius);
 	normal3f(b, -1.0, 0.0, 0.0);
 	texCoord2f(b, 0, 0.0, 0.0);
+	vertex3f(b, -radius, -radius, -radius);
 
-	vertex3f(b, -radius, radius, radius);
 	normal3f(b, -1.0, 0.0, 0.0);
 	texCoord2f(b, 0, radius, radius);
+	vertex3f(b, -radius, radius, radius);
 
-	vertex3f(b, -radius, -radius, -radius);
 	normal3f(b, -1.0, 0.0, 0.0);
 	texCoord2f(b, 0, 0.0, 0.0);
+	vertex3f(b, -radius, -radius, -radius);
 
-	vertex3f(b, -radius, -radius, radius);
 	normal3f(b, -1.0, 0.0, 0.0);
 	texCoord2f(b, 0, 0.0, radius);
+	vertex3f(b, -radius, -radius, radius);
 	
 	//right 
-	vertex3f(b, radius, -radius, -radius);
 	normal3f(b, 1.0, 0.0, 0.0);
 	texCoord2f(b, 0, 0.0, 0.0);
+	vertex3f(b, radius, -radius, -radius);
 
-	vertex3f(b, radius, radius, -radius);
 	normal3f(b, 1.0, 0.0, 0.0);
 	texCoord2f(b, 0, radius, 0.0);
+	vertex3f(b, radius, radius, -radius);
 
-	vertex3f(b, radius, radius, radius);
 	normal3f(b, 1.0, 0.0, 0.0);
 	texCoord2f(b, 0, radius, radius);
-
 	vertex3f(b, radius, radius, radius);
+
 	normal3f(b, 1.0, 0.0, 0.0);
 	texCoord2f(b, 0, radius, radius);
+	vertex3f(b, radius, radius, radius);
 
-	vertex3f(b, radius, -radius, radius);
 	normal3f(b, 1.0, 0.0, 0.0);
 	texCoord2f(b, 0, 0.0, radius);
+	vertex3f(b, radius, -radius, radius);
 
-	vertex3f(b, radius, -radius, -radius);
 	normal3f(b, 1.0, 0.0, 0.0);
 	texCoord2f(b, 0, 0.0, 0.0);
+	vertex3f(b, radius, -radius, -radius);
 
 	//front
-	vertex3f(b, radius, -radius, radius);
 	normal3f(b, 0.0, 0.0, 1.0);
 	texCoord2f(b, 0, radius, 0 );
+	vertex3f(b, radius, -radius, radius);
 
-	vertex3f(b, radius, radius, radius);
 	normal3f(b, 0.0, 0.0, 1.0);
 	texCoord2f(b, 0, radius, radius);
+	vertex3f(b, radius, radius, radius);
 
-	vertex3f(b, -radius, radius, radius);
 	normal3f(b, 0.0, 0.0, 1.0);
 	texCoord2f(b, 0, 0, radius);
-
 	vertex3f(b, -radius, radius, radius);
+
 	normal3f(b, 0.0, 0.0, 1.0);
 	texCoord2f(b, 0, 0, radius );
+	vertex3f(b, -radius, radius, radius);
 
-	vertex3f(b, -radius, -radius, radius);
 	normal3f(b, 0.0, 0.0, 1.0);
 	texCoord2f(b, 0, 0, 0);
+	vertex3f(b, -radius, -radius, radius);
 
-	vertex3f(b, radius, -radius, radius);
 	normal3f(b, 0.0, 0.0, 1.0);
 	texCoord2f(b, 0, radius, 0.0 );
+	vertex3f(b, radius, -radius, radius);
 
-	
 	//back
-	vertex3f(b, radius, -radius, -radius);
 	normal3f(b, 0.0, 0.0, -1.0);
 	texCoord2f(b, 0, radius, 0.0 );
+	vertex3f(b, radius, -radius, -radius);
 
-	vertex3f(b, -radius, -radius, -radius);
 	normal3f(b, 0.0, 0.0, -1.0);
 	texCoord2f(b, 0, 0.0, 0.0);
+	vertex3f(b, -radius, -radius, -radius);
 
-	vertex3f(b, -radius, radius, -radius);
 	normal3f(b, 0.0, 0.0, -1.0);
 	texCoord2f(b, 0, 0.0, radius );
-
 	vertex3f(b, -radius, radius, -radius);
+
 	normal3f(b, 0.0, 0.0, -1.0);
 	texCoord2f(b, 0, 0.0, radius );
+	vertex3f(b, -radius, radius, -radius);
 
-	vertex3f(b, radius, radius, -radius);
 	normal3f(b, 0.0, 0.0, -1.0);
 	texCoord2f(b, 0, radius, radius );
+	vertex3f(b, radius, radius, -radius);
 
-	vertex3f(b, radius, -radius, -radius);
 	normal3f(b, 0.0, 0.0, -1.0);
 	texCoord2f(b, 0, radius, 0.0);
+	vertex3f(b, radius, -radius, -radius);
 
 	end(b);
 	
