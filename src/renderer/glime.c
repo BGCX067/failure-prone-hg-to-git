@@ -29,10 +29,12 @@ void begin(batch *b, int primitive, int nverts, int texSets){
 	b->numVerts = nverts;
 	b->numTexSets = texSets;
 
-	b->texCoordsVBO = malloc(sizeof(unsigned int)*texSets);
-	b->texCoords = malloc(sizeof(float*)*texSets);
-	memset(b->texCoordsVBO, 0, sizeof(unsigned int)*texSets );
-	memset(b->texCoords, NULL, sizeof(float*)*texSets);
+	if (texSets){
+		b->texCoordsVBO = malloc(sizeof(unsigned int)*texSets);
+		b->texCoords = malloc(sizeof(float*)*texSets);
+		memset(b->texCoordsVBO, 0, sizeof(unsigned int)*texSets );
+		memset(b->texCoords, NULL, sizeof(float*)*texSets);
+	}
 
 	b->vaoid = createVAO();	
 }
@@ -57,11 +59,15 @@ void vertex3f(batch* b, float x, float y, float z){
 
 void normal3f(batch *b, float x, float y, float z){
 
-	if (b->normalVBO == 0)
+	if (b->normalVBO == 0){
+		//printf("initialize normals\n");
 		b->normalVBO = initializeVBO(sizeof(float)*3*b->numVerts, GL_DYNAMIC_DRAW, NULL);
+	}
 
-	if (b->normals == NULL)
+	if (b->normals == NULL){
+		//printf("map normals vbo \n");
 		b->normals = (float*) mapVBO(b->normalVBO, GL_WRITE_ONLY);
+	}
 
 	if (b->verticesCount >= b->numVerts)
 		return;
@@ -83,10 +89,10 @@ void color4f(batch* b, float x, float y, float z, float w){
 	if (b->verticesCount >= b->numVerts)
 		return;
 
-	b->colors[b->verticesCount*3] = x;
-	b->colors[b->verticesCount*3+1] = y;
-	b->colors[b->verticesCount*3+2] = y;
-	b->colors[b->verticesCount*3+3] = w;
+	b->colors[b->verticesCount*4] = x;
+	b->colors[b->verticesCount*4+1] = y;
+	b->colors[b->verticesCount*4+2] = y;
+	b->colors[b->verticesCount*4+3] = w;
 
 }
 
@@ -94,19 +100,22 @@ void texCoord2f(batch* b, unsigned int texUnit, float s, float t){
 
 	if (b->texCoordsVBO[texUnit] == 0){
 		b->texCoordsVBO[texUnit] = initializeVBO(sizeof(float)*2*b->numVerts, GL_DYNAMIC_DRAW, NULL);
-		printf("initialize texcoords vbo: %d \n", b->texCoordsVBO[texUnit] );
+//		printf("initialize texcoords vbo: %d \n", b->texCoordsVBO[texUnit] );
 	}
 
 	if (b->texCoords[texUnit] == NULL){
 		b->texCoords[texUnit] = (float*) mapVBO(b->texCoordsVBO[texUnit], GL_WRITE_ONLY);
-		printf("map texcoords vbo\n");
+//		printf("map texcoords vbo\n");
 	}
 
-	if (b->verticesCount >= b->numVerts);
+	if (b->verticesCount >= b->numVerts){
 		return;
+	}
 
-	b->texCoords[texUnit][b->verticesCount*3] = s;
-	b->texCoords[texUnit][b->verticesCount*3+1] = t;
+	b->texCoords[texUnit][b->verticesCount*2] = s;
+	b->texCoords[texUnit][b->verticesCount*2+1] = t;
+
+//	printf("texCoord2f %f %f s %f  t %f \n", b->texCoords[texUnit][b->verticesCount*2], b->texCoords[texUnit][b->verticesCount*2+1], s , t );
 
 }
 void end(batch* b){
@@ -122,12 +131,17 @@ void end(batch* b){
                 
         if(b->normals != NULL) {
 		unmapVBO( b->normalVBO);
+	//	printf("unmap normalsvbo \n");
+//		for(int k = 0; k < b->verticesCount*3; k++)
+//			printf("%f \n", b->normals[k]);
 		b->normals = NULL;
 	}
                 
 	for(unsigned int i = 0; i < b->numTexSets; i++)
 		if(b->texCoords[i] != NULL) {
-			printf("unmap texcoordsvbo \n");
+	//		printf("unmap texcoordsvbo \n");
+	//		for(int k = 0; k <b->verticesCount*2; k++ )
+	//			printf("%f \n", b->texCoords[i][k]);
 			unmapVBO(b->texCoordsVBO[i]);
 			b->texCoords[i] = NULL;
 		}
@@ -168,7 +182,7 @@ void end(batch* b){
                 
 	for(unsigned int i = 0; i < b->numTexSets; i++)
 		if(b->texCoordsVBO[i] != 0) {
-			printf("configurando texcoords vbo %d vboid: %d \n", i, b->texCoordsVBO[i]);
+			//printf("configurando texcoords vbo %d vboid: %d \n", i, b->texCoordsVBO[i]);
 			attr[ATTR_TEXCOORD0+i] = malloc(sizeof(vertexAttribute));
 			attr[ATTR_TEXCOORD0+i]->count = b->numVerts;
 			attr[ATTR_TEXCOORD0+i]->size = b->numVerts*sizeof(float);
@@ -179,9 +193,9 @@ void end(batch* b){
 		}
         
 
-	printf("configura vao \n");
+	//printf("configura vao \n");
 	configureVAO(b->vaoid, attr);
-	printf("configure vao done \n");
+	//printf("configure vao done \n");
 }
 
 void draw(batch* b){

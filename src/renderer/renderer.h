@@ -209,8 +209,8 @@ void enableDepth();
 vertexAttribute** initializeVertexFormat();
 
 //texturas
-unsigned int initializeTextureFromMemory(void* data, int x, int  y, int  target, int imageFormat, int internalFormat, int type, int flags);
-unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type, int flags);
+unsigned int initializeTextureFromMemory(void* data, int x, int  y, int  target, int imageFormat, int internalFormat, int type);
+unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type);
 void bindTexture(int slot, int id);
 
 //sammplers
@@ -220,7 +220,7 @@ void bindSamplerState(unsigned int unit, unsigned int sampler);
 //framebuffers
 void bindMainFramebuffer();
 void bindFramebuffer(int id);
-unsigned int initializeFramebuffer(void* data, int width, int height, int format, int internalFormat, int type, int flags );
+unsigned int initializeFramebuffer(void* data, int width, int height, int format, int internalFormat, int type );
 
 //VBOS
 unsigned int initializeVBO(unsigned int size, int mode, const void* data);

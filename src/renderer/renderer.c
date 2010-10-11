@@ -14,6 +14,8 @@
 #include <GL/glext.h>
 #include "../util/procedural/terrain.h"
 #include "glime.h"
+#include <stdlib.h>
+#include "../util/m3.h"
 
 typedef void (APIENTRYP PFNGLGENSAMPLERSPROC) (GLsizei count, GLuint *samplers);
 typedef void (APIENTRYP PFNGLDELETESAMPLERSPROC) (GLsizei count, const GLuint *samplers);
@@ -89,6 +91,8 @@ renderer* r;
 camera c;
 batch* cube;
 batch* quad;
+batch* points;
+batch* star;
 
 mat4 projection;
 mat4 modelview;
@@ -122,10 +126,19 @@ int render(float ifps, event *e, scene *s){
 	bindShader(testShader);
 	bindSamplerState(0,  samplerstate);
 	bindTexture(0, tex);
-	//draw(cube);
-	draw(quad);
+//	glEnable(GL_POINT_SPRITE);
+//	glEnable(GL_BLEND);
+//	glBlendFunc(GL_ONE, GL_ONE);
+//	draw(cube);
+//	draw(points);
+//	draw(quad);
+	draw(star);
     	glFinish();
 	glFlush();
+}
+
+float noise(float a){
+	return sqrt(-2*log( (float) rand()/RAND_MAX) * sin(2*3.1415*(float)rand()/RAND_MAX)*a );
 }
 
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
@@ -196,6 +209,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
  	initCamera(&c);
 	c.viewDir[0] = 0.506;
@@ -204,40 +218,50 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	c.pos[0] = 46.211;
 	c.pos[1] = 171.948;
 	c.pos[2] = 33.311;
-	c.up[0] = 0.404;
-	c.up[1] = 0.781;
-	c.up[2] = 0.475;
+	c.up[0] = 0.0;
+	c.up[1] = 1.0;
+	c.up[2] = 0.0;
 	fpperspective(c.projection, fovy, ratio, znear, zfar);
 	fpOrtho(projection, 0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);	
 	fpIdentity(modelview);
     
-	tex = initializeTexture("data/textures/tex3.jpg", TEXTURE_2D, RGB, RGB_DXT1, UNSIGNED_BYTE,  (CLAMP_TO_EDGE));
+	tex = initializeTexture("data/textures/starport.tga", TEXTURE_2D, RGBA, RGBA, UNSIGNED_BYTE);
     
-    	testShader = initializeShader( readTextFile("data/shaders/minimal.vert"), readTextFile("data/shaders/deform.frag") );
+    	testShader = initializeShader( readTextFile("data/shaders/minimal.vert"), readTextFile("data/shaders/minimal.frag") );
     
     	samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
-	//cube = makeCube(100);
+//	cube = makeCube(100);
+	star = loadm3("data/models/Starport.m3");
 	quad = malloc(sizeof(batch));
 	initializeBatch(quad);
 	begin(quad, GL_TRIANGLE_STRIP, 4, 1);
 		texCoord2f(quad, 0, 0.0, 0.0);
-		normal3f(quad, 0.0, 0.0, 0.0);
+//		normal3f(quad,0.0, 0.0, 0.0);
 		vertex3f(quad, 0.0, 0.0, 0.0);
 
 		texCoord2f(quad, 0, 1.0, 0.0);
-		normal3f(quad, 1.0, 0.0, 0.0);
+//		normal3f(quad,1.0, 0.0, 0.0);
 		vertex3f(quad, 800.0, 0.0, 0.0);
 
 		texCoord2f(quad, 0, 0.0, 1.0);
-		normal3f(quad, 0.0, 1.0, 0.0);
+//		normal3f(quad,0.0, 1.0, 0.0);
 		vertex3f(quad, 0.0, 600.0, 0.0);
 
 		texCoord2f(quad, 0, 1.0, 1.0);
-		normal3f(quad, 1.0, 1.0, 0.0);
+//		normal3f(quad,1.0, 1.0, 0.0);
 		vertex3f(quad, 800.0, 600.0, 0.0);
 	end(quad);
 
-
+/*	points = malloc(sizeof(batch));
+	initializeBatch(points);
+	begin(points, GL_POINTS, 100, 0);
+		for(int i = 0; i < 100; i++){
+			vertex3f(points, 0.7, 0.0, 0.0);
+			normal3f(points, 0, noise(2), noise(3) );
+		}
+		
+	end(points);
+*/
 	printf("Renderer inicializado.\n");
 
 	return r;
@@ -349,7 +373,7 @@ void bindSamplerState(unsigned int unit, unsigned int id){
 	}
 }
 
-unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type, int flags){
+unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type){
     unsigned int textureID;
     glGenTextures(1, &textureID);
     glBindTexture(target, textureID);
@@ -364,6 +388,7 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
                 printf("Error loading: %s texture. \n", filename );
                 return 0;
             }
+	    printf("numero de canais %d \n", n);
             glTexImage2D(target, 0, internalFormat, x, y, 0, imageFormat, type, data);
         }else if ( target == TEXTURE_CUBEMAP ){
             char buff[1024];
@@ -404,7 +429,7 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
     return textureID;
 }
 
-unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type, int flags){
+unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type){
 
 
 	unsigned int textureID;
@@ -474,6 +499,7 @@ void configureVAO(unsigned int vaoID,   vertexAttribute** attrs){
 			printf("configure vao id:  %d vboid %d \n", i, attrs[i]->vboID); 
 			glBindBuffer(GL_ARRAY_BUFFER, attrs[i]->vboID);
 			glVertexAttribPointer(i, attrs[i]->components, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(attrs[i]->offset));
+		//	glDisableVertexAttribArray(i);
 		}
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -714,12 +740,12 @@ void bindShader(unsigned int program){
 				//glUniform4fv(shaders[program]->uniforms[i]->location, shaders[program]->uniforms[i]->size, (GLfloat*) shaders[program]->uniforms[i]->data);
 			}
 		}else if ( shdr->uniforms[i]->semantic == EYEPOS){
-			setShaderConstant3f(program, "eyePosition",  c.pos);
+			setShaderConstant3f(program, "eyeposition",  c.pos);
 		}else if (shdr->uniforms[i]->semantic == TIME){
 		//	setShaderConstant1f(program, "Time", ifps);
 			  setShaderConstant1f(program, "time", elapsedTime);
 		}else if  (shdr->uniforms[i]->semantic == MVP){
-			setShaderConstant4x4f(program, "mvp", mvp);
+			setShaderConstant4x4f(program, "mvp", c.mvp);
 		
 		//else if (r->shaders[program]->uniforms[i]->semantic == LIGHTPOS){
 		//	float lightp[3] = {10.0, 10.0, 10.0 };
@@ -829,10 +855,10 @@ int checkFramebufferStatus( int silent)
     return 1;
 }
 
-unsigned int initializeFramebuffer(void* data, int width, int height, int format, int internalFormat, int type, int  flags){
+unsigned int initializeFramebuffer(void* data, int width, int height, int format, int internalFormat, int type){
 
 	
-	unsigned int texid = initializeTextureFromMemory(data, width,  height, TEXTURE_2D, format, internalFormat, type, flags);
+	unsigned int texid = initializeTextureFromMemory(data, width,  height, TEXTURE_2D, format, internalFormat, type);
 	unsigned int id;
 	glGenFramebuffers(1, &id);
 	glBindFramebuffer(GL_FRAMEBUFFER, id);

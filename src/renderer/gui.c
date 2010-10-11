@@ -154,7 +154,7 @@ void beginGUI(){
     	glPushMatrix();
         glLoadIdentity();
 	//TODO info da GUI na struct
-	gluOrtho2D( 0, 512, 0, 512);
+	gluOrtho2D( 0, 800, 0, 600);
 
 }
 
