@@ -40,6 +40,7 @@ enum Semantic{
 	TIME,
 	EYEPOS,
 	MVP,
+    MODELVIEW,
 	LIGHTPOS
 };
 

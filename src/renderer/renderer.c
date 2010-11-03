@@ -94,9 +94,9 @@ batch* quad;
 batch* points;
 batch* star;
 
-mat4 projection;
+/*mat4 projection;
 mat4 modelview;
-mat4 mvp;
+mat4 mvp;*/
 
 int samplerstate;
 unsigned int testShader; 
@@ -116,14 +116,19 @@ void beginRender(event *e) {
     //FIXME para correção de perspectiva (substituir aqueles GL_PERSPECTIVE_CORRECTION_HINT)
 	fpMultMatrix(c.mvp, c.projection, c.modelview);
 
-	fpMultMatrix(mvp, projection, modelview);
-	
+//	fpMultMatrix(mvp, projection, modelview);
 }
 
 int render(float ifps, event *e, scene *s){
 	beginRender(e);
 	elapsedTime += ifps;
-	bindShader(testShader);
+	//bindShader(testShader);
+
+    setShaderConstant4x4f(testShader, "modelview", c.modelview);
+    setShaderConstant4x4f(testShader, "projection", c.projection);
+   bindShader(testShader);
+
+
 	bindSamplerState(0,  samplerstate);
 	bindTexture(0, tex);
 //	glEnable(GL_POINT_SPRITE);
@@ -222,8 +227,8 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	c.up[1] = 1.0;
 	c.up[2] = 0.0;
 	fpperspective(c.projection, fovy, ratio, znear, zfar);
-	fpOrtho(projection, 0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);	
-	fpIdentity(modelview);
+	//fpOrtho(projection, 0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);	
+	//fpIdentity(modelview);
     
 	tex = initializeTexture("data/textures/starport.tga", TEXTURE_2D, RGBA, RGBA, UNSIGNED_BYTE);
     
@@ -670,9 +675,7 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 		GLint length, size;
 		glGetActiveUniform(shaderProgram, i, maxLength, &length, &size, &type, name);
 		if (type >= GL_SAMPLER_1D && type <= GL_SAMPLER_2D_RECT_SHADOW_ARB){
-            printf("\t\tshader sampler name: %s\n", name);
 			GLint location = glGetUniformLocation(shaderProgram, name);
-			printf("location e unit: %d %d  \n", location, samplers );
 			glUniform1i(location, samplers); //informa o shader a texunit
 			sampler* sam = (sampler*) dlmalloc( sizeof(sampler));
 			sam->name = (char*) dlmalloc( sizeof( char)*(length + 1));
@@ -702,6 +705,8 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 					uni->semantic = TIME;
 				if (strcmp(uni->name, "mvp") == 0)
 					uni->semantic = MVP;
+                //if (strcmp(uni->name, "modelview") == 0)
+				//	uni->semantic = MODELVIEW;
 				newShader->uniforms[numUniforms] = uni;
 				numUniforms++;
 			}
@@ -716,7 +721,6 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 }
 
 void bindShader(unsigned int program){
-
 	if (program == 0){
 		glUseProgram(0);
 		r->prevShader = 0;
@@ -736,7 +740,7 @@ void bindShader(unsigned int program){
 				((UNIFORM_MAT_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) shdr->uniforms[i]->data);
 			} else {
 				((UNIFORM_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
-				//((UNIFORM_FUNC) uniformFuncs[2])(0, 1, color);
+                //((UNIFORM_FUNC) uniformFuncs[2])(0, 1, color);
 				//glUniform4fv(shaders[program]->uniforms[i]->location, shaders[program]->uniforms[i]->size, (GLfloat*) shaders[program]->uniforms[i]->data);
 			}
 		}else if ( shdr->uniforms[i]->semantic == EYEPOS){
@@ -746,6 +750,8 @@ void bindShader(unsigned int program){
 			  setShaderConstant1f(program, "time", elapsedTime);
 		}else if  (shdr->uniforms[i]->semantic == MVP){
 			setShaderConstant4x4f(program, "mvp", c.mvp);
+        //}else if  (shdr->uniforms[i]->semantic == MODELVIEW){
+		//	setShaderConstant4x4f(program, "modelview", c.modelview);
 		
 		//else if (r->shaders[program]->uniforms[i]->semantic == LIGHTPOS){
 		//	float lightp[3] = {10.0, 10.0, 10.0 };
@@ -793,29 +799,31 @@ void setShaderConstant1f(int shaderid, const char *name, const float constant){
 }
 
 void setShaderConstant2f(int shaderid, const char* name, const float constant[]){
-	setShaderConstantRaw(shaderid, name, constant, sizeof(constant)*2);
+	setShaderConstantRaw(shaderid, name, constant, sizeof(float)*2);
 }
 
 void setShaderConstant3f(int shaderid, const char *name,  const float constant[]){
-	setShaderConstantRaw(shaderid, name, constant, sizeof(constant)*3);
+	setShaderConstantRaw(shaderid, name, constant, sizeof(float)*3);
 }
 
 void setShaderConstant4f(int shaderid, const char *name, const float constant[]){
-	setShaderConstantRaw(shaderid, name, constant, sizeof(constant)*4);
+	setShaderConstantRaw(shaderid, name, constant, sizeof(float)*4);
 }
 
 void setShaderConstant4x4f(int shaderid, const char *name, const float constant[]) {
-	setShaderConstantRaw(shaderid, name, constant, sizeof(constant)*16);
+	setShaderConstantRaw(shaderid, name, constant, sizeof(float)*16);
 }
 
 void setShaderConstantRaw(int shaderid, const char* name, const void* data, int size){
     shader *shdr = fparray_getdata(shaderid, r->shaders);
 	for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
+        if (!shdr->uniforms[i]->name)
 		if (strcmp(name, shdr->uniforms[i]->name ) == 0 ){
 			if (memcmp(shdr->uniforms[i]->data, data, size)){
 				memcpy(shdr->uniforms[i]->data, data, size);
 				shdr->uniforms[i]->dirty = 1;
 			}
+            return;
 		}
 	}
 }
