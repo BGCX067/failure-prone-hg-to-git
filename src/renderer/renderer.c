@@ -916,27 +916,27 @@ int printShaderLinkerLog(unsigned int program){
 }
 
 void setShaderConstant1i(int shaderid, const char *name, const int constant){
-	setShaderConstantRaw(shaderid, name, &constant, sizeof(constant));
+	setShaderConstantRaw(shaderid, name, &constant, sizeof(int));
 }
 
 void setShaderConstant1f(int shaderid, const char *name, const float constant){
-	setShaderConstantRaw(shaderid, name, &constant, sizeof(constant));
+	setShaderConstantRaw(shaderid, name, &constant, sizeof(float));
 }
 
 void setShaderConstant2f(int shaderid, const char* name, const float constant[]){
-	setShaderConstantRaw(shaderid, name, constant, sizeof(constant)*2);
+	setShaderConstantRaw(shaderid, name, constant, sizeof(float)*2);
 }
 
 void setShaderConstant3f(int shaderid, const char *name,  const float constant[]){
-	setShaderConstantRaw(shaderid, name, constant, sizeof(constant)*3);
+	setShaderConstantRaw(shaderid, name, constant, sizeof(float)*3);
 }
 
 void setShaderConstant4f(int shaderid, const char *name, const float constant[]){
-	setShaderConstantRaw(shaderid, name, constant, sizeof(constant)*4);
+	setShaderConstantRaw(shaderid, name, constant, sizeof(float)*4);
 }
 
 void setShaderConstant4x4f(int shaderid, const char *name, const float constant[]) {
-	setShaderConstantRaw(shaderid, name, constant, sizeof(constant)*16);
+	setShaderConstantRaw(shaderid, name, constant, sizeof(float)*16);
 }
 
 void setShaderConstantRaw(int shaderid, const char* name, const void* data, int size){
