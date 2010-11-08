@@ -28,7 +28,7 @@ void sth_draw_text(struct sth_stash* stash,
 				   float x, float y, const char* string, float* dx);
 
 void sth_dim_text(struct sth_stash* stash, int idx, float size, const char* string,
-				  float* minx, float* miny, float* maxx, float* maxy);
+				  float* minx, float* miny, float* maxx, float* maxy, float* totalwidth);
 
 void sth_vmetrics(struct sth_stash* stash,
 				  int idx, float size,

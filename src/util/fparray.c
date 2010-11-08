@@ -1,18 +1,17 @@
 #include "fparray.h"
-#include "malloc.h"
 #include "stdlib.h"
 
 #define INIT_SIZE 8
 
 fparray* fparray_init(void* (*_create)(void*), void (*dest)(void*), int elemsize) {
-    fparray *vec = (fparray*) dlmalloc(sizeof(fparray));
+    fparray *vec = (fparray*) malloc(sizeof(fparray));
 
     vec->create = _create;
     vec->destroy = dest;
     vec->alloc_size = INIT_SIZE;
     vec->size = 0;
     vec->elemsize = elemsize;
-    vec->data = dlmalloc(INIT_SIZE*vec->elemsize);
+    vec->data = malloc(INIT_SIZE*vec->elemsize);
     memset(vec->data, 0, INIT_SIZE*vec->elemsize);
     return vec;
 }
@@ -20,8 +19,8 @@ fparray* fparray_init(void* (*_create)(void*), void (*dest)(void*), int elemsize
 void fparray_destroy(fparray *a) {
     for(int i = 0; i < a->size; i++)
         a->destroy(a->data[i]);
-    dlfree(a->data);
-    dlfree(a);
+    free(a->data);
+    free(a);
     a = NULL;
 }
 
@@ -40,7 +39,7 @@ int fparray_insback(void *data, fparray *a) {
     } else {
         /* Aloca mais espaço pro array */
         a->alloc_size *= 2;
-        dlrealloc(a->data, a->elemsize*a->alloc_size);
+        realloc(a->data, a->elemsize*a->alloc_size);
         if(a->create)
             a->data[a->size] = a->create(data);
         else
@@ -57,7 +56,7 @@ void fparray_inspos(void* data, int pos, fparray *a) {
     if(a->size + 1 == a->alloc_size) {
         /* Aloca mais espaço pro array */
         a->alloc_size *= 2;
-        dlrealloc(a->data, a->elemsize*a->alloc_size);
+        realloc(a->data, a->elemsize*a->alloc_size);
     }
     
     if(a->create)
@@ -80,7 +79,7 @@ void fparray_rmback(fparray *a) {
         /* FIXME testar se o realloc realmente funciona
          * nesse caso. */
         a->alloc_size /= 2; 
-        dlrealloc(a, a->alloc_size);
+        realloc(a, a->alloc_size);
     }
 }
 
@@ -95,7 +94,8 @@ void fparray_rmpos(int pos, fparray *a) {
         /* FIXME testar se o realloc realmente funciona
          * nesse caso. */
         a->alloc_size /= 2; 
-        dlrealloc(a, a->alloc_size);
+        realloc(a, a->alloc_size);
+
     }
 }
 

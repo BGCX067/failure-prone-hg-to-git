@@ -43,6 +43,8 @@ enum{
 typedef struct _event {
     int type;
     int keys[512];
+    int buttonLeft;
+    int buttonRight;
     int button;
     int x, y;
 }event;

@@ -59,6 +59,7 @@ void cameraHandleEvent(camera *c, event *e) {
     //TODO pegar o tamanho da janela
     static int i = 0;
     if(e->type & MOUSE_MOTION_EVENT) {
+    	return 1;
         float dx = 400 - e->x;
         float dy = 300 - e->y;
 

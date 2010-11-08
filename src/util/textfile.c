@@ -1,5 +1,4 @@
 #include "textfile.h"
-#include "malloc.h"
 #include <stdio.h>
 
 char* readTextFile(char* filename){
@@ -14,7 +13,7 @@ char* readTextFile(char* filename){
 	long int fileLength = ftell(f);
 	rewind(f);
 
-	char* text = (char*) dlmalloc(sizeof(char)*(fileLength+1));
+	char* text = (char*) malloc(sizeof(char)*(fileLength+1));
 	fread(text, fileLength, 1, f);
 	text[fileLength] = '\0';
 

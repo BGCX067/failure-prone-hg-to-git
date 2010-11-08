@@ -1,5 +1,4 @@
 #include "shadergen.h"
-#include "malloc.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -40,7 +39,7 @@ char* createVSGlobals(material m) {
     }
     size_t retlen = strlen(header) + strlen(minimal) + strlen(phong) + strlen(normalmap) 
                     + strlen(envmap) + strlen(refract) + 1;
-    ret = dlmalloc(sizeof(char)*retlen);
+    ret = malloc(sizeof(char)*retlen);
     sprintf(ret, "%s%s%s%s%s%s", header, minimal, phong, normalmap, envmap, refract);
 
     return ret;
@@ -98,7 +97,7 @@ char* createVSMain(material m) {
     size_t retlen = strlen(beginmain) + strlen(minimal) + strlen(phong) + 
                     strlen(normalmap) + strlen(tex) + strlen(envmap) + 
                     strlen(refract) + strlen(endmain) + 1;
-    ret = dlmalloc(sizeof(char)*retlen);
+    ret = malloc(sizeof(char)*retlen);
     sprintf(ret, "%s%s%s%s%s%s%s%s", beginmain, minimal, phong, normalmap, tex, envmap, 
                                    refract, endmain);
 
@@ -175,7 +174,7 @@ char* createFSGlobal(material m) {
     size_t retlen = strlen(header) + strlen(fragColor) + strlen(phong) + strlen(attenuation)
                     + strlen(spotlight) + strlen(normalmap) + strlen(tex) + strlen(envmap) 
                     + strlen(refract) + 1;
-    ret = dlmalloc(sizeof(char)*retlen);
+    ret = malloc(sizeof(char)*retlen);
     sprintf(ret, "%s%s%s%s%s%s%s%s%s", header, fragColor, phong, attenuation, spotlight, 
                                      normalmap, tex, envmap, refract);
     
@@ -238,12 +237,12 @@ char* createFSFuncs(material m) {
         }
 
         size_t phonglen = strlen(beginphong) + strlen(color) + strlen(spotmult) + strlen(endphong) + 1;
-        phong = dlmalloc(sizeof(char)*phonglen);
+        phong = malloc(sizeof(char)*phonglen);
         sprintf(phong, "%s%s%s%s", beginphong, color, spotmult, endphong);
     }
 
     size_t retlen = strlen(phong) + strlen(att) + strlen(spotlight) + 1;
-    ret = dlmalloc(sizeof(char)*retlen);
+    ret = malloc(sizeof(char)*retlen);
     sprintf(ret, "%s%s%s", att, spotlight, phong);
 
     return ret;
@@ -287,7 +286,7 @@ char* createFSMainBody(material m) {
     
     size_t retlen = strlen(beginmain) + strlen(phong) + strlen(normalmap) 
                     + strlen(tex) + strlen(envmap) + strlen(refract) + 1;
-    ret = dlmalloc(sizeof(char)*retlen);
+    ret = malloc(sizeof(char)*retlen);
     sprintf(ret, "%s%s%s%s%s%s", beginmain, phong, normalmap, tex, envmap, refract);
 
     return ret;
@@ -323,7 +322,7 @@ char* createFSMainFragColor(material m) {
 
     size_t retlen = strlen(texphong) + strlen(phong) + strlen(tex) 
                     + strlen(envmap) + strlen(refract) + 1;
-    ret = dlmalloc(sizeof(char)*retlen);
+    ret = malloc(sizeof(char)*retlen);
     sprintf(ret, "%s%s%s%s%s", texphong, phong, tex, envmap, refract);
     
     return ret;
@@ -338,7 +337,7 @@ char* createFSMain(material m) {
     fragcolor = createFSMainFragColor(m); 
     
     size_t retlen = strlen(main) + strlen(fragcolor) + 1;
-    ret = dlmalloc(sizeof(char)*retlen);
+    ret = malloc(sizeof(char)*retlen);
     sprintf(ret, "%s%s", main, fragcolor);
 
     return ret;
@@ -351,7 +350,7 @@ void shadergen(material m, char** vertShader, char** fragShader) {
     char* vsfunc = createVSFuncs(m);
     char* vsmain = createVSMain(m);
     int vslength = strlen(vsglobal) + strlen(vsfunc) + strlen(vsmain);
-    *vertShader = (char*) dlmalloc(sizeof(char)*vslength);
+    *vertShader = (char*) malloc(sizeof(char)*vslength);
     sprintf(*vertShader, "%s%s%s", vsglobal, vsfunc, vsmain);
     
     //create frag shader
@@ -359,6 +358,6 @@ void shadergen(material m, char** vertShader, char** fragShader) {
     char* fsfunc = createFSFuncs(m);
     char* fsmain = createFSMain(m);
     int fslength = strlen(fsglobal) + strlen(fsfunc) + strlen(fsmain);
-    *fragShader = (char*) dlmalloc(sizeof(char)*fslength);
+    *fragShader = (char*) malloc(sizeof(char)*fslength);
     sprintf(*fragShader, "%s%s%s", fsglobal, fsfunc, fsmain);
 }

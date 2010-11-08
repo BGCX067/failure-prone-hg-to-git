@@ -6,8 +6,6 @@
 #include "renderer/scene.h"
 #include "renderer/mesh.h"
 #include "util/fplist.h"
-#include "util/malloc.h"
-//#include "util/chipmunk/chipmunk.h"
 
 float    genericSpriteVerts[] = {
 	0.0, 0.0,
@@ -74,7 +72,7 @@ int main(){
 	renderer* renderer  = initializeRenderer(app->width, app->height, 1.0, 1000.0, 75.0 );
 	scene* s = initializeScene();
 
-/*	triangles*  t  = dlmalloc(sizeof(triangles));
+/*	triangles*  t  = malloc(sizeof(triangles));
 	memset(t, 0, sizeof(triangles));
 	t->indicesCount = 6;
 	t->verticesComponents = 2;
@@ -82,7 +80,7 @@ int main(){
 	t->vertices =  genericSpriteVerts;
 	t->indices = indices;
 	printf("configurando texsets \n");
-	t->texCoords[0] = dlmalloc(sizeof(texCoord));
+	t->texCoords[0] = malloc(sizeof(texCoord));
 	t->numTexSets = 1;
 	t->texCoords[0]->count = 8;
 	t->texCoords[0]->set = 0;
@@ -92,7 +90,7 @@ int main(){
 */
 //	player.pos[0] =  400;  player.pos[1] = 300; player.pos[2] =  0;
 
-//	mesh *quad = dlmalloc(sizeof(mesh));
+//	mesh *quad = malloc(sizeof(mesh));
 //	player.model = quad;
 //	quad->trianglesCount = 1;
 //	quad->tris = fplist_init(NULL, dlfree);
