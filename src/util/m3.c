@@ -165,7 +165,7 @@ batch * loadm3(char* filename){
 //		begin(b, GL_TRIANGLES, nFaces, 1);
 		for(j = regions[i].indicesOffset; j<(regions[i].indicesOffset+regions[i].nIndices); j++ ){
 			texCoord2f(b, 0, (float)verts[faces[j]].uv[0]/2048.0, (float)verts[faces[j]].uv[1]/2048.0);
-//			normal3f(b,  (float)verts[faces[j]].uv[0]/2048.0, (float)verts[faces[j]].uv[1]/2048.0, 1.0);
+			normal3f(b,  (float)2*verts[faces[j]].normal[0]/255.0-1, (float)2*verts[faces[j]].normal[1]-1, (float)2*verts[faces[j]].normal[2]/255.0 - 1);
 //			printf("%f %f \n ", (float)verts[faces[j]].uv[0]/2048, (float)verts[faces[j]].uv[1]/2048);
 			vertex3f(b, verts[faces[j]].position[0], verts[faces[j]].position[1], verts[faces[j]].position[2]);
 		}
