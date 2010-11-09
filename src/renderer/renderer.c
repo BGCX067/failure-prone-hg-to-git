@@ -216,8 +216,8 @@ LightColor;          */
     bindShader(testShader);
 
 
-	bindSamplerState(0,  samplerstate);
-	bindTexture(0, tex);
+//	bindSamplerState(0,  samplerstate);
+//	bindTexture(0, tex);
 //	glEnable(GL_POINT_SPRITE);
 //	glEnable(GL_BLEND);
 //	glBlendFunc(GL_ONE, GL_ONE);
@@ -430,7 +430,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 
     //samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
     	testShader = initializeShader( readTextFile("data/shaders/particles.vert"), readTextFile("data/shaders/particles.frag") );
-    	texShader =  initializeShader( readTextFile("data/shaders/minimal.vert"), readTextFile("data/shaders/minimal.frag"));
+    	texShader =  initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag"));
     	samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
 	cube = makeCube(10);
 	star = loadm3("data/models/Starport.m3");
