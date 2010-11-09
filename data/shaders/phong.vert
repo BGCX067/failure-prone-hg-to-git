@@ -8,7 +8,6 @@ out vec3 normal;
 
 uniform mat4 mvp;
 uniform mat4 modelview;
-//uniform mat4 normalmatrix;
 
 /* calcula normal a partir da modelview */
 /*mat3 normalMatrix(mat4 mv) {

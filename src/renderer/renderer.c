@@ -152,7 +152,7 @@ void beginRender(event *e) {
 }
 
 int buttonState = 0;
-int check1 = 3;
+int check1 = 4;
 int check2 = 0;
 int check3 = 0;
 int check4 = 0;
@@ -161,20 +161,10 @@ int prevCheck = 0;
 int render(float ifps, event *e, scene *s){
 	beginRender(e);
 	elapsedTime += ifps;
-
-    /*
-LightPosition;
-EyePosition;
-Ka;
-Kd;
-Ks;
- shininess;
-globalAmbient;
-LightColor;          */
     vec3 lightPos;
-    lightPos[0] = 1000.0;
-    lightPos[1] = 1000.0;
-    lightPos[2] = 1000.0;
+    lightPos[0] = 10.0;
+    lightPos[1] = 10.0;
+    lightPos[2] = 10.0;
     setShaderConstant4f(testShader, "LightPosition", lightPos);
     float ka[4];
     ka[0] = 0.0;
@@ -213,9 +203,7 @@ LightColor;          */
     float shininess = 32.0;
     setShaderConstant1f(testShader, "shininess", shininess);
 
-    bindShader(testShader);
-
-
+//    bindShader(texShader);
 //	bindSamplerState(0,  samplerstate);
 //	bindTexture(0, tex);
 //	glEnable(GL_POINT_SPRITE);
@@ -231,7 +219,7 @@ LightColor;          */
 
 	if (check1 == 5){ //Lorenz
 		if (check1 != prevCheck){
-			c.pos[0] = 4.447;
+			/*c.pos[0] = 4.447;
 			c.pos[1] = 123.743;
 			c.pos[2] = 51.128;
 			c.up[0] = 0.924;
@@ -239,7 +227,7 @@ LightColor;          */
 			c.up[2] = -0.3694;
 			c.viewDir[0] = 0.083;
 			c.viewDir[1] = -0.995;
-			c.viewDir[2] = -0.003;
+			c.viewDir[2] = -0.003;*/
 			prevCheck = check1;
 		}
 		glEnable(GL_POINT_SPRITE);
@@ -251,7 +239,7 @@ LightColor;          */
 		glDisable(GL_BLEND);
 	}else if (check1 == 3) { //cubo
 		if (check1 != prevCheck){
-			c.pos[0] = -6.0588;
+			/*c.pos[0] = -6.0588;
 			c.pos[1] = 72.889;
 			c.pos[2] = 11.634;
 			c.up[0] = 0.924;
@@ -259,7 +247,7 @@ LightColor;          */
 			c.up[2] = -0.3694;
 			c.viewDir[0] = 0.083;
 			c.viewDir[1] = -0.995;
-			c.viewDir[2] = -0.003;
+			c.viewDir[2] = -0.003;*/
 			prevCheck = check1;
 		}
 		bindShader(testShader);
@@ -267,7 +255,7 @@ LightColor;          */
 		bindShader(0);
 	}else if (check1 == 4) { //star
 		if (check1 != prevCheck){
-			c.pos[0] = -0.555;
+			/*c.pos[0] = -0.555;
 			c.pos[1] = 12.173;
 			c.pos[2] = 2.568;
 			c.up[0] = -0.109;
@@ -275,12 +263,12 @@ LightColor;          */
 			c.up[2] = 0.987;
 			c.viewDir[0] = -0.012;
 			c.viewDir[1] = -0.993;
-			c.viewDir[2] = 0.114;
+			c.viewDir[2] = 0.114;*/
 			prevCheck = check1;
 		}
 		bindSamplerState(0,  samplerstate);
 		bindTexture(0, tex);
-		bindShader(texShader);
+		bindShader(testShader);
 		draw(star);
 		bindShader(0);
 //		bindTexture(0, 0);
@@ -429,7 +417,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
     //testShader = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
 
     //samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
-    	testShader = initializeShader( readTextFile("data/shaders/particles.vert"), readTextFile("data/shaders/particles.frag") );
+    	testShader = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
     	texShader =  initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag"));
     	samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
 	cube = makeCube(10);

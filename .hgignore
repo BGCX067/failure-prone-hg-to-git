@@ -1,2 +1,5 @@
 ^deps_optimized$
 ^objs_optimized$
+
+.*.*.swp
+.*.*.orig

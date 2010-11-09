@@ -311,7 +311,7 @@ void mainloop(glapp* app, int(idle)(float, event*, scene *), int(render)(float, 
 
 		glXSwapBuffers(display, window);
 		evt.button &= ~(BUTTON_UP | BUTTON_DOWN);
-//        	setMouse(app->width/2, app->height/2);
+        	setMouse(app->width/2, app->height/2);
 	}
 }
 

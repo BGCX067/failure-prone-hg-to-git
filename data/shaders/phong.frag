@@ -19,7 +19,7 @@ void main() {
 	//vec3 n = normalize(normal);
     vec3 n = normal;
 	vec3 lightVec = normalize(normalize((modelview*vec4(LightPosition, 1.0)).xyz) - normalize(position));
-    vec3 viewVec = normalize(/*(modelview*vec4(eyePosition, 1.0)).xyz*/ - position);
+    vec3 viewVec = normalize(/*(modelview*vec4(eyePosition, 1.0)).xyz*/  position);
 	vec3 halfVec = normalize(lightVec + viewVec);
 
     float diffCoef = max(dot(n, lightVec), 0.0);
@@ -30,7 +30,7 @@ void main() {
     vec4 ambient = Ka*globalAmbient;
 	vec4 diffuse = Kd*LightColor*diffCoef;
 	vec4 specular = Ks*LightColor*specCoef;
-	fragColor = diffuse + specular;
+	fragColor = ambient + diffuse + specular;
 
 //	fragColor = vec4(n, 1.0);
 //    fragColor = specular;
