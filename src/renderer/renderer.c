@@ -115,18 +115,97 @@ void beginRender(event *e) {
     //FIXME tentar usar 2 uniforms do tipo mat4 dá erro
     //FIXME para correção de perspectiva (substituir aqueles GL_PERSPECTIVE_CORRECTION_HINT)
 	fpMultMatrix(c.mvp, c.projection, c.modelview);
+    mat4 transposemv, normalmatrix;
+    fpInverse(transposemv, c.modelview);
+    fpTranspose(normalmatrix, transposemv);
+    //fpIdentity(normalmatrix);
+    setShaderConstant4x4f(testShader, "normalmatrix", normalmatrix);
+    setShaderConstant4x4f(testShader, "modelview", c.modelview);
+/*
+    printf("c.modelview:\n");
+    for(int i = 0; i < 4; i++)
+        printf("c.modelview[%d]: %f\tc.modelview[%d]: %f\tc.modelview[%d]: %f\tc.modelview[%d]: %f\n", i, c.modelview[i],
+                                                                                                        i + 4, c.modelview[i + 4],
+                                                                                                        i + 8, c.modelview[i + 8],
+                                                                                                        i + 12, c.modelview[i + 12]);
+    printf("\n\n");
+    
+    
+    printf("c.projection:\n");
+    for(int i = 0; i < 4; i++)
+        printf("c.projection[%d]: %f\tc.projection[%d]: %f\tc.projection[%d]: %f\tc.projection[%d]: %f\n", i, c.projection[i],
+                                                                                                        i + 4, c.projection[i + 4],
+                                                                                                        i + 8, c.projection[i + 8],
+                                                                                                        i + 12, c.projection[i + 12]);
 
-//	fpMultMatrix(mvp, projection, modelview);
+    printf("\n\n"); 
+    printf("c.mvp:\n");
+    for(int i = 0; i < 4; i++)
+        printf("c.mvp[%d]: %f\tc.mvp[%d]: %f\tc.mvp[%d]: %f\tc.mvp[%d]: %f\n", i, c.mvp[i],
+                                                                                i + 4, c.mvp[i + 4],
+                                                                                i + 8, c.mvp[i + 8],
+                                                                                i + 12, c.mvp[i + 12]);
+    printf("\n\n"); */
+	//fpMultMatrix(mvp, projection, modelview);
 }
 
 int render(float ifps, event *e, scene *s){
 	beginRender(e);
 	elapsedTime += ifps;
-	//bindShader(testShader);
+    //bindShader(testShader);
 
-    setShaderConstant4x4f(testShader, "modelview", c.modelview);
-    setShaderConstant4x4f(testShader, "projection", c.projection);
-   bindShader(testShader);
+    /*
+LightPosition;
+EyePosition;
+Ka;
+Kd;
+Ks;
+ shininess;
+globalAmbient;
+LightColor;          */
+    vec3 lightPos;
+    lightPos[0] = 1000.0;
+    lightPos[1] = 1000.0;
+    lightPos[2] = 1000.0;
+    setShaderConstant4f(testShader, "LightPosition", lightPos);
+    float ka[4];
+    ka[0] = 0.0;
+    ka[1] = 0.0;
+    ka[2] = 0.7;
+    ka[3] = 1.0;
+    setShaderConstant4f(testShader, "Ka", ka);
+    float kd[4];
+    kd[0] = 0.0;
+    kd[1] = 0.0;
+    kd[2] = 0.7;
+    kd[3] = 1.0;
+    setShaderConstant4f(testShader, "Kd", kd);
+
+    float ks[4];
+    ks[0] = 0.0;
+    ks[1] = 0.0;
+    ks[2] = 0.7;
+    ks[3] = 1.0;
+    setShaderConstant4f(testShader, "Ks", ks);
+
+    float globalAmbient[4];
+    globalAmbient[0] = 0.1;
+    globalAmbient[1] = 0.1;
+    globalAmbient[2] = 0.1;
+    globalAmbient[3] = 1.0;
+    setShaderConstant4f(testShader, "globalAmbient", globalAmbient);
+
+    float LightColor[4];
+    LightColor[0] = 0.9;
+    LightColor[1] = 0.9;
+    LightColor[2] = 0.9;
+    LightColor[3] = 1.0;
+    setShaderConstant4f(testShader, "LightColor", LightColor);
+
+    float shininess = 32.0;
+    setShaderConstant1f(testShader, "shininess", shininess);
+
+    bindShader(testShader);
 
 
 	bindSamplerState(0,  samplerstate);
@@ -134,11 +213,11 @@ int render(float ifps, event *e, scene *s){
 //	glEnable(GL_POINT_SPRITE);
 //	glEnable(GL_BLEND);
 //	glBlendFunc(GL_ONE, GL_ONE);
-//	draw(cube);
+	draw(cube);
 //	draw(points);
 //	draw(quad);
-	draw(star);
-    	glFinish();
+//	draw(star);
+    glFinish();
 	glFlush();
 }
 
@@ -217,25 +296,27 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
  	initCamera(&c);
-	c.viewDir[0] = 0.506;
+	/*c.viewDir[0] = 0.506;
 	c.viewDir[1] = -0.624;
 	c.viewDir[2] = 0.595;
-	c.pos[0] = 46.211;
-	c.pos[1] = 171.948;
-	c.pos[2] = 33.311;
+
+	c.pos[0] = 0.0;
+	c.pos[1] = 0.0;
+	c.pos[2] = 0.0;
 	c.up[0] = 0.0;
 	c.up[1] = 1.0;
-	c.up[2] = 0.0;
+	c.up[2] = 0.0;*/
 	fpperspective(c.projection, fovy, ratio, znear, zfar);
 	//fpOrtho(projection, 0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);	
 	//fpIdentity(modelview);
     
 	tex = initializeTexture("data/textures/starport.tga", TEXTURE_2D, RGBA, RGBA, UNSIGNED_BYTE);
     
-    	testShader = initializeShader( readTextFile("data/shaders/minimal.vert"), readTextFile("data/shaders/minimal.frag") );
-    
-    	samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
-//	cube = makeCube(100);
+    //testShader = initializeShader( readTextFile("data/shaders/minimal.vert"), readTextFile("data/shaders/minimal.frag") );
+    testShader = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
+
+    samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
+	cube = makeCube(10);
 	star = loadm3("data/models/Starport.m3");
 	quad = malloc(sizeof(batch));
 	initializeBatch(quad);
@@ -817,13 +898,11 @@ void setShaderConstant4x4f(int shaderid, const char *name, const float constant[
 void setShaderConstantRaw(int shaderid, const char* name, const void* data, int size){
     shader *shdr = fparray_getdata(shaderid, r->shaders);
 	for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
-        if (!shdr->uniforms[i]->name)
 		if (strcmp(name, shdr->uniforms[i]->name ) == 0 ){
 			if (memcmp(shdr->uniforms[i]->data, data, size)){
 				memcpy(shdr->uniforms[i]->data, data, size);
 				shdr->uniforms[i]->dirty = 1;
 			}
-            return;
 		}
 	}
 }
