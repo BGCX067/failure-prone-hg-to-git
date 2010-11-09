@@ -2,7 +2,6 @@
 #include <string.h>
 #include "terrain.h"
 #include "../image.h"
-#include "../malloc.h"
 #include "../../math/vec3.h"
 #include "../../renderer/mesh.h"
 
@@ -21,12 +20,12 @@ void initializeTerrain(char* filename, float scale){
 	int n;
 	unsigned char* data = stbi_load(filename, &sizex, &sizey, &n, 0);
 
-	heights = dlmalloc(sizeof(float)*sizex*sizey);
+	heights = malloc(sizeof(float)*sizex*sizey);
 
 	for(int i = 0; i < sizex*sizey; i++)
 		heights[i] = data[i*3]*scale;
 
-	normals = dlmalloc(sizeof(float)*sizex*sizey*3);
+	normals = malloc(sizeof(float)*sizex*sizey*3);
 
 	for (int z = 1; z < sizey - 1; z++) {
 		for(int x = 1; x < sizex - 1; x++) {
@@ -55,14 +54,14 @@ void initializeTerrain(char* filename, float scale){
 
 	stbi_image_free(data);
 
-	tri = dlmalloc(sizeof(triangles));
+	tri = malloc(sizeof(triangles));
 	memset(tri, sizeof(triangles), 0);
 	tri->numTexSets = 0;
 	tri->verticesCount = sizex*sizey;
 	tri->verticesComponents = 3;
 	tri->indicesCount = sizex*sizey;
-	tri->indices = dlmalloc(sizeof(unsigned int)*sizex*sizey);
-	tri->vertices =  dlmalloc(sizeof(float)*sizex*sizey*3);
+	tri->indices = malloc(sizeof(unsigned int)*sizex*sizey);
+	tri->vertices =  malloc(sizeof(float)*sizex*sizey*3);
 
 	tri->tangents = NULL;
 
@@ -79,7 +78,7 @@ void initializeTerrain(char* filename, float scale){
 		c += 3;
 	}
 	
-	m = dlmalloc(sizeof(mesh));
+	m = malloc(sizeof(mesh));
 	m->trianglesCount = 1;
 	m->tris = fplist_init(NULL, NULL);
 	fplist_insback( tri, m->tris);

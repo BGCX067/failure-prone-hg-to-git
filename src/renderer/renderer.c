@@ -5,7 +5,6 @@
 #include "math/matrix.h"
 #include "../glapp.h"
 #include "../util/image.h"
-#include "../util/malloc.h"
 #include "../util/textfile.h"
 #include "mesh.h"
 #include "../util/shadergen.h"
@@ -99,7 +98,8 @@ mat4 modelview;
 mat4 mvp;*/
 
 int samplerstate;
-unsigned int testShader; 
+unsigned int testShader;
+unsigned int texShader;
 unsigned int tex;
 
 float elapsedTime;
@@ -109,6 +109,8 @@ void beginRender(event *e) {
     
 	cameraHandleEvent(&c, e);
 	setupViewMatrix(&c);
+
+//	printf("pos %f %f %f up %f %f %f viewDir %f %f %f\n", c.pos[0], c.pos[1], c.pos[2], c.up[0], c.up[1], c.up[2], c.viewDir[0], c.viewDir[1], c.viewDir[2]);
 
     //FIXME perspective divide não está sendo feito em canto nenhum
     //FIXME multiplicação mais rápida na gpu? tentar montar MVP na gpu passando modelview e projection apenas
@@ -149,10 +151,16 @@ void beginRender(event *e) {
 	//fpMultMatrix(mvp, projection, modelview);
 }
 
+int buttonState = 0;
+int check1 = 3;
+int check2 = 0;
+int check3 = 0;
+int check4 = 0;
+int check5 = 0;
+int prevCheck = 0;
 int render(float ifps, event *e, scene *s){
 	beginRender(e);
 	elapsedTime += ifps;
-    //bindShader(testShader);
 
     /*
 LightPosition;
@@ -213,11 +221,116 @@ LightColor;          */
 //	glEnable(GL_POINT_SPRITE);
 //	glEnable(GL_BLEND);
 //	glBlendFunc(GL_ONE, GL_ONE);
-	draw(cube);
+//	draw(cube);
 //	draw(points);
 //	draw(quad);
 //	draw(star);
     glFinish();
+//	bindShader(0);	
+//
+
+	if (check1 == 5){ //Lorenz
+		if (check1 != prevCheck){
+			c.pos[0] = 4.447;
+			c.pos[1] = 123.743;
+			c.pos[2] = 51.128;
+			c.up[0] = 0.924;
+			c.up[1] = 0.898;
+			c.up[2] = -0.3694;
+			c.viewDir[0] = 0.083;
+			c.viewDir[1] = -0.995;
+			c.viewDir[2] = -0.003;
+			prevCheck = check1;
+		}
+		glEnable(GL_POINT_SPRITE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ONE);
+		bindShader(testShader);
+		draw(points);
+		bindShader(0);
+		glDisable(GL_BLEND);
+	}else if (check1 == 3) { //cubo
+		if (check1 != prevCheck){
+			c.pos[0] = -6.0588;
+			c.pos[1] = 72.889;
+			c.pos[2] = 11.634;
+			c.up[0] = 0.924;
+			c.up[1] = 0.898;
+			c.up[2] = -0.3694;
+			c.viewDir[0] = 0.083;
+			c.viewDir[1] = -0.995;
+			c.viewDir[2] = -0.003;
+			prevCheck = check1;
+		}
+		bindShader(testShader);
+	    draw(cube);
+		bindShader(0);
+	}else if (check1 == 4) { //star
+		if (check1 != prevCheck){
+			c.pos[0] = -0.555;
+			c.pos[1] = 12.173;
+			c.pos[2] = 2.568;
+			c.up[0] = -0.109;
+			c.up[1] = 0.115;
+			c.up[2] = 0.987;
+			c.viewDir[0] = -0.012;
+			c.viewDir[1] = -0.993;
+			c.viewDir[2] = 0.114;
+			prevCheck = check1;
+		}
+		bindSamplerState(0,  samplerstate);
+		bindTexture(0, tex);
+		bindShader(texShader);
+		draw(star);
+		bindShader(0);
+//		bindTexture(0, 0);
+	}
+
+	beginGUI(e);
+		rect r;
+		r.x = 10;
+		r.y = 10;
+//		doButton(1, &r, "lol noobs");
+		rect r2;
+		r2.x = 10; 
+		r2.y = 50;
+//		doButton(2, &r2, "lool");
+		rect r3;
+		r3.x = 650;
+		r3.y = 500;
+		//doButton(3, &r3, "dorgas");
+		doRadioButton(3, &r3, "Cubo", &check1);
+		r3.y = 525;
+		doRadioButton(4, &r3, "Nave", &check1);
+		r3.y  = 550;
+		doRadioButton(5, &r3, "Lorenz", &check1);
+		r3.y = 270;
+//		doCheckButton(6, &r3, "to r0x", &buttonState);
+//		printf("button state: %d \n", buttonState);
+		r3.y =  400;
+//		doHorizontalSlider(7, &r3, 1, 100, &check1);
+		r3.y = 500;
+		char* labels[] = {"Mazela", "Loko"};
+		int idx = 1;
+		//doComboBox(8, &r3, 2, labels,  &idx );
+//		printf("SLIDER VALUE: %d \n", check1);
+
+		if (check1 == 5){
+			
+			r3.y = 10;
+			doCheckButton(6, &r3, "Strange",  &check2);
+			r3.y = 35;
+			doCheckButton(6, &r3, "Lypaunov", &check3);
+			r3.y = 60;
+			doCheckButton(6, &r3, "Polynomial", &check4);
+			r3.y = 85;
+			doCheckButton(6, &r3, "Outliers", &check5);
+
+		}
+
+	endGUI();
+
+    	glFinish();
 	glFlush();
 }
 
@@ -226,11 +339,11 @@ float noise(float a){
 }
 
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
-	r = (renderer*) dlmalloc(sizeof(renderer));
+	r = (renderer*) malloc(sizeof(renderer));
    	r->textures = fparray_init(NULL, NULL, sizeof(texture));
     	r->shaders = fparray_init(NULL, NULL, sizeof(shader));
-    	r->framebuffers = fparray_init(NULL, dlfree, sizeof(framebuffer));
-	r->samplerStates = fparray_init(NULL, dlfree, sizeof(samplerState));
+    	r->framebuffers = fparray_init(NULL, free, sizeof(framebuffer));
+	r->samplerStates = fparray_init(NULL, free, sizeof(samplerState));
 	r->fovy = fovy;
 	r->zfar = zfar;
 	r->znear = znear;
@@ -284,7 +397,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	glEnable(GL_DEPTH_TEST);
 	glViewport(0, 0, w, h);
 
-	glClearColor( 0.7, 0.7, 0.7, 1.0 );
+	glClearColor( 32.0/255.0, 32.0/255.0, 32.0/255.0, 1.0 );
 	glClearDepth(1.0f);
 	glDepthFunc(GL_LEQUAL);
 	glShadeModel(GL_SMOOTH);
@@ -310,12 +423,15 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	//fpOrtho(projection, 0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);	
 	//fpIdentity(modelview);
     
-	tex = initializeTexture("data/textures/starport.tga", TEXTURE_2D, RGBA, RGBA, UNSIGNED_BYTE);
+	tex = initializeTexture("data/textures/starport.tga", TEXTURE_2D, RGBA, RGB, UNSIGNED_BYTE);
     
     //testShader = initializeShader( readTextFile("data/shaders/minimal.vert"), readTextFile("data/shaders/minimal.frag") );
-    testShader = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
+    //testShader = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
 
-    samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
+    //samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
+    	testShader = initializeShader( readTextFile("data/shaders/particles.vert"), readTextFile("data/shaders/particles.frag") );
+    	texShader =  initializeShader( readTextFile("data/shaders/minimal.vert"), readTextFile("data/shaders/minimal.frag"));
+    	samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
 	cube = makeCube(10);
 	star = loadm3("data/models/Starport.m3");
 	quad = malloc(sizeof(batch));
@@ -338,16 +454,36 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 		vertex3f(quad, 800.0, 600.0, 0.0);
 	end(quad);
 
-/*	points = malloc(sizeof(batch));
+	points = malloc(sizeof(batch));
 	initializeBatch(points);
-	begin(points, GL_POINTS, 100, 0);
-		for(int i = 0; i < 100; i++){
-			vertex3f(points, 0.7, 0.0, 0.0);
-			normal3f(points, 0, noise(2), noise(3) );
+	begin(points, GL_POINTS, 100000, 0);
+		float A, B, C, D;
+		A = 28.0; B = 46.90; C = 4; D = 0.01;
+		float prevx = 0.1, prevy = 0, prevz = 0;
+		float x, y, z;
+		for(int i = 0; i < 100000; i++){
+//			x = sin(A* prevy) - prevz *cos(B*prevx)*10;
+//			z = sin(prevx)*10;
+//			y = prevz * sin(C*prevx) - cos(D*prevy)*10;
+//			x = y - z*y*10;
+//			y = z - z*x*10;
+//			z = x - y*x*10;
+			x = prevx + D * A * (prevy - prevx);
+			//y = prevy + D * (prevx + (B - prevz) - prevy);
+			y = prevy + D*(B*prevx - prevy - prevz*prevx);
+			z = prevz + D * (prevx * prevy - C * prevz);
+			vertex3f(points, x, y, z);
+			prevx = x;
+			prevy = y;
+			prevz = z;
+			//normal3f(points, 0, noise(2), noise(3) );
 		}
 		
 	end(points);
-*/
+
+
+
+	initializeGUI(800, 600);
 	printf("Renderer inicializado.\n");
 
 	return r;
@@ -431,7 +567,7 @@ int initializeSamplerState(int wrapmode, int minfilter, int magfilter, int aniso
 	glSamplerParameteri(samplerID, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 	//glSamplerParameteri(samplerID, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
 	
-	samplerState* state = (samplerState*) dlmalloc(sizeof(samplerState));
+	samplerState* state = (samplerState*) malloc(sizeof(samplerState));
 	state->id = samplerID;
 	state->minfilter = minfilter;
 	state->magfilter = magfilter;
@@ -503,7 +639,7 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
         stbi_image_free(data);
     }
 
-    texture* tex = (texture*) dlmalloc(sizeof(texture));
+    texture* tex = (texture*) malloc(sizeof(texture));
     tex->id = textureID;
     tex->target = target;
 
@@ -526,7 +662,7 @@ unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, i
 		glTexImage2D(target, 0, internalFormat, x, y, 0, imageFormat, type, data);
 	}
 
-	texture* tex = (texture*) dlmalloc(sizeof(texture));
+	texture* tex = (texture*) malloc(sizeof(texture));
 	tex->id = textureID;
 	tex->target = target;
 
@@ -600,12 +736,13 @@ unsigned int createVAO(){
 
 void drawArraysVAO(unsigned int vaoID, int type, int numVerts){
 
-	if (vaoID != r->prevVAO){
-		r->prevVAO = vaoID;
-		glBindVertexArray(vaoID);
-	}
+	//if (vaoID != r->prevVAO){
+	//	r->prevVAO = vaoID;
+	//	glBindVertexArray(vaoID);
+	//}
 	glBindVertexArray(vaoID);
 	glDrawArrays(type, 0, numVerts);
+	glBindVertexArray(0);//TODO voltar pro VAO anterior?
 }
 
 unsigned int initializeIndexedVAO( unsigned int  indicesID, vertexAttribute** attrs,  unsigned int num){
@@ -722,11 +859,11 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 	glGetProgramiv(shaderProgram, GL_ACTIVE_ATTRIBUTES, &attributeCount);
 	glGetProgramiv(shaderProgram, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxAttrLength);
 
-	shader* newShader =  (shader*) dlmalloc( sizeof(shader));
+	shader* newShader =  (shader*) malloc( sizeof(shader));
 	newShader->numUniforms = newShader->numSamplers = 0;
 	//conta quantas uniforms sao samplers ou variaveis uniforms
-	char* name = (char*) dlmalloc (sizeof(char)*maxLength);
-	char* attrName = (char*) dlmalloc(sizeof(char)*maxAttrLength);
+	char* name = (char*) malloc (sizeof(char)*maxLength);
+	char* attrName = (char*) malloc(sizeof(char)*maxAttrLength);
 	for (int  i = 0; i < uniformCount; i++){
 		GLenum type;
 		GLint length, size;
@@ -737,8 +874,8 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 			if (strncmp(name, "gl_", 3) != 0)
 				newShader->numUniforms++;
 	}
-	newShader->uniforms = (uniform**)dlmalloc(sizeof(uniform*)*newShader->numUniforms);
-	newShader->samplers = (sampler**)dlmalloc(sizeof(sampler*)*newShader->numSamplers);
+	newShader->uniforms = (uniform**)malloc(sizeof(uniform*)*newShader->numUniforms);
+	newShader->samplers = (sampler**)malloc(sizeof(sampler*)*newShader->numSamplers);
 	int samplers = 0;
 	for (int i = 0; i < attributeCount; i++){
 		GLenum type;
@@ -758,8 +895,8 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 		if (type >= GL_SAMPLER_1D && type <= GL_SAMPLER_2D_RECT_SHADOW_ARB){
 			GLint location = glGetUniformLocation(shaderProgram, name);
 			glUniform1i(location, samplers); //informa o shader a texunit
-			sampler* sam = (sampler*) dlmalloc( sizeof(sampler));
-			sam->name = (char*) dlmalloc( sizeof( char)*(length + 1));
+			sampler* sam = (sampler*) malloc( sizeof(sampler));
+			sam->name = (char*) malloc( sizeof( char)*(length + 1));
 			sam->index = samplers;
 			sam->location = location;
 			strcpy(sam->name, name);
@@ -768,14 +905,14 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 			numSamplers++;
 		}else{
 			if (strncmp(name, "gl_", 3) != 0){
-				uniform* uni = (uniform*) dlmalloc(sizeof(uniform));
-				uni->name = (char*) dlmalloc( sizeof(char)*(length + 1));
+				uniform* uni = (uniform*) malloc(sizeof(uniform));
+				uni->name = (char*) malloc( sizeof(char)*(length + 1));
 				uni->location = glGetUniformLocation(shaderProgram, name);
 				uni->type = getConstantType(type);
 				uni->size = size;
 				strcpy(uni->name, name);
 				int constantSize = constantTypeSizes[uni->type] * uni->size;
-				uni->data =  dlmalloc(sizeof(unsigned char) * constantSize);
+				uni->data =  malloc(sizeof(unsigned char) * constantSize);
 				memset(uni->data, 0, constantSize);
 				uni->dirty = 0;
 				if (strcmp(uni->name, "lightPosition") == 0)
@@ -794,7 +931,7 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 		}
 	}
 
-	dlfree(name);
+	free(name);
     fparray_inspos(newShader, shaderProgram, r->shaders);
 	glUseProgram(r->prevShader);
 	
@@ -847,7 +984,7 @@ int printShaderCompilerLog(unsigned int shader){
 	int infoLen = 0;
 	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
 	if(infoLen > 1) {
-		char* infoLog = (char*) dlmalloc(sizeof(char) * infoLen);
+		char* infoLog = (char*) malloc(sizeof(char) * infoLen);
 		glGetShaderInfoLog(shader, infoLen, NULL, infoLog);
 		printf("Error compiling shader:\n%s\n", infoLog);
 		free(infoLog);
@@ -862,7 +999,7 @@ int printShaderLinkerLog(unsigned int program){
 	int infoLen = 0;
 	glGetShaderiv(program, GL_INFO_LOG_LENGTH, &infoLen);
 	if(infoLen > 1) {
-		char* infoLog = (char*) dlmalloc(sizeof(char) * infoLen);
+		char* infoLog = (char*) malloc(sizeof(char) * infoLen);
 		glGetProgramInfoLog(program, infoLen, NULL, infoLog);
 		printf("Error compiling shader:\n%s\n", infoLog);
 		free(infoLog);
@@ -872,11 +1009,11 @@ int printShaderLinkerLog(unsigned int program){
 }
 
 void setShaderConstant1i(int shaderid, const char *name, const int constant){
-	setShaderConstantRaw(shaderid, name, &constant, sizeof(constant));
+	setShaderConstantRaw(shaderid, name, &constant, sizeof(int));
 }
 
 void setShaderConstant1f(int shaderid, const char *name, const float constant){
-	setShaderConstantRaw(shaderid, name, &constant, sizeof(constant));
+	setShaderConstantRaw(shaderid, name, &constant, sizeof(float));
 }
 
 void setShaderConstant2f(int shaderid, const char* name, const float constant[]){
@@ -954,7 +1091,7 @@ unsigned int initializeFramebuffer(void* data, int width, int height, int format
 	printf("fbo id criado: %d \n", id);
 
 	//r->framebuffers[id] = id;
-    framebuffer *fb = dlmalloc(sizeof(framebuffer));
+    framebuffer *fb = malloc(sizeof(framebuffer));
     fb->id = id;
     fb->width = width;
     fb->height = height;

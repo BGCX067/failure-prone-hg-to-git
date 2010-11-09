@@ -1,14 +1,13 @@
 #include "fplist.h"
-#include "malloc.h"
 #include <stdio.h>
 
 void fpnode_destroy(fpnode* n, void (*destroy)(void*)){
     destroy(n->data);
-    dlfree(n);
+    free(n);
 }
 
 fplist* fplist_init(void* (*_create)(void*), void (*dest)(void*)) {
-    fplist *l = (fplist*) dlmalloc(sizeof(fplist));
+    fplist *l = (fplist*) malloc(sizeof(fplist));
     l->first = NULL;
     l->last= NULL;
     l->size = 0;
@@ -23,7 +22,7 @@ void fplist_destroy(fplist *l) {
         fpnode_destroy(n, l->destroy);
         n = next;
     }
-    dlfree(l); 
+    free(l); 
     l = NULL;
 }
 
@@ -43,7 +42,7 @@ void* fplist_getdata(int index, fplist *l) {
 
 void fplist_insfront(void *data, fplist *l) {
     /* Aloca um node novo */
-    fpnode* n = (fpnode*) dlmalloc(sizeof(fpnode));
+    fpnode* n = (fpnode*) malloc(sizeof(fpnode));
     if(l->create)
         n->data = l->create(data);
     else
@@ -59,7 +58,7 @@ void fplist_insfront(void *data, fplist *l) {
 }
 
 int fplist_insback(void *data, fplist *l) {
-    fpnode* n = (fpnode*) dlmalloc(sizeof(fpnode));
+    fpnode* n = (fpnode*) malloc(sizeof(fpnode));
     if(l->create) {
         n->data = l->create(data);
     }

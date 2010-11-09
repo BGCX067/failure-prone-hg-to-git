@@ -1,6 +1,5 @@
 #include "scene.h"
 #include "../util/ezxml.h"
-#include "../util/malloc.h"
 #include <stdio.h>
 #include <string.h>
 ezxml_t getVertexSource(char* sourceName, ezxml_t mesh){
@@ -29,7 +28,7 @@ ezxml_t getSource(char* sourceName, ezxml_t mesh){
 
 }
 void getFloatArray(float** array, char* values, int count){
-	*array  = dlmalloc(sizeof(float)*count);
+	*array  = malloc(sizeof(float)*count);
 	char* tok  = strtok(values, " ");
 	int k = 0;
 	while(tok != NULL){
@@ -47,7 +46,7 @@ scene* initializeDae(char* filename){
 		return NULL;
 	}
 
-	scene* s = initializeScene();//dlmalloc(sizeof(scene));
+	scene* s = initializeScene();//malloc(sizeof(scene));
 	//s->meshCount  = 0;
 	//s->textureCount = 0;
 
@@ -73,16 +72,16 @@ scene* initializeDae(char* filename){
 			}
 		}
 		
-		//s->meshes = dlmalloc(sizeof(mesh)*s->meshCount);
-		//  s->meshes = dlmalloc(sizeof(mesh*)*MAX_MESHES_PER_SCENE);
+		//s->meshes = malloc(sizeof(mesh)*s->meshCount);
+		//  s->meshes = malloc(sizeof(mesh*)*MAX_MESHES_PER_SCENE);
 		//  for (int j = 0; j < s->meshCount; j++)
-		//  	s->meshes[j] = dlmalloc(sizeof(mesh));
+		//  	s->meshes[j] = malloc(sizeof(mesh));
 
 		for(geometry = ezxml_child(library_geometries, "geometry"); geometry; geometry = geometry->next){
 			ezxml_t meshxml;
 			int i = 0;
 			for(meshxml = ezxml_child(geometry, "mesh"); meshxml; meshxml = meshxml->next){
-				mesh* m = dlmalloc(sizeof(mesh));
+				mesh* m = malloc(sizeof(mesh));
 				ezxml_t trixml;
 				m->trianglesCount = 0;
 				for( trixml = ezxml_child(meshxml, "triangles");  trixml; trixml = trixml->next){
@@ -90,12 +89,12 @@ scene* initializeDae(char* filename){
 				}
 				//TODO passar  destrutor?
 				printf("inicializando lista\n");
-				m->tris = fplist_init(NULL, NULL); //dlmalloc(sizeof(triangles)*s->meshes[i]->trianglesCount);
+				m->tris = fplist_init(NULL, NULL); //malloc(sizeof(triangles)*s->meshes[i]->trianglesCount);
 				int triCount = 0;
 				triangles* tri;
 				for (trixml = ezxml_child(meshxml, "triangles"); trixml; trixml = trixml->next){
 					printf("lendo triangulo \n");
-					triangles* tri = dlmalloc(sizeof(triangles));
+					triangles* tri = malloc(sizeof(triangles));
 					//TODO memset?
 					printf("initializando triangulo \n");
 					initializeTriangles( tri );
@@ -105,7 +104,7 @@ scene* initializeDae(char* filename){
 					tri->indicesCount  = count;
 					printf("recebeu count \n");
 					//TODO pode ser short int
-					tri->indices = dlmalloc( sizeof(unsigned int)*count );
+					tri->indices = malloc( sizeof(unsigned int)*count );
 					printf("alocou  indices\n");
 					ezxml_t p = ezxml_child(trixml, "p");
 					char* tok  = strtok(p->txt, " ");
@@ -198,7 +197,7 @@ scene* initializeDae(char* filename){
 						}
 						else if ( strcmp(semantic, "TEXCOORD")  == 0){
 							printf("lendo texcoords\n");
-							texCoord* texSet = dlmalloc(sizeof(texCoord));
+							texCoord* texSet = malloc(sizeof(texCoord));
 							texSet->set = atoi( ezxml_attr(input, "set"));
 							printf("texcoord set: %d\n", texSet->set);
 							ezxml_t source = getSource(sourceName, meshxml);
@@ -273,10 +272,10 @@ int addNode(scene* s, node* n){
 
 scene* initializeScene(){
 
-	scene * s = dlmalloc(sizeof(scene));
+	scene * s = malloc(sizeof(scene));
 	memset(s, sizeof(scene),  0);
 	//TODO deixa null aqui?
-	s->meshes = fplist_init(NULL,  dlfree);
-	s->nodes = fplist_init(NULL, dlfree);
+	s->meshes = fplist_init(NULL,  free);
+	s->nodes = fplist_init(NULL, free);
 	return s;
 }

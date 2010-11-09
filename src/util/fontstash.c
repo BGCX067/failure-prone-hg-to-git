@@ -22,7 +22,7 @@
 
 #include <GL/gl.h>
 
-//#define STB_TRUETYPE_IMPLEMENTATION
+#define STB_TRUETYPE_IMPLEMENTATION
 //#define STBTT_malloc(x,u)    malloc(x)
 #define STBTT_free(x,u)      free(x)
 #include "stb_truetype.h"
@@ -224,12 +224,12 @@ int sth_add_font(struct sth_stash* stash, int idx, const char* path)
 
 	return 1;
 	
-//error:
-//	if (fnt->data) free(fnt->data);
-//	if (fnt->glyphs) free(fnt->glyphs);
-//	memset(fnt,0,sizeof(struct sth_font));
-//	if (fp) fclose(fp);
-//	return 0;
+error:
+	if (fnt->data) free(fnt->data);
+	if (fnt->glyphs) free(fnt->glyphs);
+	memset(fnt,0,sizeof(struct sth_font));
+	if (fp) fclose(fp);
+	return 0;
 }
 
 static struct sth_glyph* get_glyph(struct sth_stash* stash, struct sth_font* fnt, unsigned int codepoint, short isize)
@@ -463,7 +463,7 @@ void sth_draw_text(struct sth_stash* stash,
 void sth_dim_text(struct sth_stash* stash,
 				  int idx, float size,
 				  const char* s,
-				  float* minx, float* miny, float* maxx, float* maxy)
+				  float* minx, float* miny, float* maxx, float* maxy, float* totalwidth)
 {
 	unsigned int codepoint;
 	unsigned int state = 0;
@@ -480,6 +480,7 @@ void sth_dim_text(struct sth_stash* stash,
 	
 	*minx = *maxx = x;
 	*miny = *maxy = y;
+	*totalwidth = 0;
 
 	for (; *s; ++s)
 	{
@@ -489,6 +490,8 @@ void sth_dim_text(struct sth_stash* stash,
 		if (q.x1 > *maxx) *maxx = q.x1;
 		if (q.y1 < *miny) *miny = q.y1;
 		if (q.y0 > *maxy) *maxy = q.y0;
+		*totalwidth += q.x1 - q.x0;
+		//printf("char: %c x0: %f x1: %f y0: %f y1: %f \n", *s, q.x0, q.x1, q.y0, q.y1);
 	}
 }
 
