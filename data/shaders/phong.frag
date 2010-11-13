@@ -15,11 +15,10 @@ uniform float shininess;
 uniform vec4 globalAmbient;
 uniform vec4 LightColor;
 
-void main() {
-	//vec3 n = normalize(normal);
+vec4 phong() {
     vec3 n = normal;
-	vec3 lightVec = normalize(normalize((modelview*vec4(LightPosition, 1.0)).xyz) - normalize(position));
-    vec3 viewVec = normalize(/*(modelview*vec4(eyePosition, 1.0)).xyz*/  position);
+	vec3 lightVec = normalize((modelview*vec4(LightPosition, 1.0)).xyz - position);
+    vec3 viewVec = normalize(/*(modelview*vec4(eyePosition, 1.0)).xyz*/ - position);
 	vec3 halfVec = normalize(lightVec + viewVec);
 
     float diffCoef = max(dot(n, lightVec), 0.0);
@@ -30,7 +29,12 @@ void main() {
     vec4 ambient = Ka*globalAmbient;
 	vec4 diffuse = Kd*LightColor*diffCoef;
 	vec4 specular = Ks*LightColor*specCoef;
-	fragColor = ambient + diffuse + specular;
+	vec4 phong = ambient + diffuse + specular;
+    return phong;
+}
+
+void main() {
+    fragColor = phong();
 
 //	fragColor = vec4(n, 1.0);
 //    fragColor = specular;

@@ -6,19 +6,27 @@ char* createVSGlobals(material m) {
     char* header = "#version 330 core\n\n";
     char* ret;
     char* phong = ""; 
+    char* tex = "";
     char* normalmap = "";
     char* envmap = "";
     char* refract = "";
     
-    char* minimal = "uniform mat4 mvp;\n"
-                    "uniform mat4 modelview;\n"
-                    "layout(location = 0) in vec3 vertPos;\n"
-                    "layout(location = 2) in vec3 vertNormal;\n\n";
+    char* minimal = "layout(location = 0) in vec3 vertPos;\n"
+                    "uniform mat4 mvp;\n";
+                    
     if(m.flags & PHONG) {
         //Posição e normal que devem ser interpoladas
-        phong = "out vec3 position;\n"
-                "out vec3 normal;\n"
-                "uniform mat4 normalmatrix;\n";
+        phong = //"layout(location = 0) in vec3 vertPos;\n"
+                "layout(location = 2) in vec3 vertNormal;\n\n"
+                "out vec3 position;\n"
+                "out vec3 normal;\n\n"
+                //"uniform mat4 mvp;\n"
+                "uniform mat4 modelview;\n\n";
+    }
+
+    if(m.flags & TEX) {
+        tex = "layout(location = 8) in vec2 inTexCoord;\n"
+              "out vec2 texCoord;\n";
     }
 
     if(m.flags & NORMAL_MAP) {
@@ -37,16 +45,46 @@ char* createVSGlobals(material m) {
         refract = "varying vec3 refractDir;\n"
                  "uniform float etaRatio;\n";
     }
-    size_t retlen = strlen(header) + strlen(minimal) + strlen(phong) + strlen(normalmap) 
-                    + strlen(envmap) + strlen(refract) + 1;
+    size_t retlen = strlen(header) + strlen(minimal) + strlen(phong) + strlen(tex) +
+                    strlen(normalmap) + strlen(envmap) + strlen(refract) + 1;
     ret = malloc(sizeof(char)*retlen);
-    sprintf(ret, "%s%s%s%s%s%s", header, minimal, phong, normalmap, envmap, refract);
+    sprintf(ret, "%s%s%s%s%s%s", header, minimal, phong, tex, normalmap, envmap, refract);
 
     return ret;
 }
 
 char* createVSFuncs(material m) {
     char *ret = "";
+    char* phong = "";
+
+    if(m.flags & PHONG) {
+        phong = "mat3 normalMatrix(mat4 mv) {\n"
+                "\tvec3 x0;\n"
+                "\tx0[0] = mv[0][0];\n"
+                "\tx0[1] = mv[1][0];\n"
+                "\tx0[2] = mv[2][0];\n"
+                "\tvec3 x1;\n"
+                "\tx1[0] = mv[0][1];\n"
+                "\tx1[1] = mv[1][1];\n"
+                "\tx1[2] = mv[2][1];\n"
+                "\tvec3 x2;\n"
+                "\tx2[0] = mv[0][2];\n"
+                "\tx2[1] = mv[1][2];\n"
+                "\tx2[2] = mv[2][2];\n"
+                "\tfloat det = dot(x0, cross(x1, x2));\n"
+                "\tmat3 ret;\n"
+                "\tvec3 line0 = (1.0/det)*cross(x1, x2);\n"
+                "\tvec3 line1 = (1.0/det)*cross(x2, x0);\n"
+                "\tvec3 line2 = (1.0/det)*cross(x0, x1);\n"
+                "\tret[0] = line0;\n"
+                "\tret[1] = line1;\n"
+                "\tret[2] = line2;\n"
+                "\treturn transpose(ret);\n"
+                "}\n";
+    }
+    size_t retlen = strlen(phong) + 1;
+    ret = malloc(sizeof(char)*retlen);
+    sprintf(ret, "%s", phong);
     return ret;
 }
 
@@ -62,10 +100,10 @@ char* createVSMain(material m) {
 
     char* minimal = "\tgl_Position = mvp*vec4(vertPos, 1.0);\n";
     
-    //FIXME passar normal matrix
     if(m.flags & PHONG) {
         phong = "\tposition = (modelview*vec4(vertPos, 1.0)).xyz;\n"
-                "\tnormal = normalize((normalmatrix*vec4(vertNormal, 1.0)).xyz);\n";
+                "\tmat3 normalmatrix = normalMatrix(modelview);\n"
+	            "\tnormal = normalize(normalmatrix*vertNormal);\n";
     }
 
     if(m.flags & NORMAL_MAP) {
@@ -82,7 +120,7 @@ char* createVSMain(material m) {
     }
 
     if(m.flags & TEX) {
-        tex = "\tgl_TexCoord[0] = gl_MultiTexCoord0;\n";
+        tex = "\ttexCoord = inTexCoord;\n";
     }
 
     if(m.flags & ENV_MAP) {
@@ -116,14 +154,14 @@ char* createFSGlobal(material m) {
 
     char* header = "#version 330 core\n\n";
 
-    char* fragColor = "out vec4 fragColor;\n"
-                      "uniform mat4 mvp;\n";
+    char* fragColor = "out vec4 fragColor;\n";
 
     if(m.flags & PHONG) {
         phong = "in vec3 normal;\n"
-                "in vec3 position;\n"
+                "in vec3 position;\n\n"
+                "uniform mat4 modelview;\n"
                 "uniform vec3 LightPosition;\n"
-                "uniform vec3 EyePosition;\n"
+                "uniform vec3 eyePosition;\n"
                 "uniform vec4 Ka;\n"
                 "uniform vec4 Kd;\n"
                 "uniform vec4 Ks;\n"
@@ -145,7 +183,8 @@ char* createFSGlobal(material m) {
     }
 
     if(m.flags & TEX) {
-        tex = "uniform sampler2D texture;\n";
+        tex = "in vec2 texCoord;\n"
+              "uniform sampler2D tex;\n";
     }
 
     if(m.flags & NORMAL_MAP) {
@@ -210,7 +249,22 @@ char* createFSFuncs(material m) {
     }
 
     if(m.flags & PHONG) {
-        char* beginphong = "vec4 phong(vec3 n, vec3 lightDir) {\n"
+        phong = "vec4 phong() {\n"
+                "\tvec3 n = normal;"
+                "\tvec3 lightVec = normalize(normalize((modelview*vec4(LightPosition, 1.0)).xyz) - normalize(position));\n"
+                "\tvec3 viewVec = normalize(position);\n"
+                "\tvec3 halfVec = normalize(lightVec + viewVec);\n"
+                "\tfloat diffCoef = max(dot(n, lightVec), 0.0);\n"
+                "\tfloat specCoef = pow(max(dot(viewVec, halfVec), 0.0), shininess);\n"
+                "\tif (diffCoef <= 0.0)\n"
+                "\t\tspecCoef = 0.0;\n"
+                "\tvec4 ambient = Ka*globalAmbient;\n"
+                "\tvec4 diffuse = Kd*LightColor*diffCoef;\n"
+                "\tvec4 specular = Ks*LightColor*specCoef;\n"
+                "\tvec4 phong = ambient + diffuse + specular;\n"
+                "\treturn phong;\n"
+                "}\n";
+        /*char* beginphong = "vec4 phong(vec3 n, vec3 lightDir) {\n"
                 "\tvec3 viewVec = normalize(EyePosition - position);\n"
                 "\tvec3 halfVec = normalize(lightDir + viewVec);\n"
                 "\tfloat diffCoef = max(dot(n, lightDir), 0.0);\n"
@@ -238,7 +292,7 @@ char* createFSFuncs(material m) {
 
         size_t phonglen = strlen(beginphong) + strlen(color) + strlen(spotmult) + strlen(endphong) + 1;
         phong = malloc(sizeof(char)*phonglen);
-        sprintf(phong, "%s%s%s%s", beginphong, color, spotmult, endphong);
+        sprintf(phong, "%s%s%s%s", beginphong, color, spotmult, endphong);*/
     }
 
     size_t retlen = strlen(phong) + strlen(att) + strlen(spotlight) + 1;
@@ -258,15 +312,11 @@ char* createFSMainBody(material m) {
     char* beginmain = "void main() {\n";
     
     if(m.flags & PHONG) {
-        phong = "\tvec3 N = normalize(normal);\n"
-                "\tvec4 lightPos = vec4(LightPosition, 1.0);\n"
-                "\tlightPos = mvp*lightPos;\n"
-                "\tvec3 lightVec = normalize(lightPos.xyz - position);\n"
-                "\tvec4 phongColor = phong(N, lightVec);\n";
+        phong = "\tvec4 phongColor = phong();\n";
     }
 
     if(m.flags & TEX) {
-        tex = "\tvec4 texColor = texture2D(texture, gl_TexCoord[0].xy);\n";
+        tex = "\tvec4 texColor = vec4(texture(tex, texCoord).rgb, 1.0);\n";
     }
 
     if(m.flags & NORMAL_MAP) {

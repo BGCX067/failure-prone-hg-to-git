@@ -1,12 +1,7 @@
 #version 330  core
 
-uniform mat4 mvp;
-
 layout(location = 0) in vec3 Pos;
-layout(location = 2) in vec3 Normal;
-layout(location = 8) in vec2 inTexCoord;
-
-out vec2 texCoord;
+uniform mat4 mvp;
 
 void main() {
     texCoord = inTexCoord.xy;

@@ -274,7 +274,7 @@ int render(float ifps, event *e, scene *s){
 //		bindTexture(0, 0);
 	}
 
-	beginGUI(e);
+/*	beginGUI(e);
 		rect r;
 		r.x = 10;
 		r.y = 10;
@@ -316,7 +316,7 @@ int render(float ifps, event *e, scene *s){
 
 		}
 
-	endGUI();
+	endGUI();*/
 
     	glFinish();
 	glFlush();
@@ -417,7 +417,18 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
     //testShader = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
 
     //samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
-    	testShader = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
+    char *vertShader, *fragShader;
+    material m;
+    m.flags = PHONG | TEX;
+    shadergen(m, &vertShader, &fragShader);
+    printf("vertex shader: \n\n");
+    printf("%s", vertShader);
+    printf("*************************\n\n");
+    printf("frag shader: \n\n");
+    printf("%s", fragShader);
+    printf("*************************\n\n");
+    	//testShader = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
+    	testShader = initializeShader(vertShader, fragShader);
     	texShader =  initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag"));
     	samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
 	cube = makeCube(10);
