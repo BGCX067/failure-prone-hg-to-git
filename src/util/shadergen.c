@@ -249,21 +249,32 @@ char* createFSFuncs(material m) {
     }
 
     if(m.flags & PHONG) {
-        phong = "vec4 phong() {\n"
-                "\tvec3 n = normal;"
-                "\tvec3 lightVec = normalize(normalize((modelview*vec4(LightPosition, 1.0)).xyz) - normalize(position));\n"
-                "\tvec3 viewVec = normalize(position);\n"
-                "\tvec3 halfVec = normalize(lightVec + viewVec);\n"
-                "\tfloat diffCoef = max(dot(n, lightVec), 0.0);\n"
-                "\tfloat specCoef = pow(max(dot(viewVec, halfVec), 0.0), shininess);\n"
-                "\tif (diffCoef <= 0.0)\n"
-                "\t\tspecCoef = 0.0;\n"
-                "\tvec4 ambient = Ka*globalAmbient;\n"
-                "\tvec4 diffuse = Kd*LightColor*diffCoef;\n"
-                "\tvec4 specular = Ks*LightColor*specCoef;\n"
-                "\tvec4 phong = ambient + diffuse + specular;\n"
-                "\treturn phong;\n"
-                "}\n";
+        char* beginphong = "vec4 phong() {\n"
+                     "\tvec3 n = normal;"
+                     "\tvec3 lightPos = (modelview*vec4(LightPosition, 1.0)).xyz;\n"
+                     "\tvec3 lightVec = lightPos - position;\n"
+                     "\tvec3 viewVec = normalize(position);\n"
+                     "\tvec3 halfVec = normalize(lightVec + viewVec);\n"
+                     "\tfloat diffCoef = max(dot(n, lightVec), 0.0);\n"
+                     "\tfloat specCoef = pow(max(dot(viewVec, halfVec), 0.0), shininess);\n"
+                     "\tif (diffCoef <= 0.0)\n"
+                     "\t\tspecCoef = 0.0;\n"
+                     "\tvec4 ambient = Ka*globalAmbient;\n"
+                     "\tvec4 diffuse = Kd*LightColor*diffCoef;\n"
+                     "\tvec4 specular = Ks*LightColor*specCoef;\n";
+        char* color = "";
+        if(m.flags & ATTENUATION)
+            color = "\tvec4 phong = ambient + (attenuation(position, lightPos)*(diffuse + specular));\n";
+        else
+            color = "\tvec4 phong = ambient + diffuse + specular;\n";
+
+
+        char* endphong = "\treturn phong;\n"
+                         "}\n";
+
+        size_t phonglen = strlen(beginphong) + strlen(color) + strlen(endphong) + 1;
+        phong = malloc(sizeof(char)*phonglen);
+        sprintf(phong, "%s%s%s%s", beginphong, color, endphong);
         /*char* beginphong = "vec4 phong(vec3 n, vec3 lightDir) {\n"
                 "\tvec3 viewVec = normalize(EyePosition - position);\n"
                 "\tvec3 halfVec = normalize(lightDir + viewVec);\n"

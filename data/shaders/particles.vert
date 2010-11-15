@@ -4,11 +4,7 @@ uniform mat4 mvp;
 layout(location = 0) in vec3 Pos;
 
 void main() {
-
-    
-    //vec3 d = Pos + 0.5*vec3(0, 10.1, 0)*time*time;
-	
-    gl_PointSize = 1.0;
+    gl_PointSize = 10.0;
     
     gl_Position = mvp*vec4(Pos, 1.0);
 }

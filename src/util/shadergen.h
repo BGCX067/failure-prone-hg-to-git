@@ -2,13 +2,13 @@
 #define SHADERGEN_H
 
 enum {
-    PHONG = 1 << 0,
-    TEX = 1 << 1,
-    NORMAL_MAP = 1 << 2,
-    ATTENUATION = 1 << 3,
-    ENV_MAP = 1 << 4,
-    REFRACT = 1 << 5,
-    SPOTLIGHT = 1 << 6
+    PHONG = 1 << 0, /* OK */
+    TEX = 1 << 1, /* OK */
+    NORMAL_MAP = 1 << 2, /* FAIL */
+    ATTENUATION = 1 << 3, /* OK */
+    ENV_MAP = 1 << 4, /* FAIL */
+    REFRACT = 1 << 5, /* FAIL */
+    SPOTLIGHT = 1 << 6 /* FAIL */
 };
 
 typedef struct _material {

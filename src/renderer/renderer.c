@@ -15,6 +15,7 @@
 #include "glime.h"
 #include <stdlib.h>
 #include "../util/m3.h"
+#include "particles.h"
 
 typedef void (APIENTRYP PFNGLGENSAMPLERSPROC) (GLsizei count, GLuint *samplers);
 typedef void (APIENTRYP PFNGLDELETESAMPLERSPROC) (GLsizei count, const GLuint *samplers);
@@ -93,6 +94,8 @@ batch* quad;
 batch* points;
 batch* star;
 
+particlesystem* ps;
+
 /*mat4 projection;
 mat4 modelview;
 mat4 mvp;*/
@@ -152,7 +155,7 @@ void beginRender(event *e) {
 }
 
 int buttonState = 0;
-int check1 = 4;
+int check1 = 5;
 int check2 = 0;
 int check3 = 0;
 int check4 = 0;
@@ -202,6 +205,13 @@ int render(float ifps, event *e, scene *s){
 
     float shininess = 32.0;
     setShaderConstant1f(testShader, "shininess", shininess);
+    
+    float kc = 1.0;
+    setShaderConstant1f(testShader, "Kc", kc);
+    float kl = 10.0;
+    setShaderConstant1f(testShader, "Kl", kl);
+    float kq = 0.0;
+    setShaderConstant1f(testShader, "Kq", kq);
 
 //    bindShader(texShader);
 //	bindSamplerState(0,  samplerstate);
@@ -213,10 +223,11 @@ int render(float ifps, event *e, scene *s){
 //	draw(points);
 //	draw(quad);
 //	draw(star);
-    glFinish();
+//    glFinish();
 //	bindShader(0);	
 //
-
+    
+    updateparticles(ps, ifps);
 	if (check1 == 5){ //Lorenz
 		if (check1 != prevCheck){
 			/*c.pos[0] = 4.447;
@@ -230,11 +241,15 @@ int render(float ifps, event *e, scene *s){
 			c.viewDir[2] = -0.003;*/
 			prevCheck = check1;
 		}
+        bindSamplerState(0,  samplerstate);
+		bindTexture(0, tex);
+		bindShader(testShader);
 		glEnable(GL_POINT_SPRITE);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE, GL_ONE);
 		bindShader(testShader);
-		draw(points);
+		//draw(points);
+        renderparticles(ps);
 		bindShader(0);
 		glDisable(GL_BLEND);
 	}else if (check1 == 3) { //cubo
@@ -412,6 +427,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	//fpIdentity(modelview);
     
 	tex = initializeTexture("data/textures/starport.tga", TEXTURE_2D, RGBA, RGB, UNSIGNED_BYTE);
+	//tex = initializeTexture("/tmp/Fire_base.tga", TEXTURE_2D, RGB, RGB, UNSIGNED_BYTE);
     
     //testShader = initializeShader( readTextFile("data/shaders/minimal.vert"), readTextFile("data/shaders/minimal.frag") );
     //testShader = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
@@ -419,7 +435,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
     //samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
     char *vertShader, *fragShader;
     material m;
-    m.flags = PHONG | TEX;
+    m.flags = PHONG | ATTENUATION;
     shadergen(m, &vertShader, &fragShader);
     printf("vertex shader: \n\n");
     printf("%s", vertShader);
@@ -427,8 +443,8 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
     printf("frag shader: \n\n");
     printf("%s", fragShader);
     printf("*************************\n\n");
-    	//testShader = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
-    	testShader = initializeShader(vertShader, fragShader);
+    	testShader = initializeShader( readTextFile("data/shaders/particles.vert"), readTextFile("data/shaders/particles.frag") );
+    	//testShader = initializeShader(vertShader, fragShader);
     	texShader =  initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag"));
     	samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
 	cube = makeCube(10);
@@ -480,7 +496,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 		
 	end(points);
 
-
+    ps = initparticles(200);
 
 	initializeGUI(800, 600);
 	printf("Renderer inicializado.\n");
