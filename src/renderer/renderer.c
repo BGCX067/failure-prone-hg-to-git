@@ -246,6 +246,7 @@ int render(float ifps, event *e, scene *s){
 		bindShader(testShader);
 		glEnable(GL_POINT_SPRITE);
 		glEnable(GL_BLEND);
+        glEnable(GL_POINT_SMOOTH);
 		glBlendFunc(GL_ONE, GL_ONE);
 		bindShader(testShader);
 		//draw(points);
@@ -426,8 +427,8 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	//fpOrtho(projection, 0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);	
 	//fpIdentity(modelview);
     
-	tex = initializeTexture("data/textures/starport.tga", TEXTURE_2D, RGBA, RGB, UNSIGNED_BYTE);
-	//tex = initializeTexture("/tmp/Fire_base.tga", TEXTURE_2D, RGB, RGB, UNSIGNED_BYTE);
+	//tex = initializeTexture("data/textures/starport.tga", TEXTURE_2D, RGBA, RGB, UNSIGNED_BYTE);
+	tex = initializeTexture("/tmp/Fire_base.tga", TEXTURE_2D, RGB, RGB, UNSIGNED_BYTE);
     
     //testShader = initializeShader( readTextFile("data/shaders/minimal.vert"), readTextFile("data/shaders/minimal.frag") );
     //testShader = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
