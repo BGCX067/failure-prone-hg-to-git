@@ -11,41 +11,80 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glext.h>
+#include <string.h>
 #include "../util/procedural/terrain.h"
 #include "glime.h"
 #include <stdlib.h>
 #include "../util/m3.h"
 #include "particles.h"
 
-typedef void (APIENTRYP PFNGLGENSAMPLERSPROC) (GLsizei count, GLuint *samplers);
-typedef void (APIENTRYP PFNGLDELETESAMPLERSPROC) (GLsizei count, const GLuint *samplers);
-typedef GLboolean (APIENTRYP PFNGLISSAMPLERPROC) (GLuint sampler);
-typedef void (APIENTRYP PFNGLBINDSAMPLERPROC) (GLenum unit, GLuint sampler);
-typedef void (APIENTRYP PFNGLSAMPLERPARAMETERIPROC) (GLuint sampler, GLenum pname, GLint param);
-typedef void (APIENTRYP PFNGLSAMPLERPARAMETERIVPROC) (GLuint sampler, GLenum pname, const GLint *param);
-typedef void (APIENTRYP PFNGLSAMPLERPARAMETERFPROC) (GLuint sampler, GLenum pname, GLfloat param);
-typedef void (APIENTRYP PFNGLSAMPLERPARAMETERFVPROC) (GLuint sampler, GLenum pname, const GLfloat *param);
-typedef void (APIENTRYP PFNGLSAMPLERPARAMETERIIVPROC) (GLuint sampler, GLenum pname, const GLint *param);
-typedef void (APIENTRYP PFNGLSAMPLERPARAMETERIUIVPROC) (GLuint sampler, GLenum pname, const GLuint *param);
-typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERIVPROC) (GLuint sampler, GLenum pname, GLint *params);
-typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERIIVPROC) (GLuint sampler, GLenum pname, GLint *params);
-typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERFVPROC) (GLuint sampler, GLenum pname, GLfloat *params);
-typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERIFVPROC) (GLuint sampler, GLenum pname, GLfloat *params);
-														
+typedef struct _texture{
+	unsigned int id;
+	int state;
+	int target;
+}texture;
 
-PFNGLGENSAMPLERSPROC glGenSamplers = NULL;
-PFNGLDELETESAMPLERSPROC glDeleteSamplers = NULL;
-PFNGLISSAMPLERPROC glIsSampler = NULL;
-PFNGLBINDSAMPLERPROC glBindSampler = NULL;
-PFNGLSAMPLERPARAMETERIPROC  glSamplerParameteri = NULL;
-PFNGLSAMPLERPARAMETERFPROC  glSamplerParameterf = NULL;
-PFNGLSAMPLERPARAMETERIVPROC glSamplerParameteriv = NULL;
-PFNGLSAMPLERPARAMETERFVPROC glSamplerParameterfv = NULL;
+typedef struct _samplerState{
+	unsigned int id;
+	int wrapmode;
+	int anisotropy;
+	int minfilter;
+	int magfilter;
+	//minlod, maxlod, lodbias, comparemode, comparefunc 
+} samplerState;
 
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
-typedef GLvoid (APIENTRY *UNIFORM_FUNC)(GLint location, GLsizei count, const void *value);
-typedef GLvoid (APIENTRY *UNIFORM_MAT_FUNC)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-void *uniformFuncs[CONSTANT_TYPE_COUNT];
+enum Semantic{
+	TIME,
+	EYEPOS,
+	MVP,
+    	MODELVIEW,
+	LIGHTPOS
+};
+
+typedef struct _uniform{
+
+	int location;
+	char* name;
+	unsigned char* data;
+	int size;
+	int type;
+	int semantic;
+	short int dirty;
+
+}uniform;
+
+typedef struct _sampler{
+	char* name;
+	unsigned int index;
+	unsigned int location;
+}sampler;
+
+typedef struct _shader{
+	uniform** uniforms;
+	int numUniforms;
+	sampler** samplers;
+	int numSamplers;
+}shader;
+
+enum ConstantType {
+	CONSTANT_FLOAT,
+	CONSTANT_VEC2,
+	CONSTANT_VEC3,
+	CONSTANT_VEC4,
+	CONSTANT_INT,
+	CONSTANT_IVEC2,
+	CONSTANT_IVEC3,
+	CONSTANT_IVEC4,
+	CONSTANT_BOOL,
+	CONSTANT_BVEC2,
+	CONSTANT_BVEC3,
+	CONSTANT_BVEC4,
+	CONSTANT_MAT2,
+	CONSTANT_MAT3,
+	CONSTANT_MAT4,
+
+	CONSTANT_TYPE_COUNT
+};
 
 int getConstantType(GLenum type){
 	switch (type){
@@ -87,275 +126,76 @@ int constantTypeSizes[CONSTANT_TYPE_COUNT] = {
 	sizeof(float) * 16,
 };
 
+
+void *uniformFuncs[CONSTANT_TYPE_COUNT];
+typedef GLvoid (APIENTRY *UNIFORM_FUNC)(GLint location, GLsizei count, const void *value);
+typedef GLvoid (APIENTRY *UNIFORM_MAT_FUNC)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+
+
+typedef void (APIENTRYP PFNGLGENSAMPLERSPROC) (GLsizei count, GLuint *samplers);
+typedef void (APIENTRYP PFNGLDELETESAMPLERSPROC) (GLsizei count, const GLuint *samplers);
+typedef GLboolean (APIENTRYP PFNGLISSAMPLERPROC) (GLuint sampler);
+typedef void (APIENTRYP PFNGLBINDSAMPLERPROC) (GLenum unit, GLuint sampler);
+typedef void (APIENTRYP PFNGLSAMPLERPARAMETERIPROC) (GLuint sampler, GLenum pname, GLint param);
+typedef void (APIENTRYP PFNGLSAMPLERPARAMETERIVPROC) (GLuint sampler, GLenum pname, const GLint *param);
+typedef void (APIENTRYP PFNGLSAMPLERPARAMETERFPROC) (GLuint sampler, GLenum pname, GLfloat param);
+typedef void (APIENTRYP PFNGLSAMPLERPARAMETERFVPROC) (GLuint sampler, GLenum pname, const GLfloat *param);
+typedef void (APIENTRYP PFNGLSAMPLERPARAMETERIIVPROC) (GLuint sampler, GLenum pname, const GLint *param);
+typedef void (APIENTRYP PFNGLSAMPLERPARAMETERIUIVPROC) (GLuint sampler, GLenum pname, const GLuint *param);
+typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERIVPROC) (GLuint sampler, GLenum pname, GLint *params);
+typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERIIVPROC) (GLuint sampler, GLenum pname, GLint *params);
+typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERFVPROC) (GLuint sampler, GLenum pname, GLfloat *params);
+typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERIFVPROC) (GLuint sampler, GLenum pname, GLfloat *params);
+														
+
+PFNGLGENSAMPLERSPROC glGenSamplers = NULL;
+PFNGLDELETESAMPLERSPROC glDeleteSamplers = NULL;
+PFNGLISSAMPLERPROC glIsSampler = NULL;
+PFNGLBINDSAMPLERPROC glBindSampler = NULL;
+PFNGLSAMPLERPARAMETERIPROC  glSamplerParameteri = NULL;
+PFNGLSAMPLERPARAMETERFPROC  glSamplerParameterf = NULL;
+PFNGLSAMPLERPARAMETERIVPROC glSamplerParameteriv = NULL;
+PFNGLSAMPLERPARAMETERFVPROC glSamplerParameterfv = NULL;
+
+#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+
+int prevShader = 0;
+fparray* shaders = NULL;
+
+int prevTexture = -1;
+fparray* textures = NULL; 
+int prevSamplerState = -1;
+fparray* samplerStates = NULL;
+
 renderer* r;
 camera c;
-batch* cube;
-batch* quad;
-batch* points;
-batch* star;
-
-particlesystem* ps;
-
-/*mat4 projection;
-mat4 modelview;
-mat4 mvp;*/
-
-int samplerstate;
-unsigned int testShader;
-unsigned int texShader;
-unsigned int tex;
 
 float elapsedTime;
 
 void beginRender(event *e) { 
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
 	cameraHandleEvent(&c, e);
 	setupViewMatrix(&c);
 
-//	printf("pos %f %f %f up %f %f %f viewDir %f %f %f\n", c.pos[0], c.pos[1], c.pos[2], c.up[0], c.up[1], c.up[2], c.viewDir[0], c.viewDir[1], c.viewDir[2]);
+	//printf("pos %f %f %f up %f %f %f viewDir %f %f %f\n", c.pos[0], c.pos[1], c.pos[2], c.up[0], c.up[1], c.up[2], c.viewDir[0], c.viewDir[1], c.viewDir[2]);
 
     //FIXME perspective divide não está sendo feito em canto nenhum
     //FIXME multiplicação mais rápida na gpu? tentar montar MVP na gpu passando modelview e projection apenas
     //FIXME tentar usar 2 uniforms do tipo mat4 dá erro
     //FIXME para correção de perspectiva (substituir aqueles GL_PERSPECTIVE_CORRECTION_HINT)
 	fpMultMatrix(c.mvp, c.projection, c.modelview);
-    mat4 transposemv, normalmatrix;
-    fpInverse(transposemv, c.modelview);
-    fpTranspose(normalmatrix, transposemv);
-    //fpIdentity(normalmatrix);
-    setShaderConstant4x4f(testShader, "normalmatrix", normalmatrix);
-    setShaderConstant4x4f(testShader, "modelview", c.modelview);
-/*
-    printf("c.modelview:\n");
-    for(int i = 0; i < 4; i++)
-        printf("c.modelview[%d]: %f\tc.modelview[%d]: %f\tc.modelview[%d]: %f\tc.modelview[%d]: %f\n", i, c.modelview[i],
-                                                                                                        i + 4, c.modelview[i + 4],
-                                                                                                        i + 8, c.modelview[i + 8],
-                                                                                                        i + 12, c.modelview[i + 12]);
-    printf("\n\n");
-    
-    
-    printf("c.projection:\n");
-    for(int i = 0; i < 4; i++)
-        printf("c.projection[%d]: %f\tc.projection[%d]: %f\tc.projection[%d]: %f\tc.projection[%d]: %f\n", i, c.projection[i],
-                                                                                                        i + 4, c.projection[i + 4],
-                                                                                                        i + 8, c.projection[i + 8],
-                                                                                                        i + 12, c.projection[i + 12]);
-
-    printf("\n\n"); 
-    printf("c.mvp:\n");
-    for(int i = 0; i < 4; i++)
-        printf("c.mvp[%d]: %f\tc.mvp[%d]: %f\tc.mvp[%d]: %f\tc.mvp[%d]: %f\n", i, c.mvp[i],
-                                                                                i + 4, c.mvp[i + 4],
-                                                                                i + 8, c.mvp[i + 8],
-                                                                                i + 12, c.mvp[i + 12]);
-    printf("\n\n"); */
-	//fpMultMatrix(mvp, projection, modelview);
-}
-
-int buttonState = 0;
-int check1 = 5;
-int check2 = 0;
-int check3 = 0;
-int check4 = 0;
-int check5 = 0;
-int prevCheck = 0;
-int render(float ifps, event *e, scene *s){
-	beginRender(e);
-	elapsedTime += ifps;
-    vec3 lightPos;
-    lightPos[0] = 10.0;
-    lightPos[1] = 10.0;
-    lightPos[2] = 10.0;
-    setShaderConstant4f(testShader, "LightPosition", lightPos);
-    float ka[4];
-    ka[0] = 0.0;
-    ka[1] = 0.0;
-    ka[2] = 0.7;
-    ka[3] = 1.0;
-    setShaderConstant4f(testShader, "Ka", ka);
-    float kd[4];
-    kd[0] = 0.0;
-    kd[1] = 0.0;
-    kd[2] = 0.7;
-    kd[3] = 1.0;
-    setShaderConstant4f(testShader, "Kd", kd);
-
-    float ks[4];
-    ks[0] = 0.0;
-    ks[1] = 0.0;
-    ks[2] = 0.7;
-    ks[3] = 1.0;
-    setShaderConstant4f(testShader, "Ks", ks);
-
-    float globalAmbient[4];
-    globalAmbient[0] = 0.1;
-    globalAmbient[1] = 0.1;
-    globalAmbient[2] = 0.1;
-    globalAmbient[3] = 1.0;
-    setShaderConstant4f(testShader, "globalAmbient", globalAmbient);
-
-    float LightColor[4];
-    LightColor[0] = 0.9;
-    LightColor[1] = 0.9;
-    LightColor[2] = 0.9;
-    LightColor[3] = 1.0;
-    setShaderConstant4f(testShader, "LightColor", LightColor);
-
-    float shininess = 32.0;
-    setShaderConstant1f(testShader, "shininess", shininess);
-    
-    float kc = 1.0;
-    setShaderConstant1f(testShader, "Kc", kc);
-    float kl = 10.0;
-    setShaderConstant1f(testShader, "Kl", kl);
-    float kq = 0.0;
-    setShaderConstant1f(testShader, "Kq", kq);
-
-//    bindShader(texShader);
-//	bindSamplerState(0,  samplerstate);
-//	bindTexture(0, tex);
-//	glEnable(GL_POINT_SPRITE);
-//	glEnable(GL_BLEND);
-//	glBlendFunc(GL_ONE, GL_ONE);
-//	draw(cube);
-//	draw(points);
-//	draw(quad);
-//	draw(star);
-//    glFinish();
-//	bindShader(0);	
-//
-    
-    updateparticles(ps, ifps);
-	if (check1 == 5){ //Lorenz
-		if (check1 != prevCheck){
-			/*c.pos[0] = 4.447;
-			c.pos[1] = 123.743;
-			c.pos[2] = 51.128;
-			c.up[0] = 0.924;
-			c.up[1] = 0.898;
-			c.up[2] = -0.3694;
-			c.viewDir[0] = 0.083;
-			c.viewDir[1] = -0.995;
-			c.viewDir[2] = -0.003;*/
-			prevCheck = check1;
-		}
-        bindSamplerState(0,  samplerstate);
-		bindTexture(0, tex);
-		bindShader(testShader);
-		glEnable(GL_POINT_SPRITE);
-		glEnable(GL_BLEND);
-        glEnable(GL_POINT_SMOOTH);
-		glBlendFunc(GL_ONE, GL_ONE);
-		bindShader(testShader);
-		//draw(points);
-        renderparticles(ps);
-		bindShader(0);
-		glDisable(GL_BLEND);
-	}else if (check1 == 3) { //cubo
-		if (check1 != prevCheck){
-			/*c.pos[0] = -6.0588;
-			c.pos[1] = 72.889;
-			c.pos[2] = 11.634;
-			c.up[0] = 0.924;
-			c.up[1] = 0.898;
-			c.up[2] = -0.3694;
-			c.viewDir[0] = 0.083;
-			c.viewDir[1] = -0.995;
-			c.viewDir[2] = -0.003;*/
-			prevCheck = check1;
-		}
-		bindShader(testShader);
-	    draw(cube);
-		bindShader(0);
-	}else if (check1 == 4) { //star
-		if (check1 != prevCheck){
-			/*c.pos[0] = -0.555;
-			c.pos[1] = 12.173;
-			c.pos[2] = 2.568;
-			c.up[0] = -0.109;
-			c.up[1] = 0.115;
-			c.up[2] = 0.987;
-			c.viewDir[0] = -0.012;
-			c.viewDir[1] = -0.993;
-			c.viewDir[2] = 0.114;*/
-			prevCheck = check1;
-		}
-		bindSamplerState(0,  samplerstate);
-		bindTexture(0, tex);
-		bindShader(testShader);
-		draw(star);
-		bindShader(0);
-//		bindTexture(0, 0);
-	}
-
-/*	beginGUI(e);
-		rect r;
-		r.x = 10;
-		r.y = 10;
-//		doButton(1, &r, "lol noobs");
-		rect r2;
-		r2.x = 10; 
-		r2.y = 50;
-//		doButton(2, &r2, "lool");
-		rect r3;
-		r3.x = 650;
-		r3.y = 500;
-		//doButton(3, &r3, "dorgas");
-		doRadioButton(3, &r3, "Cubo", &check1);
-		r3.y = 525;
-		doRadioButton(4, &r3, "Nave", &check1);
-		r3.y  = 550;
-		doRadioButton(5, &r3, "Lorenz", &check1);
-		r3.y = 270;
-//		doCheckButton(6, &r3, "to r0x", &buttonState);
-//		printf("button state: %d \n", buttonState);
-		r3.y =  400;
-//		doHorizontalSlider(7, &r3, 1, 100, &check1);
-		r3.y = 500;
-		char* labels[] = {"Mazela", "Loko"};
-		int idx = 1;
-		//doComboBox(8, &r3, 2, labels,  &idx );
-//		printf("SLIDER VALUE: %d \n", check1);
-
-		if (check1 == 5){
-			
-			r3.y = 10;
-			doCheckButton(6, &r3, "Strange",  &check2);
-			r3.y = 35;
-			doCheckButton(6, &r3, "Lypaunov", &check3);
-			r3.y = 60;
-			doCheckButton(6, &r3, "Polynomial", &check4);
-			r3.y = 85;
-			doCheckButton(6, &r3, "Outliers", &check5);
-
-		}
-
-	endGUI();*/
-
-    	glFinish();
-	glFlush();
-}
-
-float noise(float a){
-	return sqrt(-2*log( (float) rand()/RAND_MAX) * sin(2*3.1415*(float)rand()/RAND_MAX)*a );
 }
 
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	r = (renderer*) malloc(sizeof(renderer));
-   	r->textures = fparray_init(NULL, NULL, sizeof(texture));
-    	r->shaders = fparray_init(NULL, NULL, sizeof(shader));
     	r->framebuffers = fparray_init(NULL, free, sizeof(framebuffer));
-	r->samplerStates = fparray_init(NULL, free, sizeof(samplerState));
 	r->fovy = fovy;
 	r->zfar = zfar;
 	r->znear = znear;
-	r->prevTexture = -1;
-	r->prevVBO = -1;
+	r->prevVBO = 0;
 	r->prevVAO = 0;
-	r->prevSamplerState = -1;
-	r->prevShader = 0;
 	r->viewPortWidth = w;
 	r->viewPortHeight = h;
 	r->prevFramebuffer = -1;
@@ -382,8 +222,6 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	uniformFuncs[CONSTANT_MAT2]  = (void *) glUniformMatrix2fv;
 	uniformFuncs[CONSTANT_MAT3]  = (void *) glUniformMatrix3fv;
 	uniformFuncs[CONSTANT_MAT4]  = (void *) glUniformMatrix4fv;
-
-
 
 	glGenSamplers = (PFNGLGENSAMPLERSPROC)glXGetProcAddress("glGenSamplers");
         glDeleteSamplers = (PFNGLDELETESAMPLERSPROC)glXGetProcAddress("glDeleteSamplers");
@@ -413,93 +251,10 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
  	initCamera(&c);
-	/*c.viewDir[0] = 0.506;
-	c.viewDir[1] = -0.624;
-	c.viewDir[2] = 0.595;
-
-	c.pos[0] = 0.0;
-	c.pos[1] = 0.0;
-	c.pos[2] = 0.0;
-	c.up[0] = 0.0;
-	c.up[1] = 1.0;
-	c.up[2] = 0.0;*/
 	fpperspective(c.projection, fovy, ratio, znear, zfar);
 	//fpOrtho(projection, 0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);	
 	//fpIdentity(modelview);
-    
-	//tex = initializeTexture("data/textures/starport.tga", TEXTURE_2D, RGBA, RGB, UNSIGNED_BYTE);
-	tex = initializeTexture("/tmp/Fire_base.tga", TEXTURE_2D, RGB, RGB, UNSIGNED_BYTE);
-    
-    //testShader = initializeShader( readTextFile("data/shaders/minimal.vert"), readTextFile("data/shaders/minimal.frag") );
-    //testShader = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
-
-    //samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
-    char *vertShader, *fragShader;
-    material m;
-    m.flags = PHONG | ATTENUATION;
-    shadergen(m, &vertShader, &fragShader);
-    printf("vertex shader: \n\n");
-    printf("%s", vertShader);
-    printf("*************************\n\n");
-    printf("frag shader: \n\n");
-    printf("%s", fragShader);
-    printf("*************************\n\n");
-    	testShader = initializeShader( readTextFile("data/shaders/particles.vert"), readTextFile("data/shaders/particles.frag") );
-    	//testShader = initializeShader(vertShader, fragShader);
-    	texShader =  initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag"));
-    	samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
-	cube = makeCube(10);
-	star = loadm3("data/models/Starport.m3");
-	quad = malloc(sizeof(batch));
-	initializeBatch(quad);
-	begin(quad, GL_TRIANGLE_STRIP, 4, 1);
-		texCoord2f(quad, 0, 0.0, 0.0);
-//		normal3f(quad,0.0, 0.0, 0.0);
-		vertex3f(quad, 0.0, 0.0, 0.0);
-
-		texCoord2f(quad, 0, 1.0, 0.0);
-//		normal3f(quad,1.0, 0.0, 0.0);
-		vertex3f(quad, 800.0, 0.0, 0.0);
-
-		texCoord2f(quad, 0, 0.0, 1.0);
-//		normal3f(quad,0.0, 1.0, 0.0);
-		vertex3f(quad, 0.0, 600.0, 0.0);
-
-		texCoord2f(quad, 0, 1.0, 1.0);
-//		normal3f(quad,1.0, 1.0, 0.0);
-		vertex3f(quad, 800.0, 600.0, 0.0);
-	end(quad);
-
-	points = malloc(sizeof(batch));
-	initializeBatch(points);
-	begin(points, GL_POINTS, 100000, 0);
-		float A, B, C, D;
-		A = 28.0; B = 46.90; C = 4; D = 0.01;
-		float prevx = 0.1, prevy = 0, prevz = 0;
-		float x, y, z;
-		for(int i = 0; i < 100000; i++){
-//			x = sin(A* prevy) - prevz *cos(B*prevx)*10;
-//			z = sin(prevx)*10;
-//			y = prevz * sin(C*prevx) - cos(D*prevy)*10;
-//			x = y - z*y*10;
-//			y = z - z*x*10;
-//			z = x - y*x*10;
-			x = prevx + D * A * (prevy - prevx);
-			//y = prevy + D * (prevx + (B - prevz) - prevy);
-			y = prevy + D*(B*prevx - prevy - prevz*prevx);
-			z = prevz + D * (prevx * prevy - C * prevz);
-			vertex3f(points, x, y, z);
-			prevx = x;
-			prevy = y;
-			prevz = z;
-			//normal3f(points, 0, noise(2), noise(3) );
-		}
-		
-	end(points);
-
-    ps = initparticles(200);
-
-	initializeGUI(800, 600);
+   
 	printf("Renderer inicializado.\n");
 
 	return r;
@@ -516,9 +271,6 @@ void begin2d(){
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-//	glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
-
 	glMatrixMode( GL_MODELVIEW );
         glPushMatrix();
         glLoadIdentity();
@@ -527,7 +279,6 @@ void begin2d(){
 	//glMatrixMode( GL_PROJECTION );
     	//glPushMatrix();
         //glLoadIdentity();
-	//TODO info da GUI na struct
 	gluOrtho2D( 0, r->viewPortWidth, 0, r->viewPortHeight);
 }
 
@@ -550,17 +301,24 @@ void disableDepth(){
 	glDepthMask(GL_FALSE);
 }
 
+////
+//TEXTURAS E SAMPLERS
+//////
 
 int initializeSamplerState(int wrapmode, int minfilter, int magfilter, int anisotropy){
 
+	if (samplerStates == NULL)
+		samplerStates = fparray_init(NULL, free, sizeof(samplerState));
+
 	//se ja tem um state igual  retorna o id dele
-	for(int i = 0; i < r->samplerStates->size; i++){
-		samplerState* state = fparray_getdata(i, r->samplerStates);
-		if ( (state->minfilter == minfilter) && (state->wrapmode == wrapmode) && (state->wrapmode == wrapmode) && (state->anisotropy == anisotropy)){
-			return state->id;
+	for(int i = 0; i < samplerStates->size; i++){
+		samplerState* state = fparray_getdata(i, samplerStates);
+		if (state){
+			if ( (state->minfilter == minfilter) && (state->wrapmode == wrapmode) && (state->wrapmode == wrapmode) && (state->anisotropy == anisotropy)){
+				return state->id;
+			}
 		}
 	}
-
 	//se nao cria um
 	unsigned int samplerID;
 	glGenSamplers(1, &samplerID);
@@ -590,28 +348,33 @@ int initializeSamplerState(int wrapmode, int minfilter, int magfilter, int aniso
 	state->wrapmode = wrapmode;
 	state->anisotropy = anisotropy;
 
-	fparray_inspos(state, state->id, r->samplerStates);
+	fparray_inspos(state, state->id, samplerStates);
 
 	return state->id;
 }
 
 void bindSamplerState(unsigned int unit, unsigned int id){
-	samplerState* samplerid = fparray_getdata(id, r->samplerStates);
-	samplerState* prevSampler = fparray_getdata(r->prevSamplerState, r->samplerStates);
 
-	if (r->prevSamplerState == -1){
-		r->prevSamplerState = id;
+	samplerState* samplerid = fparray_getdata(id, samplerStates);
+	samplerState* prevSampler = fparray_getdata(prevSamplerState, samplerStates);
+
+	if (prevSamplerState == -1){
+		prevSamplerState = id;
 		glBindSampler(unit, samplerid->id);
 	}else{
 		if (samplerid->id != prevSampler->id){
 			glBindSampler(unit, samplerid->id);
-			r->prevSamplerState = id;
+			prevSamplerState = id;
 		}
 
 	}
 }
 
 unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type){
+
+    if (textures == NULL)
+        textures = fparray_init(NULL, free, sizeof(texture));
+
     unsigned int textureID;
     glGenTextures(1, &textureID);
     glBindTexture(target, textureID);
@@ -659,16 +422,18 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
     tex->id = textureID;
     tex->target = target;
 
-    fparray_inspos(tex, textureID, r->textures);
+    fparray_inspos(tex, textureID, textures);
 
-    if (r->prevTexture >= 0)
-        bindTexture(0, r->prevTexture);
+    if (prevTexture >= 0)
+        bindTexture(0, prevTexture);
 
     return textureID;
 }
 
 unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type){
 
+        if (textures == NULL)
+            textures = fparray_init(NULL, free, sizeof(texture));
 
 	unsigned int textureID;
 	glGenTextures(1, &textureID);
@@ -682,10 +447,10 @@ unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, i
 	tex->id = textureID;
 	tex->target = target;
 
-    	fparray_inspos(tex, textureID, r->textures);
+    	fparray_inspos(tex, textureID, textures);
 
-	if (r->prevTexture >= 0)
-		bindTexture(0, r->prevTexture);
+	if (prevTexture >= 0)
+		bindTexture(0, prevTexture);
 
 	return textureID;
 
@@ -694,125 +459,44 @@ unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, i
 
 void bindTexture(int slot, int id){
 
-	texture* tex = fparray_getdata(id, r->textures);
-	texture* prevTex = fparray_getdata(r->prevTexture, r->textures);
+	texture* tex = fparray_getdata(id, textures);
+	texture* prevTex = fparray_getdata(prevTexture,textures);
 
-	if (r->prevTexture == -1){
-		r->prevTexture = id;
+	if (tex == NULL){
+		printf("ERRO: tex ta null \n");
+	}
+
+
+	if (prevTexture == -1){
+		prevTexture = id;
 		glEnable(tex->target );
 		glActiveTexture(GL_TEXTURE0 + slot);
 		//TODO nao precisa mais do enable quando usa shaders
 		glBindTexture(tex->target, tex->id );
 
 	}else{
-		if (tex->target != prevTex->target){
+		if (tex->target != prevTex->target){//se targets diferentes ,disabla o antigo e enabala o novo
 			glDisable(prevTex->target);
 			glEnable(tex->target);
 		}
-		if (tex->id != prevTex->id)
+		if (tex->id != prevTex->id){ //  se id dierente, ta bind
 			glBindTexture(tex->target, tex->id);
+		}
 
 		glActiveTexture(GL_TEXTURE0 + slot);
-		r->prevTexture = id;
+		prevTexture = id;
 	}
 
 }
 
-void killVBO(unsigned int id){
-	glDeleteBuffers(1, &id);
-}
-
-vertexAttribute** initializeVertexFormat(){
-	vertexAttribute** attr = malloc(sizeof(vertexAttribute*)*MAX_VERTEX_ATTRS);
-	for (int i = 0; i < MAX_VERTEX_ATTRS; i++)
-		attr[i] = NULL;
-	return attr;
-}
-
-void configureVAO(unsigned int vaoID,   vertexAttribute** attrs){
-	glBindVertexArray(vaoID);
-	for(unsigned int i = 0; i < MAX_VERTEX_ATTRS; i++){
-		if (attrs[i]){
-			glEnableVertexAttribArray(i);
-			printf("configure vao id:  %d vboid %d \n", i, attrs[i]->vboID); 
-			glBindBuffer(GL_ARRAY_BUFFER, attrs[i]->vboID);
-			glVertexAttribPointer(i, attrs[i]->components, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(attrs[i]->offset));
-		//	glDisableVertexAttribArray(i);
-		}
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(r->prevVAO);
-}
-
-unsigned int createVAO(){
-	unsigned int vaoID;
-	glGenVertexArrays(1, &vaoID);
-	return vaoID;
-}
-
-void drawArraysVAO(unsigned int vaoID, int type, int numVerts){
-
-	//if (vaoID != r->prevVAO){
-	//	r->prevVAO = vaoID;
-	//	glBindVertexArray(vaoID);
-	//}
-	glBindVertexArray(vaoID);
-	glDrawArrays(type, 0, numVerts);
-	glBindVertexArray(0);//TODO voltar pro VAO anterior?
-}
-
-unsigned int initializeIndexedVAO( unsigned int  indicesID, vertexAttribute** attrs,  unsigned int num){
-	unsigned int vaoID;
-	glGenVertexArrays(1, &vaoID);
-	glBindVertexArray(vaoID);
-	
-	for(unsigned int i = 0; i < MAX_VERTEX_ATTRS; i++){
-		if (attrs[i]){
-			glEnableVertexAttribArray(i);
-			glBindBuffer(GL_ARRAY_BUFFER, attrs[i]->vboID);
-			glVertexAttribPointer(i, attrs[i]->components, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(attrs[i]->offset));
-		}
-	}
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,  indicesID);
-
-	glBindVertexArray(r->prevVAO);
-	return vaoID;
-}
-
-unsigned int drawIndexedVAO(unsigned int vaoID, unsigned int triCount, int geometryType){
-
-	if (vaoID != r->prevVAO){
-		r->prevVAO = vaoID;
-		glBindVertexArray(vaoID);
-	}
-	glDrawElements(geometryType, triCount, GL_UNSIGNED_INT, NULL);
-}
-
-unsigned int initializeVBO(unsigned int size, int mode, const void* data){
-	unsigned int vboID;
-	glGenBuffers(1, &vboID);
-	glBindBuffer(GL_ARRAY_BUFFER, vboID);
-	glBufferData(GL_ARRAY_BUFFER, size, data, mode);
-	glBindBuffer(GL_ARRAY_BUFFER, r->prevVBO); //volta
-	printf("initialize vbo: %d\n", vboID);
-	return vboID;
-}
-
-void* mapVBO(unsigned int vboID,int mode){
-	glBindBuffer(GL_ARRAY_BUFFER, vboID);
-	float* ret = (float*) glMapBuffer(GL_ARRAY_BUFFER, mode);
-	glBindBuffer(GL_ARRAY_BUFFER, r->prevVBO);
-	return ret;
-}
-
-void unmapVBO(unsigned int id){
-	glBindBuffer(GL_ARRAY_BUFFER, id);
-	glUnmapBuffer(GL_ARRAY_BUFFER);
-	glBindBuffer(GL_ARRAY_BUFFER, r->prevVBO);
-}
-
+////////
+// SHADERS
+//////////
 unsigned int initializeShader(const char* vertexSource, const char* fragmentSource){
+
+
+	if (shaders == NULL)
+		shaders = fparray_init(NULL, free, sizeof(shader));
 
 
 	if (!vertexSource && !fragmentSource)
@@ -939,8 +623,8 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 					uni->semantic = TIME;
 				if (strcmp(uni->name, "mvp") == 0)
 					uni->semantic = MVP;
-                //if (strcmp(uni->name, "modelview") == 0)
-				//	uni->semantic = MODELVIEW;
+		                if (strcmp(uni->name, "modelview") == 0)
+					uni->semantic = MODELVIEW;
 				newShader->uniforms[numUniforms] = uni;
 				numUniforms++;
 			}
@@ -948,8 +632,8 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 	}
 
 	free(name);
-    fparray_inspos(newShader, shaderProgram, r->shaders);
-	glUseProgram(r->prevShader);
+    	fparray_inspos(newShader, shaderProgram, shaders);
+	glUseProgram(prevShader);
 	
 	return shaderProgram;
 }
@@ -957,16 +641,16 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 void bindShader(unsigned int program){
 	if (program == 0){
 		glUseProgram(0);
-		r->prevShader = 0;
+		prevShader = 0;
 		return;
 	}
 
-	if (program != r->prevShader){
-		r->prevShader = program;
+	if (program != prevShader){
+		prevShader = program;
 		glUseProgram(program);
 	}
 
-	shader *shdr = fparray_getdata(program, r->shaders);
+	shader *shdr = fparray_getdata(program, shaders);
 	for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
 		if (shdr->uniforms[i]->dirty ){
 			shdr->uniforms[i]->dirty = 0;
@@ -987,9 +671,9 @@ void bindShader(unsigned int program){
         //}else if  (shdr->uniforms[i]->semantic == MODELVIEW){
 		//	setShaderConstant4x4f(program, "modelview", c.modelview);
 		
-		//else if (r->shaders[program]->uniforms[i]->semantic == LIGHTPOS){
+//		else if (r->shaders[program]->uniforms[i]->semantic == LIGHTPOS){
 		//	float lightp[3] = {10.0, 10.0, 10.0 };
-		//	setShaderConstant3f(program, "LightPosition",  lightp);
+//			setShaderConstant3f(program, "LightPosition",  lightp);
 		}
 	}
 }
@@ -1049,7 +733,7 @@ void setShaderConstant4x4f(int shaderid, const char *name, const float constant[
 }
 
 void setShaderConstantRaw(int shaderid, const char* name, const void* data, int size){
-    shader *shdr = fparray_getdata(shaderid, r->shaders);
+    shader *shdr = fparray_getdata(shaderid, shaders);
 	for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
 		if (strcmp(name, shdr->uniforms[i]->name ) == 0 ){
 			if (memcmp(shdr->uniforms[i]->data, data, size)){
@@ -1059,6 +743,101 @@ void setShaderConstantRaw(int shaderid, const char* name, const void* data, int 
 		}
 	}
 }
+
+void killVBO(unsigned int id){
+	glDeleteBuffers(1, &id);
+}
+
+vertexAttribute** initializeVertexFormat(){
+	vertexAttribute** attr = malloc(sizeof(vertexAttribute*)*MAX_VERTEX_ATTRS);
+	for (int i = 0; i < MAX_VERTEX_ATTRS; i++)
+		attr[i] = NULL;
+	return attr;
+}
+
+void configureVAO(unsigned int vaoID,   vertexAttribute** attrs){
+	glBindVertexArray(vaoID);
+	for(unsigned int i = 0; i < MAX_VERTEX_ATTRS; i++){
+		if (attrs[i]){
+			glEnableVertexAttribArray(i);
+			//printf("configure vao id:  %d vboid %d \n", i, attrs[i]->vboID); 
+			glBindBuffer(GL_ARRAY_BUFFER, attrs[i]->vboID);
+			glVertexAttribPointer(i, attrs[i]->components, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(attrs[i]->offset));
+		//	glDisableVertexAttribArray(i);
+		}
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(r->prevVAO);
+}
+
+unsigned int createVAO(){
+	unsigned int vaoID;
+	glGenVertexArrays(1, &vaoID);
+	return vaoID;
+}
+
+void drawArraysVAO(unsigned int vaoID, int type, int numVerts){
+
+	//if (vaoID != r->prevVAO){
+	//	r->prevVAO = vaoID;
+	//	glBindVertexArray(vaoID);
+	//}
+	glBindVertexArray(vaoID);
+	glDrawArrays(type, 0, numVerts);
+	glBindVertexArray(0);//TODO voltar pro VAO anterior?
+}
+
+unsigned int initializeIndexedVAO( unsigned int  indicesID, vertexAttribute** attrs){
+	unsigned int vaoID;
+	glGenVertexArrays(1, &vaoID);
+	glBindVertexArray(vaoID);
+	
+	for(unsigned int i = 0; i < MAX_VERTEX_ATTRS; i++){
+		if (attrs[i]){
+			glEnableVertexAttribArray(i);
+			glBindBuffer(GL_ARRAY_BUFFER, attrs[i]->vboID);
+			glVertexAttribPointer(i, attrs[i]->components, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(attrs[i]->offset));
+		}
+	}
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,  indicesID);
+
+	glBindVertexArray(r->prevVAO);
+	return vaoID;
+}
+
+unsigned int drawIndexedVAO(unsigned int vaoID, unsigned int triCount, int geometryType){
+
+	if (vaoID != r->prevVAO){
+		r->prevVAO = vaoID;
+		glBindVertexArray(vaoID);
+	}
+	glDrawElements(geometryType, triCount, GL_UNSIGNED_INT, NULL);
+}
+
+unsigned int initializeVBO(unsigned int size, int mode, const void* data){
+	unsigned int vboID;
+	glGenBuffers(1, &vboID);
+	glBindBuffer(GL_ARRAY_BUFFER, vboID);
+	glBufferData(GL_ARRAY_BUFFER, size, data, mode);
+	glBindBuffer(GL_ARRAY_BUFFER, r->prevVBO); //volta
+	//printf("initialize vbo: %d %d \n", vboID, r->prevVBO);
+	return vboID;
+}
+
+void* mapVBO(unsigned int vboID,int mode){
+	glBindBuffer(GL_ARRAY_BUFFER, vboID);
+	float* ret = (float*) glMapBuffer(GL_ARRAY_BUFFER, mode);
+	glBindBuffer(GL_ARRAY_BUFFER, r->prevVBO);
+	return ret;
+}
+
+void unmapVBO(unsigned int id){
+	glBindBuffer(GL_ARRAY_BUFFER, id);
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+	glBindBuffer(GL_ARRAY_BUFFER, r->prevVBO);
+}
+
 
 int checkFramebufferStatus( int silent)
 {
@@ -1104,7 +883,7 @@ unsigned int initializeFramebuffer(void* data, int width, int height, int format
 	glBindFramebuffer(GL_FRAMEBUFFER, id);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texid, 0);
 
-	printf("fbo id criado: %d \n", id);
+	//printf("fbo id criado: %d \n", id);
 
 	//r->framebuffers[id] = id;
     framebuffer *fb = malloc(sizeof(framebuffer));
@@ -1127,11 +906,11 @@ void bindFramebuffer(int id){
 	if (r->prevFramebuffer != id){
 		r->prevFramebuffer = id;
 		glBindFramebuffer(GL_FRAMEBUFFER, id);
-		printf("vai pegar o array\n");
+		//printf("vai pegar o array\n");
         framebuffer* fb = fparray_getdata(id, r->framebuffers);
-		printf("fb array done\n");
+		//printf("fb array done\n");
 		glViewport(0, 0, fb->width,  fb->height); 
-		printf("viewport configurado \n");
+		//printf("viewport configurado \n");
 	}
 }
 

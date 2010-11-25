@@ -13,6 +13,7 @@
 #include <sys/time.h>
 #include <time.h>
 
+float keysDelay[512];
 static Display* display = NULL;
 static Window* window = NULL;
 static int screen;
@@ -219,10 +220,34 @@ int getKeyCode(int key){
 		case XK_Up: 	ret = KEY_UP; break;
 		case XK_Right:	ret = KEY_RIGHT; break;
 		case XK_Down:	ret = KEY_DOWN; break;
-		case XK_a:	ret = KEY_A; break;
-		case XK_s:	ret = KEY_S; break;
-		case XK_d:	ret = KEY_D; break;
-		case XK_w:	ret = KEY_W; break;
+		case XK_BackSpace: ret = KEY_BACKSPACE; break;
+		case XK_space:	ret = KEY_SPACE; break;
+		case XK_a:	ret = KEY_a; break;
+		case XK_s:	ret = KEY_s; break;
+		case XK_d:	ret = KEY_d; break;
+		case XK_w:	ret = KEY_w; break;
+		case XK_e:	ret = KEY_e; break;
+		case XK_r:	ret = KEY_r; break;
+		case XK_t:	ret = KEY_t; break;
+		case XK_y:	ret = KEY_y; break;
+		case XK_u:	ret = KEY_u; break;
+		case XK_i:	ret = KEY_i; break;
+		case XK_o:	ret = KEY_o; break;
+		case XK_p:	ret = KEY_p; break;
+		case XK_f:	ret = KEY_f; break;
+		case XK_g:	ret = KEY_g; break;
+		case XK_h:	ret = KEY_h; break;
+		case XK_j:	ret = KEY_j; break;
+		case XK_k:	ret = KEY_k; break;
+		case XK_l:	ret = KEY_l; break;
+		case XK_z:	ret = KEY_z; break;
+		case XK_x:	ret = KEY_x; break;
+		case XK_c:	ret = KEY_c; break;
+		case XK_v:	ret = KEY_v; break;
+		case XK_b:	ret = KEY_b; break;
+		case XK_n:	ret = KEY_n; break;
+		case XK_m:	ret = KEY_m; break;
+
 	}
 
 	return ret;
@@ -230,9 +255,11 @@ int getKeyCode(int key){
 
 
 void mainloop(glapp* app, int(idle)(float, event*, scene *), int(render)(float, event*, scene*), scene* s ){
-    event evt;
-    evt.buttonLeft =  evt.buttonRight = 0;
-    memset(evt.keys, 0, 512*sizeof(int));
+
+	event evt;
+    	evt.buttonLeft =  evt.buttonRight = 0;
+	memset(evt.keys, 0, 512*sizeof(int));
+	memset(keysDelay, 0, 512*sizeof(int));
 	KeySym key;
 	int startTime =  getTime();
 	int endTime = 0;
@@ -240,9 +267,9 @@ void mainloop(glapp* app, int(idle)(float, event*, scene *), int(render)(float, 
 	float fps = 60;
 	float ifps = 1/fps;
     
-    setMouse(app->width/2, app->height/2);
+	setMouse(app->width/2, app->height/2);
 	while(1){
-        evt.type = NO_EVENT;
+        	evt.type = NO_EVENT;
 		while(XPending(display)){
 			XEvent  event;
 			XNextEvent(display,  &event);
@@ -259,23 +286,22 @@ void mainloop(glapp* app, int(idle)(float, event*, scene *), int(render)(float, 
 				case KeyPress:
 					XLookupString(&event.xkey, NULL, 0, &key, NULL);
 					key = getKeyCode(key);
-                    evt.keys[key] = 1;
-                    evt.type |= KEYBOARD_EVENT;
-					break;
+					evt.keys[key] = 1;
+					evt.type |= KEYBOARD_EVENT;
+	              			break;
 				case KeyRelease:
 					XLookupString(&event.xkey, NULL, 0, &key, NULL);
 					key = getKeyCode(key);
-                    evt.type |= KEYBOARD_EVENT;
+					evt.type |= KEYBOARD_EVENT;
 					evt.keys[key] = 0;
 					break;
 				case MotionNotify:
-                    //FIXME: centro da janela hard coded
-                    if(event.xmotion.x != 400 || event.xmotion.y != 300) {
-					    evt.x = event.xmotion.x;
-                        evt.y = event.xmotion.y;
-                        evt.type |= MOUSE_MOTION_EVENT;
-                    }
-                    break;
+					if(event.xmotion.x != app->width || event.xmotion.y != app->height) {
+						evt.x = event.xmotion.x;
+						evt.y = event.xmotion.y;
+						evt.type |= MOUSE_MOTION_EVENT;
+					}
+					break;
 				case ButtonPress:
 					evt.button |= 1 << (event.xbutton.button - 1);
        					evt.type |= MOUSE_BUTTON_EVENT;

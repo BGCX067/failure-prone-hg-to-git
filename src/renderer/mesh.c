@@ -5,20 +5,19 @@
 
 void createVBO(mesh* m){
 
-/*	printf("criando vbo a:  %d \n" , m->trianglesCount); fflush(stdout);
+	printf("criando vbo a:  %d \n" , m->trianglesCount);
 	fpnode *n = m->tris->first;
 	triangles* tri = NULL;
+
+	//verifica quais vertex attributes existem no mesh e configura a struct attrs
 	while( n != NULL ){
 		printf("n nao eh null\n");
 		tri =  n->data;
 
-		vertexAttribute** attrs = malloc (sizeof (vertexAttribute*) * 16);
-		//FIXME substituir por um memset
-		for (int k = 0; k < 16; k++)
-			attrs[k] = NULL;
+		vertexAttribute** attrs = initializeVertexFormat();
 
 		//TODO pode ser short int
-		tri->indicesId = initializeVBO(tri->indicesCount*sizeof(unsigned int), tri->indices);
+		tri->indicesId = initializeVBO(tri->indicesCount*sizeof(unsigned int), GL_STATIC_DRAW, tri->indices);
 
 		int vboSize = tri->verticesCount;
 		attrs[ATTR_VERTEX] = malloc(sizeof(vertexAttribute));
@@ -108,12 +107,17 @@ void createVBO(mesh* m){
 
 
 		printf("inicializando vbo  para os dados \n");
-		tri->vboId = initializeVBO(vboSize*sizeof(float), alldata);
+		tri->vboId = initializeVBO(vboSize*sizeof(float),GL_STATIC_DRAW, alldata);
+		for(int i =0; i < MAX_VERTEX_ATTRS; i++){
+			if (attrs[i]){
+				attrs[i]->vboID = tri->vboId;
+			}
+		}
 		printf("inicializando vao \n");
-		tri->vaoId = initializeVAO(tri->vboId, tri->indicesId, attrs, tri->totalAttrs);
+		tri->vaoId = initializeIndexedVAO(tri->indicesId, attrs);
 
 		n = n->next;
 		printf("vbo criada\n");
 	}
-*/
+
 }

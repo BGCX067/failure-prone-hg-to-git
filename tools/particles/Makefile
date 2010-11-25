@@ -56,7 +56,7 @@
 
 
 # The name of the binary file we want to generate.  Also handles libraries! (.a)
-TARGET		= engine.elf
+TARGET		= particular.elf
 
 
 ##########################################################################
@@ -86,13 +86,13 @@ LIBS		+= GLU GL X11 Xxf86vm
 
 
 # Additional locations for header files
-INCDIRS		+= src src/main src/math src/renderer src/renderer/gl src/util src/util/chipmunk src/util/chipmunk/constraints src/util/procedural
+INCDIRS		+= ../../src ../../src/math ../../src/renderer ../../src/util src/
 
 # Additional locations for library files
 LIBDIRS		+= 
 
 # Additional locations for source files
-SRCDIRS		= src src/main src/math src/renderer src/renderer/gl src/util src/util/chipmunk src/util/chipmunk/constraints src/util/procedural
+SRCDIRS		= ../../src ../../src/math ../../src/renderer ../../src/util src/
 
 # Object files and the target will be placed in this directory with an
 # underscore and the buildname appended (e.g., for the "debug" build: objs_debug/)
@@ -218,4 +218,4 @@ PRINT_CMDS		= 0
 ### include the makefile that does all the work
 ##########################################################################
 
-include Makefile.work
+include ../../Makefile.work

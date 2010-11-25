@@ -157,8 +157,7 @@ batch * loadm3(char* filename){
 	//	printf("%d  \n", faces[i]);
 
 
-	batch* b = malloc(sizeof(batch));
-	initializeBatch(b);
+	batch* b = initializeBatch(b);
 
 	begin(b, GL_TRIANGLES, nFaces, 1);
 	for(i = 0; i < views->regions.nEntries; i++){

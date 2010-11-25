@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include "util/fontstash.h"
 #include "../glapp.h"
+#include "glime.h"
+//#include "util/fparray.h"
 #define STB_TRUETYPE_IMPLEMENTATION
 //#include "../util/stb_truetype.h"
 
@@ -11,6 +13,14 @@ GUI* gui;
 event* guiEv;
 struct sth_stash* stash;
 
+//armazena a geometria de um widget
+typedef struct widgetGeom{
+	batch** batches;
+	int numBatches;
+} widgetMesh;
+widgetMesh* widgetmeshes = NULL;
+widgetCount = 0;
+maxWidgets = 100;
 
 #define norm255( i ) ( (float) ( i ) / 255.0f )
 
@@ -126,6 +136,8 @@ const char* TexViewWidgetFSSource = {
         gl_FragColor += texel.y * vec4( texelSwizzling.x == 1, texelSwizzling.y == 1, texelSwizzling.z == 1, texelSwizzling.w == 1 );\n\
         gl_FragColor += texel.z * vec4( texelSwizzling.x == 2, texelSwizzling.y == 2, texelSwizzling.z == 2, texelSwizzling.w == 2 );\n\
         gl_FragColor += texel.w * vec4( texelSwizzling.x == 3, texelSwizzling.y == 3, texelSwizzling.z == 3, texelSwizzling.w == 3 );\n\
+	gl_FragColor = vec4(texture2D(samp, gl_TexCoord[0].xy).rgb, 1.0); \n\
+//	gl_FragColor = vec4(gl_TexCoord[0].x, 0.0, 0.0, 1.0); \n\
     }\n\
     "};
 
@@ -146,8 +158,11 @@ GUI* initializeGUI(int w, int h){
 	if (!sth_add_font(stash, 0, "data/fonts/DroidSerif-Regular.ttf")){
 		printf("Font not found\n");
 	}
-
-	
+	gui->stash = stash;
+	//widgetmeshes = malloc(sizeof(widgetMesh)*maxWidgets );
+//	for(int i = 0; i < maxWidgets; i++)
+//		widgetMeshes[i] = malloc(sizeof(batch));
+	//memset(widgetmeshes, sizeof(widgetMesh), 0);
 
 	return gui;
 }
@@ -155,6 +170,8 @@ GUI* initializeGUI(int w, int h){
 void beginGUI(event* e){
 
 	gui->hotitem = 0;
+	gui->kbditem = 0;
+	gui->lastwidget = 0;
 
 	guiEv = e;
 
@@ -186,8 +203,8 @@ void beginGUI(event* e){
 
 void endGUI(){
 
-	
-
+	//printf("enf gui\n");
+//	gui->activeitem = 0;
 	glPopAttrib();
 	glMatrixMode( GL_PROJECTION);
 	glPopMatrix();
@@ -235,7 +252,7 @@ void drawRect(rect* r, int fillColor, int borderColor){
 	//bindShader(0);
 }
 
-void drawRoundedRect(  rect* rect,  point* corner, int fillColorId, int borderColorId ){
+void drawRoundedRect( rect* rect,  point* corner, int fillColorId, int borderColorId ){
 
 //	printf( " fillcollor: %d  rect.y %d \n", fillColorId, rect->y );
 //	bindShader(gui->widgetShader);	
@@ -259,6 +276,37 @@ void drawRoundedRect(  rect* rect,  point* corner, int fillColorId, int borderCo
     float y2 = rect->y + rect->h - corner->y;
     float y3 = rect->y + rect->h;
 
+    //if (widgetmeshes[id].numBatches == 0){
+      //  widgetmeshes[id].numBatches = 3;
+    //widgetmeshes[id].batches = malloc(sizeof(widgetMesh*)*3);
+    /*batch* b1 = initializeBatch();
+    batch* b2 = initializeBatch();
+    batch* b3 = initializeBatch();
+//	widgetmeshes[id].batches[0] = b1;
+
+    begin(b1, GL_TRIANGLE_STRIP, 8, 1 );
+    texCoord2f(b1, 0, xb, yb);
+    vertex2f(b1, x0, y0);
+    texCoord2f(b1, 0, 0, yb);
+    vertex2f(b1, x1, y0);
+
+    texCoord2f(b1, 0, xb, 0);
+    vertex2f(b1, x0, y1);
+    texCoord2f(b1, 0, 0, 0);
+    vertex2f(b1, x1, y1);
+
+    texCoord2f(b1, 0, xb, 0);
+    vertex2f(b1, x0, y2);
+    texCoord2f(b1, 0, 0, 0);
+    vertex2f(b1, x1, y2);
+
+    texCoord2f(b1, 0, xb, yb);
+    vertex2f(b1, x0, y3);
+    texCoord2f(b1, 0, 0, yb);
+    vertex2f(b1, x1, y3);
+    end(b1);
+//}else*/
+   //draw(widgetmeshes[id].batches[0]);
     glBegin(GL_TRIANGLE_STRIP);
         glTexCoord2f(xb, yb);
         glVertex2f( x0, y0);
@@ -326,10 +374,79 @@ void drawRoundedRect(  rect* rect,  point* corner, int fillColorId, int borderCo
 	bindShader(0);
 }
 
+void drawDownArrow( rect* rect, int width, int fillColorId, int borderColorId ){
+
+    float offset = sqrt(2.0)/2.0 ;
+   
+    float xb = width;
+    float yb = width;
+    
+    float xoff = offset * xb ;
+    float yoff = offset * yb ;
+    float xoff2 = offset * xb *2.0 ;
+    float yoff2 = offset * yb *2.0;
+
+    float x0 = rect->x + xoff2;
+    float x1 = rect->x + rect->w * 0.5;
+    float x2 = rect->x + rect->w - xoff2;
+
+    float y0 = rect->y + rect->h * 0.1 + yoff2;
+    float y1 = rect->y + rect->h * 0.6;
+
+    
+	setShaderConstant4f(gui->widgetShader, "fillColor", colors[fillColorId] );
+	setShaderConstant4f(gui->widgetShader, "borderColor", colors[borderColorId] );
+	float zones[2]; zones[0] = xb - 1; zones[1] = xb-2;
+	setShaderConstant2f(gui->widgetShader, "zones", zones);
+	    bindShader(gui->widgetShader);
+
+    glBegin(GL_TRIANGLE_STRIP);
+        glTexCoord3f(-xb, -yb, 0);
+        glVertex2f( x0, y1 + yoff2);
+        glTexCoord3f(xb, -yb, 0);
+        glVertex2f( x0 - xoff2, y1);
+ 
+        glTexCoord3f(-xb, 0, 0);
+        glVertex2f( x0 + xoff, y1 + yoff);
+        glTexCoord3f(xb, 0, 0);
+        glVertex2f( x0 - xoff, y1 - yoff);
+
+        glTexCoord3f(-xb, 0, xb);
+        glVertex2f( x1, y0 + yoff2);
+        glTexCoord3f(xb, 0, xb);
+        glVertex2f( x1 - xoff2, y0);
+
+        glTexCoord3f(xb, 2*yb, xb);
+        glVertex2f( x1, y0 - yoff2);
+
+    glEnd();
+    glBegin(GL_TRIANGLE_STRIP);
+        glTexCoord3f(xb, -yb, 0);
+        glVertex2f( x2 + xoff2, y1);
+        glTexCoord3f(-xb, -yb, 0);
+        glVertex2f( x2, y1 + yoff2);
+
+        glTexCoord3f(xb, 0, xb);
+        glVertex2f( x2 + xoff, y1 - yoff);
+        glTexCoord3f(-xb, 0, xb);
+        glVertex2f( x2 - xoff, y1 + yoff);
+
+        glTexCoord3f(xb, 0, xb);
+        glVertex2f( x1 + xoff2, y0);
+        glTexCoord3f(-xb, 0, xb);
+        glVertex2f( x1, y0 + yoff2);
+
+        glTexCoord3f(xb, 2*yb, xb);
+        glVertex2f( x1, y0 - yoff2);
+
+    glEnd();
+
+    bindShader(0);
+}
 
 void drawFrame(rect* rect, point corner, int isHover, int  isDown){
 
-	int colorNb =  cDark + (isHover) + (isDown << 1);
+	int colorNb =  cBase + (isHover) + (isDown << 1);
 
 	//printf("ishover: %d isdown: %d colorNb: %d ", isHover, isDown, colorNb);
 
@@ -418,7 +535,9 @@ void calculateCheckRect(rect* r, char* text, rect* rt, rect* rc){
 	rt->y = 3;
 
 	float minx, maxx, miny, maxy, totalwidth;
+//	printf("dim text \n");
 	sth_dim_text(stash, 0, 20.0, text, &minx, &miny, &maxx, &maxy, &totalwidth  );
+//	printf("dim text done \n");
 
 	float ascender, descender, lineh;
 	sth_vmetrics(stash, 0, 20.0, &ascender, &descender, &lineh );
@@ -433,14 +552,14 @@ void calculateCheckRect(rect* r, char* text, rect* rt, rect* rc){
 //	drawRect(r, 1, 1);	
 }
 
-void drawBoolFrame(rect* r, point* p, int isHover, int isDown){
+void drawBoolFrame( rect* r, point* p, int isHover, int isDown){
 	int colorNb =  cBase + (isHover) + (isDown << 1);
 
 	drawRoundedRect( r, p , colorNb, cOutline );
 
 }
 
-void drawCheckButton(rect* r, char* text, rect* rt, rect* rc, int isDown, int hover){
+void drawCheckButton( rect* r, char* text, rect* rt, rect* rc, int isDown, int hover){
 
 	point p;
 	p.x = rc->w/6;
@@ -450,6 +569,7 @@ void drawCheckButton(rect* r, char* text, rect* rt, rect* rc, int isDown, int ho
 	b.y = r->y + rt->y;
 	b.w = rc->w;
 	b.h = rc->h;
+	//printf("draw bool frame \n");
 	drawBoolFrame(&b, &p, hover, isDown);
 
 	rect rtext;
@@ -457,8 +577,10 @@ void drawCheckButton(rect* r, char* text, rect* rt, rect* rc, int isDown, int ho
 	rtext.y = r->y + rt->y ;
 	rtext.w = rt->w;
 	rtext.h = rt->h;
+	//printf("begin draw\n");
 	sth_begin_draw(stash);
 	glColor4fv(colors[cFont]);
+	//printf("draw text \n");
 	sth_draw_text(stash, 0, 20.0, rtext.x, rtext.y, text, &rtext.x);
 	sth_end_draw(stash);
 }
@@ -479,7 +601,7 @@ int doCheckButton(int id, rect  *r, char* text, int * state){
 		}
 	}
 
-	drawCheckButton(r, text, &rt, &rc, (state) && (*state),  hover);
+	drawCheckButton( r, text, &rt, &rc, (state) && (*state),  hover);
 
 	if( !guiEv->buttonLeft && (gui->hotitem == id) && (gui->activeitem == id) ){
 		printf("clicou: %s \n", text);
@@ -495,7 +617,9 @@ int doCheckButton(int id, rect  *r, char* text, int * state){
 //no radiobutton os N botoes precisam do mesmo *state
 int doRadioButton(int id, rect* r, char* text, int *state){
 	rect rt, rc;
+//	printf("do radio button \n");
 	calculateCheckRect(r, text, &rt, &rc);
+//	printf("calculated rect \n");
 
 	int hover = isHover(r);
 
@@ -503,10 +627,15 @@ int doRadioButton(int id, rect* r, char* text, int *state){
 		gui->hotitem = id;
 
 	if ( (guiEv->buttonLeft) && hover){
-		if (gui->activeitem == 0)
+		//printf("clicou e ta hover no radio box \n");
+		if (gui->activeitem == 0){
 			gui->activeitem = id;
+		//	printf("radio ta active\n");
+		}
 	}
-	
+
+	//printf("radio %d %d \n", gui->hotitem, gui->activeitem  );
+	//printf("draw check button \n");
 	drawCheckButton(r, text, &rt, &rc, (state) && (*state == id),  hover);
 
 	if( !guiEv->buttonLeft && (gui->hotitem == id) && (gui->activeitem == id) ){
@@ -624,7 +753,7 @@ void calculateComboRect(rect* r, int numOptions, char* options[], int selected, 
 
 	r->w = rt->w + 2*rt->x;
 	//espaco pra seta
-	r->w += rt->w + rt->x;
+	r->w += rd->w + rt->x;
 	rd->x = 2*rt->x + rt->w;
 
 }
@@ -642,7 +771,11 @@ void drawComboBox(rect* r, int numOptions, char* options[], rect* rt, rect* ra, 
 	rt->y += r->y;
 	sth_draw_text(stash, 0, 20.0, rt->x, rt->y, options[selected], &rt->x);
 	sth_end_draw(stash);
-	
+
+	ra->x += r->x;
+	ra->y += r->y;
+	drawDownArrow(ra, ra->h*0.15,  cBase+ (!isHover) + (isDown << 2), cOutline );
+
 }
 
 void drawListBox(rect* r, int numOptions, char* options[], rect* ri, rect* rt, int selected, int hovered){
@@ -661,7 +794,7 @@ void drawListBox(rect* r, int numOptions, char* options[], rect* ri, rect* rt, i
 
 	for(int i = 0;i <numOptions; i++){
 
-		if (i == hovered){
+		if (i == hovered || i == selected){
 			p.x = ri->x;
 			p.y = ri->y;
 			drawFrame(&ir,p, 0, (i == selected) );
@@ -726,56 +859,224 @@ void calculateComboOptionsRect(rect* r, int numOptions, int options, rect* ri, r
 
 }
 
-int doComboBox(int id, rect* r, int numOptions, char* options[], int* selected){
+int doComboBox(int id, rect* r, int numOptions, char* options[], int* selected, int * state){
 
 	rect rt, rd;
 	calculateComboRect(r, numOptions, options, *selected, &rt, &rd);
 
 	int hover = isHover(r);
+	int hovered = -1;
 
 	if (hover)
 		gui->hotitem = id;
 
-	if( (guiEv->buttonLeft) && hover){
+	if ( guiEv->buttonLeft && hover){
+		*state = 1;
 		gui->activeitem = id;
+	}
+
+	if (*state == 1){
 		rect ro, ri, rit;//ele retorna em ro e nao em r, apenas nesse caso
 		calculateComboOptionsRect(r, numOptions, options, &ri, &rit, &ro);
 		ro.h += 2;
-		int hovered = -1;
 		int hoveroptions = insideRect(&ro, guiEv->x, guiEv->y);
 		if (hoveroptions){
-			hovered = numOptions - 1 - (guiEv->y - (ro.y+ri.y)) / (ri.h);
+			hovered = numOptions - 1 - (gui->h - guiEv->y - (ro.y+ri.y)) / (ri.h);
 		}
 
 		drawComboBox(r, numOptions, options, &rt, &rd, *selected, hover, 0 );
 		drawComboOptions(&ro, numOptions, options, &ri, &rit, *selected, hovered, hover, 0 );
 
-
-
-		if (!gui->twophase){
-			gui->twophase = 1;
-			gui->focusx = guiEv->x;
-			gui->focusy = guiEv->y;
-		}else{
-			printf("hover %d hoveroptions %d \n", hover, hoveroptions);
-			if ((hoveroptions == 0) || (hover == 0) )  {
-				printf("SAIU DO HOVER \n");
-				gui->twophase = 0;
-				gui->activeitem = 0;
-			}
-			else if ( (hoveroptions || hover) &&  !guiEv->buttonLeft  ){
-				gui->twophase = 0;
-				gui->activeitem = 0;
-			}
-
-			if (hoveroptions && guiEv->buttonLeft){
-			}
-
+		if ((!isHover(&ro) || !isHover(&r)) && !guiEv->buttonLeft){
+			*state = 0;
+			gui->activeitem = 0;
 		}
 
+		if (!guiEv->buttonLeft && hovered > -1 ){
+			*selected = hovered;
+			gui->activeitem = 0;
+			*state = 0;
+		}
 
 	}else{
 		drawComboBox(r, numOptions, options, &rt, &rd, *selected, hover, 0 );
 	}
-	
+
+
+}
+
+int doListBox(int id, rect* r, int numOptions, char* options[], int* selected){
+
+	rect ri, rt;
+	calculateListRect(r, numOptions, options, &ri, &rt);
+
+	int hover = isHover(r);
+	int hovered = -1;
+
+	if (hover){
+		gui->hotitem = id;
+		hovered = numOptions - 1 - ( (gui->h - guiEv->y) - (r->y+ri.y))/(ri.h);
+		if (guiEv->buttonLeft && (gui->activeitem == 0)){
+			gui->activeitem = id;
+		}	
+	}
+
+	int lSelected = 1;
+	if (selected)
+		lSelected = *selected;
+
+	drawListBox(r, numOptions, options, &ri, &rt, lSelected, hovered);
+
+	if( !guiEv->buttonLeft && (gui->hotitem == id) && (gui->activeitem == id) && (lSelected != hovered) ){
+		printf("clicou hovered: %d selected: %d \n", hovered, *selected);
+		gui->activeitem = 0;
+		if (selected)
+			*selected = hovered;
+		return 1;
+	}
+
+
+}
+
+void getLineEditRect(rect* r, char* text, rect* rt, int maxTextLength){
+
+	rt->x = 3;
+	rt->y = 3;
+	rt->w = 100;
+	rt->h = 20;
+
+	r->w = rt->w + 2*rt->x;
+	r->h = rt->h + 2*rt->y;
+
+}
+
+void drawLineEdit(rect* r, char* text, rect* rt, int hover ){
+	point p;
+	p.x = rt->x; p.y = rt->y;
+	drawFrame(r, p, hover, 0);
+	rt->x = r->x + rt->x;
+	rt->y = r->y + rt->y + 3;
+	sth_begin_draw(stash);
+	glColor4fv(colors[cFont]);
+	sth_draw_text(stash, 0, 20.0, rt->x, rt->y, text, &rt->x);
+	sth_end_draw(stash);
+}
+
+int drawTextureView(rect* r, int texID, rect* rt, rect* rz, int mipLevel, float texelScale, float texelOffset, int red, int green, int blue, int alpha)
+{
+    point p; 
+    p.x = rt->x;
+    p.y = rt->y;
+    drawFrame( r, p, 0, 0 );
+
+//    glEnable(GL_TEXTURE_2D);
+    //glBindTexture(GL_TEXTURE_2D, texID);
+    bindTexture(0, texID);
+
+    setShaderConstant1f( gui->textureViewShader, "mipLevel", (float) mipLevel);
+    setShaderConstant1f( gui->textureViewShader, "texelScale", texelScale);
+    setShaderConstant1f( gui->textureViewShader, "texelOffset", texelOffset);
+    float swizz[4];
+    swizz[0] = red;
+    swizz[1] = green;
+    swizz[2] = blue;
+    swizz[3] = alpha;
+    setShaderConstant4f( gui->textureViewShader, "texelSwizzling", swizz);
+    bindShader(gui->textureViewShader);
+
+    glBegin(GL_QUADS);
+        glTexCoord2f( (float) rz->x / (float) rt->w , (float) rz->y / (float) rt->h);
+        glVertex2f(r->x + rt->x, r->y + rt->y );
+        glTexCoord2f((float) rz->x / (float) rt->w , (float) (rz->y + rz->h) / (float) rt->h);
+        glVertex2f(r->x + rt->x, r->y - rt->y + r->h);
+        glTexCoord2f((float) (rz->x+rz->w) / (float) rt->w , (float) (rz->y + rz->h) / (float) rt->h);
+        glVertex2f(r->x + rt->x + rt->w, r->y - rt->y + r->h);
+        glTexCoord2f((float) (rz->x+rz->w) / (float) rt->w , (float) (rz->y) / (float) rt->h);
+        glVertex2f(r->x + rt->x + rt->w, r->y + rt->y);
+    glEnd();
+
+    bindShader(0);
+ //   glBindTexture(GL_TEXTURE_2D, 0);
+//    glDisable(GL_TEXTURE_2D);
+}
+
+int doLineEdit(int id,  rect* r, char* text, int maxTextLength ){
+
+	rect rt;
+	int len = strlen(text);
+	int changed = 0;
+	getLineEditRect(r, text, &rt, maxTextLength);
+
+	int hover = isHover(r);
+
+	if (hover){
+		gui->hotitem = id;
+		if (guiEv->buttonLeft && (gui->activeitem == 0)){
+		//	printf("button left no line edit %d \n ", id);
+			gui->activeitem = id;
+		}	
+	}
+
+
+	drawLineEdit(r, text, &rt, hover);
+	if (gui->activeitem == id && len < maxTextLength){
+		for(int kid = 32; kid < 127; kid++){
+			if (guiEv->keys[kid]){
+				text[len] = (char) kid;
+				len++;
+				text[len] = 0;
+				changed = 1;
+				guiEv->keys[kid] = 0;
+			}
+		}
+		if (guiEv->keys[KEY_BACKSPACE]){
+			if (len > 0){
+				len--;
+				text[len] = 0;
+				changed = 1;
+			}
+			guiEv->keys[KEY_BACKSPACE] = 0;
+		}
+	}
+
+
+	if (!hover && guiEv->buttonLeft && gui->activeitem == id){
+//		printf("nao ta hover e clicou fora do lineedit \n");
+		gui->activeitem = 0;
+	}
+
+	return changed;
+}
+
+void calculateTextureViewRect(rect* r, rect* rt){
+
+	if (r->w == 0)
+		r->w = 100;
+
+	if (r->h == 0)
+		r->h = r->w;
+
+	rt->x = 3;
+	rt->y = 3;
+	rt->w = r->w - 2*3;
+	rt->h = rt->h - 2*3;
+
+}
+
+//valores default
+// miplevel -1 texscale 1.0 texeloffset 0.0 red 0, green 1, blue 2, alpha 3
+int doTextureView( rect* r, unsigned int texid,  rect* zoomrect, int miplevel, float texscale, float texeloffset,
+int red, int green, int blue, int alpha){
+
+	rect rt;
+	calculateTextureViewRect(r, &rt);
+
+	if ( zoomrect->w == 0 || zoomrect->h == 0){
+		zoomrect->x = zoomrect->y = 0;
+		zoomrect->h = rt.h;
+		zoomrect->w = rt.w;
+	}
+
+	drawTextureView(r, texid, &rt, zoomrect, miplevel, texscale, texeloffset, red, green, blue, alpha);
+
 }

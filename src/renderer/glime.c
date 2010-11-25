@@ -4,7 +4,9 @@
 #include "renderer.h"
 //#include "glextensions.h"
 
-void initializeBatch(batch* b){
+batch* initializeBatch(){
+
+	batch* b = malloc(sizeof(batch));
 
 	b->vertexVBO = 0;
 	b->normalVBO = 0;
@@ -20,7 +22,9 @@ void initializeBatch(batch* b){
 	b->normals = NULL;
 	b->colors = NULL;
 	b->texCoords = NULL;
-	
+
+	b->verticesComponents = 0;
+	return b;
 }
 
 void begin(batch *b, int primitive, int nverts, int texSets){
@@ -41,6 +45,9 @@ void begin(batch *b, int primitive, int nverts, int texSets){
 
 void vertex3f(batch* b, float x, float y, float z){
 
+	if (!b->verticesComponents)
+		b->verticesComponents = 3;
+
 	if (b->vertexVBO == 0)
 		b->vertexVBO = initializeVBO(sizeof(float)*3*b->numVerts, GL_DYNAMIC_DRAW, NULL);
 	
@@ -53,6 +60,26 @@ void vertex3f(batch* b, float x, float y, float z){
 	b->vertices[b->verticesCount*3] = x;
 	b->vertices[b->verticesCount*3+1] = y;
 	b->vertices[b->verticesCount*3+2] = z;
+	b->verticesCount++;
+	
+}
+
+void vertex2f(batch* b, float x, float y){
+
+	if (!b->verticesComponents)
+		b->verticesComponents = 2;
+
+	if (b->vertexVBO == 0)
+		b->vertexVBO = initializeVBO(sizeof(float)*2*b->numVerts, GL_DYNAMIC_DRAW, NULL);
+	
+	if (b->vertices == NULL)
+		b->vertices = (float*) mapVBO(b->vertexVBO, GL_WRITE_ONLY);
+		
+	if (b->verticesCount >= b->numVerts)
+		return;
+	
+	b->vertices[b->verticesCount*2] = x;
+	b->vertices[b->verticesCount*2+1] = y;
 	b->verticesCount++;
 	
 }
@@ -99,13 +126,14 @@ void color4f(batch* b, float x, float y, float z, float w){
 void texCoord2f(batch* b, unsigned int texUnit, float s, float t){
 
 	if (b->texCoordsVBO[texUnit] == 0){
+		//printf("initialize vbo \n");
 		b->texCoordsVBO[texUnit] = initializeVBO(sizeof(float)*2*b->numVerts, GL_DYNAMIC_DRAW, NULL);
-//		printf("initialize texcoords vbo: %d \n", b->texCoordsVBO[texUnit] );
+		//printf("initialize texcoords vbo: %d \n", b->texCoordsVBO[texUnit] );
 	}
 
 	if (b->texCoords[texUnit] == NULL){
 		b->texCoords[texUnit] = (float*) mapVBO(b->texCoordsVBO[texUnit], GL_WRITE_ONLY);
-//		printf("map texcoords vbo\n");
+		//printf("map texcoords vbo\n");
 	}
 
 	if (b->verticesCount >= b->numVerts){
@@ -156,7 +184,7 @@ void end(batch* b){
 		attr[ATTR_VERTEX]->size = b->numVerts*sizeof(float);
 		attr[ATTR_VERTEX]->type = ATTR_VERTEX;
 		attr[ATTR_VERTEX]->offset =  0;
-		attr[ATTR_VERTEX]->components = 3;
+		attr[ATTR_VERTEX]->components = b->verticesComponents;
 		attr[ATTR_VERTEX]->vboID = b->vertexVBO;
 	}
                 
@@ -205,15 +233,17 @@ void draw(batch* b){
 
 batch* makeCube(float radius){
 	
-	batch* b = malloc(sizeof(batch));
-	initializeBatch(b);
-	
+	batch* b = initializeBatch();
 	begin(b, GL_TRIANGLES, 36, 1);
 	
 	//top
+	//printf("normal \n");
 	normal3f(b, 0.0, 1.0, 0.0);
+	//printf("normal done \n");
 	texCoord2f(b, 0, radius, radius);
+	//printf("texcoord \n");
 	vertex3f(b, radius, radius, radius);
+	//printf("vertex \n");
 
 	normal3f(b, 0.0, 1.0, 0.0);
 	texCoord2f(b, 0, radius, 0.0 );

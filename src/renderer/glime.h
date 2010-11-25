@@ -31,15 +31,18 @@ typedef struct  _batch{
 	float* colors;
 	float** texCoords;
 
+	int verticesComponents; //se eh xy ou xyz
+
 }batch;
 
-void initializeBatch(batch*  b);
+batch* initializeBatch();
 
 void begin(batch* b, int primitive, int nverts, int texSets);
 void end(batch* b);
 void draw(batch* b);
 
 void vertex3f(batch* b, float x, float y, float z);
+void vertex2f(batch* b, float x, float y);
 void normal3f(batch* b, float x, float y, float z);
 void color4f(batch* b,float x, float y, float z, float w);
 void texCoord2f(batch* b, unsigned int texUnit, float s, float t);

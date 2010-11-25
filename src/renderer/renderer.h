@@ -10,65 +10,6 @@
 
 #define MAX_VERTEX_ATTRS 16
 
-enum GeometryType{
-
-	TRIANGLES = GL_TRIANGLES,
-	POINTS = GL_POINTS
-};
-
-enum ConstantType {
-	CONSTANT_FLOAT,
-	CONSTANT_VEC2,
-	CONSTANT_VEC3,
-	CONSTANT_VEC4,
-	CONSTANT_INT,
-	CONSTANT_IVEC2,
-	CONSTANT_IVEC3,
-	CONSTANT_IVEC4,
-	CONSTANT_BOOL,
-	CONSTANT_BVEC2,
-	CONSTANT_BVEC3,
-	CONSTANT_BVEC4,
-	CONSTANT_MAT2,
-	CONSTANT_MAT3,
-	CONSTANT_MAT4,
-
-	CONSTANT_TYPE_COUNT
-};
-
-enum Semantic{
-	TIME,
-	EYEPOS,
-	MVP,
-    MODELVIEW,
-	LIGHTPOS
-};
-
-typedef struct _uniform{
-
-	int location;
-	char* name;
-	unsigned char* data;
-	int size;
-	int type;
-	int semantic;
-	short int dirty;
-
-}uniform;
-
-typedef struct _sampler{
-	char* name;
-	unsigned int index;
-	unsigned int location;
-}sampler;
-
-typedef struct _shader{
-	uniform** uniforms;
-	int numUniforms;
-	sampler** samplers;
-	int numSamplers;
-}shader;
-
 enum TextureTarget{
 
 	TEXTURE_1D = GL_TEXTURE_1D,
@@ -94,7 +35,7 @@ enum TextureInternalFormat{
 };
 
 
-enum TextureFlags{
+enum TextureSampler{
 	CLAMP  = GL_CLAMP,
 	CLAMP_TO_EDGE  = GL_CLAMP_TO_EDGE,
 
@@ -103,6 +44,11 @@ enum TextureFlags{
 	NEAREST = GL_NEAREST
 };
 
+enum GeometryType{
+
+	TRIANGLES = GL_TRIANGLES,
+	POINTS = GL_POINTS
+};
 
 enum Type{
 	UNSIGNED_BYTE = GL_UNSIGNED_BYTE,
@@ -130,21 +76,6 @@ enum AttributeType{
 
 };
 
-typedef struct _texture{
-	unsigned int id;
-	int state;
-	int target;
-}texture;
-
-typedef struct _samplerState{
-	unsigned int id;
-	int wrapmode;
-	int anisotropy;
-	int minfilter;
-	int magfilter;
-	//minlod, maxlod, lodbias, comparemode, comparefunc 
-} samplerState;
-
 typedef struct _vertexAttribute{
 	unsigned int count;
 	unsigned int size;
@@ -166,17 +97,7 @@ typedef struct _renderer{
 
 	float fovy, znear, zfar;
 
-	int prevTexture;
-    	fparray* textures; 
-
-	int prevSamplerState;
-	fparray* samplerStates;
-
 	int prevVBO;
-
-	int prevShader;
-    	fparray* shaders;
-	void *uniformFuncs[CONSTANT_TYPE_COUNT];
 
 	int prevFramebuffer;
     	fparray* framebuffers; 
@@ -196,8 +117,6 @@ typedef struct _rect{
 	int x, y, w, h;
 }rect;
 
-
-
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy);
 
 int render(float ifps, event *e, scene* s);
@@ -209,14 +128,12 @@ void enableDepth();
 
 vertexAttribute** initializeVertexFormat();
 
-//texturas
-unsigned int initializeTextureFromMemory(void* data, int x, int  y, int  target, int imageFormat, int internalFormat, int type);
+//textures
+int initializeSamplerState(int wrapmode, int minfilter, int magfilter, int anisotropy);
 unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type);
+void bindSamplerState(unsigned int unit, unsigned int id);
+unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type);
 void bindTexture(int slot, int id);
-
-//sammplers
-unsigned int initialzeSamplerState(int wrapmode, int minfilter, int maagfilter, int anisotropy );
-void bindSamplerState(unsigned int unit, unsigned int sampler);
 
 //framebuffers
 void bindMainFramebuffer();
@@ -237,7 +154,7 @@ unsigned int createVAO();
 void drawArraysVAO(unsigned int vaoID, int type, int numVerts);
 
 //parecida com a initializeVAO mas essa eh pra geometria indexada, entao passa os indicesID
-unsigned int initializeIndexedVAO( unsigned int indicesID, vertexAttribute** attrs,  unsigned int num);
+unsigned int initializeIndexedVAO( unsigned int indicesID, vertexAttribute** attrs);
 unsigned int  drawIndexedVAO(unsigned int  vaoID,  unsigned int triCount, int geometryType);
 
 //shaders

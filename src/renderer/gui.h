@@ -1,10 +1,6 @@
 #ifndef _GUI_H_
 #define _GUI_H_
-
-#include <time.h> //pro time_t
-
-
-
+#include "util/fontstash.h"
 typedef struct _GUI{
 
 	int widgetShader;
@@ -21,6 +17,12 @@ typedef struct _GUI{
 	int focusx, focusy;
 	int twophase;
 
+	int kbditem;
+	int keyentered;
+	int keymod;
+	int lastwidget;
+
+	struct font_stash* stash;
 }GUI;
 
 GUI* initializeGUI(int w, int h);

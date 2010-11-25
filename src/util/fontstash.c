@@ -19,7 +19,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "../renderer/renderer.h"
+#include "image.h"
 #include <GL/gl.h>
 
 #define STB_TRUETYPE_IMPLEMENTATION
@@ -83,6 +84,7 @@ struct sth_stash
 	int tw,th;
 	float itw,ith;
 	GLuint tex;
+	GLuint samplerstate;
 	struct sth_row rows[MAX_ROWS];
 	int nrows;
 	struct sth_font fonts[MAX_FONTS];
@@ -142,11 +144,13 @@ struct sth_stash* sth_create(int cachew, int cacheh)
 	stash->th = cacheh;
 	stash->itw = 1.0f/cachew;
 	stash->ith = 1.0f/cacheh;
-	glGenTextures(1, &stash->tex);
-	if (!stash->tex) goto error;
-	glBindTexture(GL_TEXTURE_2D, stash->tex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, stash->tw,stash->th, 0, GL_ALPHA, GL_UNSIGNED_BYTE, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	stash->samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
+	stash->tex = initializeTextureFromMemory(NULL, stash->tw, stash->th, TEXTURE_2D, GL_ALPHA, GL_ALPHA, GL_UNSIGNED_BYTE); 
+//	glGenTextures(1, &stash->tex);
+//	if (!stash->tex) goto error;
+//	glBindTexture(GL_TEXTURE_2D, stash->tex);
+//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, stash->tw,stash->th, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	return stash;
 	
@@ -320,10 +324,22 @@ static struct sth_glyph* get_glyph(struct sth_stash* stash, struct sth_font* fnt
 	bmp = (unsigned char*)malloc(gw*gh);
 	if (bmp)
 	{
+		printf("criando bmp \n");
 		stbtt_MakeGlyphBitmap(&fnt->font, bmp, gw,gh,gw, scale,scale, g);
 		// Update texture
 		glPixelStorei(GL_UNPACK_ALIGNMENT,1);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, glyph->x0,glyph->y0, gw,gh, GL_ALPHA,GL_UNSIGNED_BYTE,bmp); 
+//		printf("bind texture \n");
+		bindTexture(0, stash->tex);
+//		printf("bind done \n");
+	//	unsigned char* bmp3 = (unsigned char*) malloc(gw*gh*4);
+	//	for(int i = 0,  k = 0; i < gw*gh; i++, k  += 4){
+	//		bmp3[k] = bmp[i];
+	//		bmp3[k+1] = bmp[i];
+	//		bmp3[k+2] = bmp[i];
+	//		bmp3[k+3] = bmp[i];
+	//	}
+	//	stbi_write_bmp("font.bmp", gw, gh, 3, bmp3);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, glyph->x0,glyph->y0, gw,gh, GL_ALPHA,GL_UNSIGNED_BYTE, bmp); 
 		free(bmp);
 	}
 	
@@ -368,14 +384,16 @@ static void flush_draw(struct sth_stash* stash)
 	if (stash->nverts == 0)
 		return;
 		
-	glBindTexture(GL_TEXTURE_2D, stash->tex);
-	glEnable(GL_TEXTURE_2D);
+	//glBindTexture(GL_TEXTURE_2D, stash->tex);
+	//glEnable(GL_TEXTURE_2D);
+	bindSamplerState(0, stash->samplerstate);
+	bindTexture(0, stash->tex);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glVertexPointer(2, GL_FLOAT, VERT_STRIDE, stash->verts);
 	glTexCoordPointer(2, GL_FLOAT, VERT_STRIDE, stash->verts+2);
 	glDrawArrays(GL_TRIANGLES, 0, stash->nverts);
-	glDisable(GL_TEXTURE_2D);
+//	glDisable(GL_TEXTURE_2D);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	stash->nverts = 0;
@@ -473,7 +491,9 @@ void sth_dim_text(struct sth_stash* stash,
 	float x = 0, y = 0;
 	
 	if (stash == NULL) return;
-	if (!stash->tex) return;
+	//printf("stash tex \n");
+	if (!stash->tex){ printf("sem text: %d  \n", stash->tex); return;}
+//	printf("stash->tex %d \n", stash->tex);
 	if (idx < 0 || idx >= MAX_FONTS) return;
 	fnt = &stash->fonts[idx];
 	if (!fnt->data) return;
