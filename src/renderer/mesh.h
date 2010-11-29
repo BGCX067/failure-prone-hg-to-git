@@ -2,6 +2,7 @@
 #define _MESH_H_
 
 #include "../util/fplist.h"
+#include "material.h"
 
 #define MAX_TEXCOORDS 8
 
@@ -29,6 +30,8 @@ typedef struct _triangles{
 
 	texCoord* texCoords[MAX_TEXCOORDS];
 	unsigned int numTexSets;
+
+	material mat;
 
 }triangles;
 

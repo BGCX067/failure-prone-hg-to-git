@@ -36,7 +36,7 @@ vec4 phong() {
 void main() {
     fragColor = phong();
 
-//	fragColor = vec4(n, 1.0);
+//	fragColor = vec4(normal, 1.0);
 //    fragColor = specular;
 }
 

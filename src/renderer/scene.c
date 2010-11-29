@@ -2,6 +2,9 @@
 #include "../util/ezxml.h"
 #include <stdio.h>
 #include <string.h>
+#include <GL/gl.h>
+#include "renderer.h"
+
 ezxml_t getVertexSource(char* sourceName, ezxml_t mesh){
 
 	ezxml_t source = ezxml_child(mesh, "vertices");
@@ -72,11 +75,6 @@ scene* initializeDae(char* filename){
 			}
 		}
 		
-		//s->meshes = malloc(sizeof(mesh)*s->meshCount);
-		//  s->meshes = malloc(sizeof(mesh*)*MAX_MESHES_PER_SCENE);
-		//  for (int j = 0; j < s->meshCount; j++)
-		//  	s->meshes[j] = malloc(sizeof(mesh));
-
 		for(geometry = ezxml_child(library_geometries, "geometry"); geometry; geometry = geometry->next){
 			ezxml_t meshxml;
 			int i = 0;
@@ -88,24 +86,36 @@ scene* initializeDae(char* filename){
 					m->trianglesCount++;
 				}
 				//TODO passar  destrutor?
-				printf("inicializando lista\n");
+				//printf("inicializando lista\n");
 				m->tris = fplist_init(NULL, NULL); //malloc(sizeof(triangles)*s->meshes[i]->trianglesCount);
 				int triCount = 0;
 				triangles* tri;
 				for (trixml = ezxml_child(meshxml, "triangles"); trixml; trixml = trixml->next){
-					printf("lendo triangulo \n");
 					triangles* tri = malloc(sizeof(triangles));
 					//TODO memset?
-					printf("initializando triangulo \n");
 					initializeTriangles( tri );
-					printf("triangulo inicializado \n");
 					int count = atoi( ezxml_attr(trixml, "count"))*3;
-					printf("vai receber count: %d \n", count);
 					tri->indicesCount  = count;
-					printf("recebeu count \n");
+					//TODO setando material default aqui
+					tri->mat.shininess = 4;
+					tri->mat.ks[0] = 0.3;
+					tri->mat.ks[1] = 0.3;
+					tri->mat.ks[2] = 0.3;
+					tri->mat.ks[3] = 1.0;
+					tri->mat.ka[0] = 0.1;
+					tri->mat.ka[1] = 0.1;
+					tri->mat.ka[2] = 0.1;
+					tri->mat.ka[3] = 1.0;
+					tri->mat.kd[0] = 0.6;
+					tri->mat.kd[1] = 0.6;
+					tri->mat.kd[2] = 0.6;
+					tri->mat.kd[3] = 1.0;
+					tri->mat.shaderid = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
+
+					//char* material = ezxml_attr(trixml, "material");
+					//printf("material: %s \n", material);
 					//TODO pode ser short int
 					tri->indices = malloc( sizeof(unsigned int)*count );
-					printf("alocou  indices\n");
 					ezxml_t p = ezxml_child(trixml, "p");
 					char* tok  = strtok(p->txt, " ");
 					int k = 0;
@@ -114,7 +124,7 @@ scene* initializeDae(char* filename){
 						tok = strtok(NULL, " ");
 						k++;
 					}
-					printf("leu os indices\n");
+					//printf("leu os indices\n");
 					
 					ezxml_t input = ezxml_child(trixml, "input");
 					int texSetIndices = -1;
@@ -122,26 +132,26 @@ scene* initializeDae(char* filename){
 					while(input){
 						char* semantic = ezxml_attr(input, "semantic");
 						char* sourceName = ezxml_attr(input, "source");
-						printf("sourceName: %s semantic: %s  \n", sourceName, semantic);
+						//printf("sourceName: %s semantic: %s  \n", sourceName, semantic);
 						if ( sourceName[0] = '#'){
 							for(int k = 1; k <strlen(sourceName);k++)
 								sourceName[k-1] = sourceName[k];
 							sourceName[strlen(sourceName)-1] = '\0';
 						}
-						printf("sourceNAme: %s  semantic: %s  \n", sourceName, semantic);
+						//printf("sourceNAme: %s  semantic: %s  \n", sourceName, semantic);
 						if (strcmp(semantic, "VERTEX") == 0){
-							printf(" Vertex \n");
+							//printf(" Vertex \n");
 							ezxml_t source = getVertexSource(sourceName, meshxml);
 							if (source){
-								printf("source \n");
+								//printf("source \n");
 								ezxml_t floatArray = ezxml_child(source, "float_array");
 								if (floatArray){
-									printf("floatArray\n");
+									//printf("floatArray\n");
 									tri->verticesCount = atoi(ezxml_attr(floatArray, "count"));
 									getFloatArray( tri->vertices, floatArray->txt, atoi(ezxml_attr(floatArray, "count")) );
 								}else{
 									ezxml_t vertexInput;
-									printf("vertexInput\n");
+									//printf("vertexInput\n");
 									for(vertexInput = ezxml_child(source, "input"); vertexInput; vertexInput = vertexInput->next){
 										char* semantic = ezxml_attr(vertexInput, "semantic");
 										if (strcmp(semantic, "POSITION" ) == 0){
@@ -196,40 +206,40 @@ scene* initializeDae(char* filename){
 							}
 						}
 						else if ( strcmp(semantic, "TEXCOORD")  == 0){
-							printf("lendo texcoords\n");
+							//printf("lendo texcoords\n");
 							texCoord* texSet = malloc(sizeof(texCoord));
 							texSet->set = atoi( ezxml_attr(input, "set"));
-							printf("texcoord set: %d\n", texSet->set);
+							//printf("texcoord set: %d\n", texSet->set);
 							ezxml_t source = getSource(sourceName, meshxml);
 							if (source){
-								printf("achou o source\n");
+							//	printf("achou o source\n");
 								ezxml_t float_array = ezxml_child(source, "float_array");
 								if (float_array){
-									printf("achou o float_array\n");
+							//		printf("achou o float_array\n");
 									texSet->count = atoi(ezxml_attr(float_array, "count"));
-									printf("count :%d\n", texSet->count);
-									printf("texcoords: %s\n", float_array->txt);
+							//		printf("count :%d\n", texSet->count);
+									//printf("texcoords: %s\n", float_array->txt);
 									getFloatArray( &(texSet->texCoords), float_array->txt, texSet->count);
-									printf("float array lida\n");
+							//		printf("float array lida\n");
 								}
 								ezxml_t technique_common = ezxml_child(source, "technique_common");
 								if (technique_common){
-									printf("lendo technique_common\n");
+									//printf("lendo technique_common\n");
 									ezxml_t accessor = ezxml_child(technique_common, "accessor");
 									if (accessor){
-										printf("tem accessor\n");
+									//	printf("tem accessor\n");
 										texSet->components = atoi( ezxml_attr(accessor, "stride"));
-										printf("accessor: %d\n", atoi( ezxml_attr(accessor,"stride" )));
+									//	printf("accessor: %d\n", atoi( ezxml_attr(accessor,"stride" )));
 									}
 									else{
-										printf("nao tem accessor\n");
+									//	printf("nao tem accessor\n");
 										texSet->components = 2;
 									}
 								}else
 									texSet->components = 2;
 								
 							}
-							printf("lido components:%d \n", texSet->components);
+							//printf("lido components:%d \n", texSet->components);
 							tri->numTexSets++;
 							texSetIndices++;
 							tri->texCoords[texSetIndices] = texSet;
@@ -269,6 +279,9 @@ int addNode(scene* s, node* n){
 	return fplist_insback(n, s->nodes);
 }
 
+int addLight(scene* s, light* l){
+	return fplist_insback(l, s->lights);
+}
 
 scene* initializeScene(){
 
@@ -277,5 +290,44 @@ scene* initializeScene(){
 	//TODO deixa null aqui?
 	s->meshes = fplist_init(NULL,  free);
 	s->nodes = fplist_init(NULL, free);
+	s->lights = fplist_init(NULL, free);
 	return s;
+}
+
+int setupScene(scene* s){
+
+	if (s == NULL)
+		return 0;
+
+	if (s->meshes){
+		mesh* m = NULL;
+		for( int i = 0; i < s->meshes->size; i++){ // para da mesh da cena
+			m = fplist_getdata(i, s->meshes);
+			createVBO(m);
+		}
+	}
+	return 1;
+}
+
+void drawScene(scene* scn){
+
+	if (scn == NULL)
+		return;
+
+	if (scn->meshes){
+		mesh* m = NULL;
+		for( int i = 0; i < scn->meshes->size; i++){ // para da mesh da cena
+			m = fplist_getdata(i, scn->meshes);
+			if (m->tris){
+				triangles* tri = NULL;
+				for( int k = 0; k < m->tris->size; k++){ //para cada chunk de triangles do mesh
+					tri = fplist_getdata(k, m->tris);
+					bindMaterial(&tri->mat, scn->lights->first->data);
+					bindShader(tri->mat.shaderid);
+					drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES );
+				}
+			}
+		}
+	}
+
 }

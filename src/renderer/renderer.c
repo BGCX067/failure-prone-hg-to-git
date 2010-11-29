@@ -1,22 +1,15 @@
 #include "../util/GLee.h"
 #include "renderer.h"
 #include "camera.h"
-#include "scene.h"
 #include "math/matrix.h"
 #include "../glapp.h"
 #include "../util/image.h"
 #include "../util/textfile.h"
-#include "mesh.h"
-#include "../util/shadergen.h"
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glext.h>
 #include <string.h>
-#include "../util/procedural/terrain.h"
-#include "glime.h"
 #include <stdlib.h>
-#include "../util/m3.h"
-#include "particles.h"
 
 typedef struct _texture{
 	unsigned int id;
@@ -662,14 +655,14 @@ void bindShader(unsigned int program){
 				//glUniform4fv(shaders[program]->uniforms[i]->location, shaders[program]->uniforms[i]->size, (GLfloat*) shaders[program]->uniforms[i]->data);
 			}
 		}else if ( shdr->uniforms[i]->semantic == EYEPOS){
-			setShaderConstant3f(program, "eyeposition",  c.pos);
+			setShaderConstant3f(program, "eyePosition",  c.pos);
 		}else if (shdr->uniforms[i]->semantic == TIME){
 		//	setShaderConstant1f(program, "Time", ifps);
 			  setShaderConstant1f(program, "time", elapsedTime);
 		}else if  (shdr->uniforms[i]->semantic == MVP){
 			setShaderConstant4x4f(program, "mvp", c.mvp);
-        //}else if  (shdr->uniforms[i]->semantic == MODELVIEW){
-		//	setShaderConstant4x4f(program, "modelview", c.modelview);
+        	}else if  (shdr->uniforms[i]->semantic == MODELVIEW){
+			setShaderConstant4x4f(program, "modelview", c.modelview);
 		
 //		else if (r->shaders[program]->uniforms[i]->semantic == LIGHTPOS){
 		//	float lightp[3] = {10.0, 10.0, 10.0 };
