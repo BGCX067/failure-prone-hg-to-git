@@ -10,23 +10,13 @@
 #include "renderer/particles.h"
 
 int idle(float ifps, event* e, scene* s){
-	
-
-	//printf("x:  %f y: %f \n ",playerBody->p.x, playerBody->p.y );
-	
 	return 1;
 }
 
 
-batch* cube;
-batch* quad;
-batch* points;
-batch* star;
-
 int samplerstate;
 unsigned int particleShader;
 unsigned int tex;
-
 float elapsedTime;
 
 particlesystem* ps;
@@ -90,9 +80,9 @@ void initializeGame(){
 	pos[2] = 9.7;
 	vec3 force;
 	force[0] = 0.0;
-	force[1] = 6.0;
-	force[2] = -9.8;
-	ps = initparticles(60, pos, 2.0, 2.0,  force);
+	force[1] = -9.8;//6.0;
+	force[2] = -6.0;//-9.8;
+	ps = initparticles(300, pos, 2.0, 2.0,  force);
 
 	particleShader = initializeShader( readTextFile("data/shaders/particles.vert"), readTextFile("data/shaders/particles.frag") );
 
@@ -127,7 +117,6 @@ int render(float ifps, event *e, scene *s){
 
 
 int main(){
-
 	glapp* app = setVideoMode(800, 600, 0);
 	if (!app){
 		printf("Invalid Video Mode\n");

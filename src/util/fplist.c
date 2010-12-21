@@ -6,13 +6,14 @@ void fpnode_destroy(fpnode* n, void (*destroy)(void*)){
     free(n);
 }
 
-fplist* fplist_init(void* (*_create)(void*), void (*dest)(void*)) {
+fplist* fplist_init(void (*_create)(void*), void (*dest)(void*)) {
     fplist *l = (fplist*) malloc(sizeof(fplist));
     l->first = NULL;
     l->last= NULL;
     l->size = 0;
     l->destroy = dest;
     l->create = _create;
+    return l;
 }
 
 void fplist_destroy(fplist *l) {
@@ -43,9 +44,12 @@ void* fplist_getdata(int index, fplist *l) {
 void fplist_insfront(void *data, fplist *l) {
     /* Aloca um node novo */
     fpnode* n = (fpnode*) malloc(sizeof(fpnode));
-    if(l->create)
-        n->data = l->create(data);
-    else
+
+    //TODO ajeitar alocação de memória com ponteiro
+    //para função
+    //if(l->create)
+        //n->data = l->create(data);
+    //else
         n->data = data;
     /* Ajusta os ponteiros corretamente - inserindo no início */
     n->next = l->first;
@@ -59,12 +63,16 @@ void fplist_insfront(void *data, fplist *l) {
 
 int fplist_insback(void *data, fplist *l) {
     fpnode* n = (fpnode*) malloc(sizeof(fpnode));
-    if(l->create) {
-        n->data = l->create(data);
-    }
-    else {
+    //TODO ajeitar alocação de memória com ponteiro
+    //para função
+    //if(l->create) {
+    //    printf("insback, create nao eh null!\n");
+        //n->data = l->create(data);
+    //}
+    //else {
+    //    printf("create eh null!\n");
         n->data = data;
-    }
+    //}
 
     n->next = NULL;
     

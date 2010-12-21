@@ -54,7 +54,7 @@ void updateparticles(particlesystem *ps, float elapsedtime) {
 	ps->p[i].pos[1] += s[1];
 	ps->p[i].pos[2] += s[2];
 
-        ps->p[i].lifetime += elapsedtime;
+    ps->p[i].lifetime += elapsedtime;
 	if (ps->p[i].lifetime > ps->maxlifetime){
 		ps->p[i].pos[0] = ps->pos[0];
 		ps->p[i].pos[1] = ps->pos[1];

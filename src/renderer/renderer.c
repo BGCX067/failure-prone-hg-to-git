@@ -188,7 +188,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	r->zfar = zfar;
 	r->znear = znear;
 	r->prevVBO = 0;
-	r->prevVAO = 0;
+	r->prevVAO = -1;
 	r->viewPortWidth = w;
 	r->viewPortHeight = h;
 	r->prevFramebuffer = -1;
@@ -244,6 +244,17 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
  	initCamera(&c);
+/*    c.pos[0] = 0.0;
+    c.pos[1] = 100.0;
+    c.pos[2] = 0.0;
+
+    c.up[0] = 0.0;
+    c.up[1] = 0.0;
+    c.up[2] = 1.0;
+
+    c.viewDir[0] = 0.0;
+    c.viewDir[1] = -1.0;
+    c.viewDir[2] = 0.0;*/
 	fpperspective(c.projection, fovy, ratio, znear, zfar);
 	//fpOrtho(projection, 0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);	
 	//fpIdentity(modelview);
@@ -487,7 +498,6 @@ void bindTexture(int slot, int id){
 //////////
 unsigned int initializeShader(const char* vertexSource, const char* fragmentSource){
 
-
 	if (shaders == NULL)
 		shaders = fparray_init(NULL, free, sizeof(shader));
 
@@ -501,6 +511,7 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 
 	int vertexShader;
 	if (vertexSource){
+
 		vertexShader = glCreateShader(GL_VERTEX_SHADER);
 
 		if (vertexShader == 0)
@@ -801,11 +812,15 @@ unsigned int initializeIndexedVAO( unsigned int  indicesID, vertexAttribute** at
 
 unsigned int drawIndexedVAO(unsigned int vaoID, unsigned int triCount, int geometryType){
 
-	if (vaoID != r->prevVAO){
+    printf("vaoid %d \n", vaoID);
+    printf("prevVAO %d \n", r->prevVAO);
+    if (vaoID != r->prevVAO){
 		r->prevVAO = vaoID;
 		glBindVertexArray(vaoID);
 	}
+    printf("draw elements \n");
 	glDrawElements(geometryType, triCount, GL_UNSIGNED_INT, NULL);
+    printf("end draw elements \n");
 }
 
 unsigned int initializeVBO(unsigned int size, int mode, const void* data){

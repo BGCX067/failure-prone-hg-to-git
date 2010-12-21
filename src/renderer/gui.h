@@ -26,7 +26,7 @@ typedef struct _GUI{
 }GUI;
 
 GUI* initializeGUI(int w, int h);
-void beginGUI();
+void beginGUI(event *e);
 void endGUI();
 
 int doButton(int id, rect* r, char* text);
