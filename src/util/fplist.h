@@ -14,11 +14,10 @@ typedef struct _fplist {
     fpnode *last;
     int size;
     void (*destroy)(void*);
-    void (*create)(void*);
 }fplist;
 
 
-fplist* fplist_init(void (*_create)(void*), void (*dest)(void*));
+fplist* fplist_init(void (*dest)(void*));
 void fplist_destroy(fplist *l);
 
 void* fplist_getdata(int index, fplist *l);

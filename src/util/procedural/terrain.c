@@ -1,4 +1,4 @@
-
+#include <stdlib.h>
 #include <string.h>
 #include "terrain.h"
 #include "../image.h"
@@ -80,13 +80,12 @@ void initializeTerrain(char* filename, float scale){
 	
 	m = malloc(sizeof(mesh));
 	m->trianglesCount = 1;
-	m->tris = fplist_init(NULL, NULL);
+	m->tris = fplist_init(NULL);
 	fplist_insback( tri, m->tris);
 
 	printf("sizex: %d sizey: %d \n", sizex, sizey);
 
 	createVBO(m);	
-
 }
 
 void drawTest(){
