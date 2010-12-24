@@ -15,7 +15,9 @@ enum {
     NO_EVENT = 1 << 0,
     KEYBOARD_EVENT = 1 << 1,
     MOUSE_MOTION_EVENT = 1 << 2,
-    MOUSE_BUTTON_EVENT = 1 << 3
+    MOUSE_BUTTON_EVENT = 1 << 3,
+    MOUSE_BUTTON_PRESS = 1 << 4,
+    MOUSE_BUTTON_RELEASE = 1 << 4
 };
 
 /* enum para as keys do evento */

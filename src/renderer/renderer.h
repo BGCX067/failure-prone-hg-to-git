@@ -7,6 +7,7 @@
 #include "../glapp.h"
 #include "../util/fplist.h"
 #include "../util/fparray.h"
+#include "camera.h"
 
 #define MAX_VERTEX_ATTRS 16
 
@@ -117,7 +118,7 @@ typedef struct _rect{
 	int x, y, w, h;
 }rect;
 
-renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy);
+renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, cameratype t);
 
 int render(float ifps, event *e, scene* s);
 void begin2d();

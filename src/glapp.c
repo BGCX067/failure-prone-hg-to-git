@@ -257,7 +257,7 @@ int getKeyCode(int key){
 void mainloop(glapp* app, int(idle)(float, event*, scene *), int(render)(float, event*, scene*), scene* s ){
 
 	event evt;
-    	evt.buttonLeft =  evt.buttonRight = 0;
+    evt.buttonLeft =  evt.buttonRight = 0;
 	memset(evt.keys, 0, 512*sizeof(int));
 	memset(keysDelay, 0, 512*sizeof(int));
 	KeySym key;
@@ -267,9 +267,9 @@ void mainloop(glapp* app, int(idle)(float, event*, scene *), int(render)(float, 
 	float fps = 60;
 	float ifps = 1/fps;
     
-	setMouse(app->width/2, app->height/2);
+	//setMouse(app->width/2, app->height/2);
 	while(1){
-        	evt.type = NO_EVENT;
+        evt.type = NO_EVENT;
 		while(XPending(display)){
 			XEvent  event;
 			XNextEvent(display,  &event);
@@ -304,16 +304,17 @@ void mainloop(glapp* app, int(idle)(float, event*, scene *), int(render)(float, 
 					break;
 				case ButtonPress:
 					evt.button |= 1 << (event.xbutton.button - 1);
-       					evt.type |= MOUSE_BUTTON_EVENT;
+       					evt.type |= MOUSE_BUTTON_PRESS;
 					evt.buttonLeft = 1;
 					evt.buttonRight = 1;
-					//printf("BUTTONPRESS\n");
+					printf("BUTTONPRESS\n");
 					break;
 				case ButtonRelease:
 					evt.button  &= ~( 1 <<event.xbutton.button - 1  );
-					evt.type |= MOUSE_BUTTON_EVENT;
+					evt.type |= MOUSE_BUTTON_RELEASE;
 					evt.buttonLeft = 0;
 					evt.buttonRight = 0;
+                    printf("BUTTONRELEASE\n");
 					break;
 			}
 
@@ -337,7 +338,7 @@ void mainloop(glapp* app, int(idle)(float, event*, scene *), int(render)(float, 
 
 		glXSwapBuffers(display, window);
 		evt.button &= ~(BUTTON_UP | BUTTON_DOWN);
-        	setMouse(app->width/2, app->height/2);
+        	//setMouse(app->width/2, app->height/2);
 	}
 }
 

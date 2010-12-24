@@ -9,6 +9,7 @@
 #include "renderer/light.h"
 #include "util/fplist.h"
 #include "renderer/particles.h"
+#include "renderer/camera.h"
 
 int idle(float ifps, event* e, scene* s){
 	
@@ -83,7 +84,7 @@ int main(){
 	}
 
 	setWindowTitle("Mathfeel");
-	renderer* renderer  = initializeRenderer(app->width, app->height, 1.0, 1000.0, 75.0 );
+	renderer* renderer  = initializeRenderer(app->width, app->height, 1.0, 1000.0, 75.0, TRACKBALL);
 	initializeGame();
 	mainloop(app, idle, render, cena );
 

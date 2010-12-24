@@ -15,4 +15,6 @@ void cross(vec3 v1, vec3 v2, vec3 res);
 float vecLength(vec3 v);
 void vecNormalize(vec3 v);
 
+float vecAngle(vec3 v1, vec3 v2);
+
 #endif

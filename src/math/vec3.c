@@ -39,3 +39,8 @@ void vecNormalize(vec3 v) {
     v[1] /= len;
     v[2] /= len;
 }
+
+//TODO otimizar, acos é lento
+float vecAngle(vec3 v1, vec3 v2) {
+    return acos(dot(v1, v2)/(vecLength(v1)*vecLength(v2)));
+}

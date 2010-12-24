@@ -181,7 +181,7 @@ void beginRender(event *e) {
 	fpMultMatrix(c.mvp, c.projection, c.modelview);
 }
 
-renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
+renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, cameratype t){
 	r = (renderer*) malloc(sizeof(renderer));
     	r->framebuffers = fparray_init(NULL, free, sizeof(framebuffer));
 	r->fovy = fovy;
@@ -243,18 +243,8 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
- 	initCamera(&c);
-/*    c.pos[0] = 0.0;
-    c.pos[1] = 100.0;
-    c.pos[2] = 0.0;
+ 	initCamera(&c, t);
 
-    c.up[0] = 0.0;
-    c.up[1] = 0.0;
-    c.up[2] = 1.0;
-
-    c.viewDir[0] = 0.0;
-    c.viewDir[1] = -1.0;
-    c.viewDir[2] = 0.0;*/
 	fpperspective(c.projection, fovy, ratio, znear, zfar);
 	//fpOrtho(projection, 0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);	
 	//fpIdentity(modelview);
@@ -812,15 +802,15 @@ unsigned int initializeIndexedVAO( unsigned int  indicesID, vertexAttribute** at
 
 unsigned int drawIndexedVAO(unsigned int vaoID, unsigned int triCount, int geometryType){
 
-    printf("vaoid %d \n", vaoID);
-    printf("prevVAO %d \n", r->prevVAO);
+    //printf("vaoid %d \n", vaoID);
+    //printf("prevVAO %d \n", r->prevVAO);
     if (vaoID != r->prevVAO){
 		r->prevVAO = vaoID;
 		glBindVertexArray(vaoID);
 	}
-    printf("draw elements \n");
+    //printf("draw elements \n");
 	glDrawElements(geometryType, triCount, GL_UNSIGNED_INT, NULL);
-    printf("end draw elements \n");
+    //printf("end draw elements \n");
 }
 
 unsigned int initializeVBO(unsigned int size, int mode, const void* data){
