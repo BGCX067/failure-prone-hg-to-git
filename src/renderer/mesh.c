@@ -121,3 +121,38 @@ void createVBO(mesh* m){
 	}
 
 }
+
+void setboundingbox(mesh *m) {
+    //memset(m->b.pmin, 9999999, 3*sizeof(float));
+    //memset(m->b.pmax, -999999, 3*sizeof(float));
+    m->b.pmin[0] = 99999999;
+    m->b.pmin[1] = 99999999;
+    m->b.pmin[2] = 99999999;
+
+    m->b.pmax[0] = -999999999;
+    m->b.pmax[1] = -999999999;
+    m->b.pmax[2] = -999999999;
+
+    //para cada triangles da lista
+    for(int i = 0; i < m->tris->size; i++) {
+        triangles *t = fplist_getdata(i, m->tris);
+        printf("t->verticesCount: %d\n", t->verticesCount);
+        for(int j = 0; j < t->verticesCount/3; j++) {
+            //X
+            if(t->vertices[3*j] < m->b.pmin[0])
+                m->b.pmin[0] = t->vertices[3*j];
+            if (t->vertices[3*j] > m->b.pmax[0])
+                m->b.pmax[0] = t->vertices[3*j];
+            //Y
+            if(t->vertices[3*j + 1] < m->b.pmin[1])
+                m->b.pmin[1] = t->vertices[3*j + 1];
+            if (t->vertices[3*j + 1] > m->b.pmax[1])
+                m->b.pmax[1] = t->vertices[3*j + 1];
+            //Z
+            if(t->vertices[3*j + 2] < m->b.pmin[2])
+                m->b.pmin[2] = t->vertices[3*j + 2];
+            if (t->vertices[3*j + 2] > m->b.pmax[2])
+                m->b.pmax[2] = t->vertices[3*j + 2];
+        }
+    }
+}

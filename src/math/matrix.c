@@ -130,7 +130,7 @@ void fpperspective(mat4 m, float fovy, float ratio, float znear, float zfar) {
     float one_deltax = 1.0f/(xmax - xmin);
     float one_deltay = 1.0f/(ymax - ymin);
     float one_deltaz = 1.0f/(zfar - znear);
-
+    
     for(int i = 0; i < 16; i++)
         m[i] = 0;
 

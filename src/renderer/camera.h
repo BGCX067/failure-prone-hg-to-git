@@ -4,6 +4,7 @@
 #include "../math/vec3.h"
 #include "../math/quaternion.h"
 #include "../math/matrix.h"
+#include "../math/boundingbox.h"
 #include "../glapp.h"
 
 typedef enum _cameratype { FIRSTPERSON, TRACKBALL } cameratype;
@@ -20,5 +21,6 @@ typedef struct camera {
 void initCamera(camera *c, cameratype t);
 void cameraHandleEvent(camera *c, event *e);
 void setupViewMatrix(camera *c);
+void camerafit(camera *c, boundingbox b, float fovy, float ratio, float znear, float zfar);
 
 #endif

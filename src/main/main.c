@@ -35,6 +35,8 @@ float elapsedTime;
 scene* cena;
 mesh* duck; //pato dentro da scena
 
+renderer *mainrenderer;
+
 void initializeGame(){
 
 	samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
@@ -53,7 +55,12 @@ void initializeGame(){
 	l->color[3] = 1.0;
 	addLight(cena, l);
 	setupScene(cena);
-
+    
+    //FIXME 
+    camerafit(getcamera(), cena->b, 45.0, 800.0/600.0, 1.0, 10000.0);
+    printf("boundingbox da cena\n");
+    printf("\tpmin: %f, %f, %f\n", cena->b.pmin[0], cena->b.pmin[1], cena->b.pmin[2]);
+    printf("\tpmax: %f, %f, %f\n", cena->b.pmax[0], cena->b.pmax[1], cena->b.pmax[2]);
 }
 
 int render(float ifps, event *e, scene *cena){
@@ -68,6 +75,53 @@ int render(float ifps, event *e, scene *cena){
 	triangles* tri = duck->tris->first->data;
 //	bindShader(minimalShader);
 	drawScene(cena);
+
+    batch *bbox = initializeBatch();
+    begin(bbox, GL_LINES, 24, 0);
+        vertex3f(bbox, cena->b.pmin[0], cena->b.pmin[1], cena->b.pmin[2]);
+        vertex3f(bbox, cena->b.pmin[0], cena->b.pmin[1], cena->b.pmax[2]);
+
+        vertex3f(bbox, cena->b.pmin[0], cena->b.pmin[1], cena->b.pmin[2]);
+        vertex3f(bbox, cena->b.pmin[0], cena->b.pmax[1], cena->b.pmin[2]);
+
+        vertex3f(bbox, cena->b.pmin[0], cena->b.pmin[1], cena->b.pmin[2]);
+        vertex3f(bbox, cena->b.pmax[0], cena->b.pmin[1], cena->b.pmin[2]);
+
+        
+        vertex3f(bbox, cena->b.pmin[0], cena->b.pmax[1], cena->b.pmax[2]);
+        vertex3f(bbox, cena->b.pmin[0], cena->b.pmax[1], cena->b.pmin[2]);
+
+
+        vertex3f(bbox, cena->b.pmin[0], cena->b.pmax[1], cena->b.pmax[2]);
+        vertex3f(bbox, cena->b.pmax[0], cena->b.pmax[1], cena->b.pmax[2]);
+
+
+        vertex3f(bbox, cena->b.pmin[0], cena->b.pmax[1], cena->b.pmax[2]);
+        vertex3f(bbox, cena->b.pmin[0], cena->b.pmin[1], cena->b.pmax[2]);
+
+
+        vertex3f(bbox, cena->b.pmax[0], cena->b.pmax[1], cena->b.pmin[2]);
+        vertex3f(bbox, cena->b.pmax[0], cena->b.pmax[1], cena->b.pmax[2]);
+
+        
+        vertex3f(bbox, cena->b.pmax[0], cena->b.pmax[1], cena->b.pmin[2]);
+        vertex3f(bbox, cena->b.pmin[0], cena->b.pmax[1], cena->b.pmin[2]);
+
+        vertex3f(bbox, cena->b.pmax[0], cena->b.pmax[1], cena->b.pmin[2]);
+        vertex3f(bbox, cena->b.pmax[0], cena->b.pmin[1], cena->b.pmin[2]);
+
+        vertex3f(bbox, cena->b.pmax[0], cena->b.pmin[1], cena->b.pmax[2]);
+        vertex3f(bbox, cena->b.pmin[0], cena->b.pmin[1], cena->b.pmax[2]);
+
+        vertex3f(bbox, cena->b.pmax[0], cena->b.pmin[1], cena->b.pmax[2]);
+        vertex3f(bbox, cena->b.pmax[0], cena->b.pmax[1], cena->b.pmax[2]);
+
+        vertex3f(bbox, cena->b.pmax[0], cena->b.pmin[1], cena->b.pmax[2]);
+        vertex3f(bbox, cena->b.pmax[0], cena->b.pmin[1], cena->b.pmin[2]);
+    end(bbox);
+
+    draw(bbox);
+
 
 	glFlush();
 }
@@ -84,7 +138,8 @@ int main(){
 	}
 
 	setWindowTitle("Mathfeel");
-	renderer* renderer  = initializeRenderer(app->width, app->height, 1.0, 1000.0, 75.0, TRACKBALL);
+	//renderer* renderer  = initializeRenderer(app->width, app->height, 1.0, 1000.0, 45.0, TRACKBALL);
+	mainrenderer  = initializeRenderer(app->width, app->height, 0.1, 10000.0, 45.0, TRACKBALL);
 	initializeGame();
 	mainloop(app, idle, render, cena );
 

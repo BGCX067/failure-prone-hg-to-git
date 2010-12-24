@@ -2,6 +2,7 @@
 #define _MESH_H_
 
 #include "../util/fplist.h"
+#include "../math/boundingbox.h"
 #include "material.h"
 
 #define MAX_TEXCOORDS 8
@@ -36,14 +37,14 @@ typedef struct _triangles{
 }triangles;
 
 typedef struct _mesh{
-
 	int trianglesCount;
 	//triangles* tris;
 	fplist*  tris;
-
+    boundingbox b;
 }mesh;
 
 void createVBO(mesh* mesh);
+void setboundingbox(mesh *m);
 
 
 #endif

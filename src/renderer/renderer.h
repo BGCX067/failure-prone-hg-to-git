@@ -176,4 +176,8 @@ void setShaderConstantArray4f(const char *name, const vec4  *constant, const uin
 void setShaderConstantArray4x4f(const char *name, const mat4 *constant, const uint count);*/
 void setShaderConstantRaw(int shaderid, const char *name, const void *data, const int size);
 
+
+//FIXME remover essa porcaria
+camera* getcamera();
+
 #endif

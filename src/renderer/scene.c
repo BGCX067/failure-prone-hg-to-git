@@ -301,15 +301,37 @@ scene* initializeScene(){
 }
 
 int setupScene(scene* s){
-
 	if (s == NULL)
 		return 0;
+    s->b.pmin[0] = 99999999;
+    s->b.pmin[1] = 99999999;
+    s->b.pmin[2] = 99999999;
+
+    s->b.pmax[0] = -999999999;
+    s->b.pmax[1] = -999999999;
+    s->b.pmax[2] = -999999999;
 
 	if (s->meshes){
 		mesh* m = NULL;
 		for( int i = 0; i < s->meshes->size; i++){ // para da mesh da cena
 			m = fplist_getdata(i, s->meshes);
 			createVBO(m);
+            setboundingbox(m);
+
+            if(m->b.pmin[0] < s->b.pmin[0])
+                s->b.pmin[0] = m->b.pmin[0];
+            if (m->b.pmax[0] > s->b.pmax[0])
+                s->b.pmax[0] = m->b.pmax[0];
+
+            if(m->b.pmin[1] < s->b.pmin[1])
+                s->b.pmin[1] = m->b.pmin[1];
+            if (m->b.pmax[1] > s->b.pmax[1])
+                s->b.pmax[1] = m->b.pmax[1];
+
+            if(m->b.pmin[2] < s->b.pmin[2])
+                s->b.pmin[2] = m->b.pmin[2];
+            if (m->b.pmax[2] > s->b.pmax[2])
+                s->b.pmax[2] = m->b.pmax[2];
 		}
 	}
 	return 1;

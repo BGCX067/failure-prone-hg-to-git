@@ -5,6 +5,7 @@
 #include "material.h"
 #include "../util/fplist.h"
 #include "../math/vec3.h"
+#include "../math/boundingbox.h"
 #include "light.h"
 
 typedef struct _node{
@@ -23,6 +24,8 @@ typedef struct _scene{
 	fplist* meshes;
 	fplist* lights;
 	fplist* nodes;
+
+    boundingbox b;
 }scene;
 
 void initializeTriangles(triangles* tri);

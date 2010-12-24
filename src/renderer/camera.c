@@ -209,3 +209,26 @@ void cameraHandleEvent(camera *c, event *e) {
     }
 }
 
+
+/* assume um fit na "frente do modelo" */
+void camerafit(camera *c, boundingbox b, float fovy, float ratio, float znear, float zfar) {
+    QUAT_IDENTITY(c->orientation);
+    c->up[0] = 0.0;
+    c->up[1] = 1.0;
+    c->up[0] = 0.0;
+
+    vec3 bcenter;
+    bbcenter(b, bcenter);
+
+    c->pos[0] = bcenter[0];
+    c->pos[1] = bcenter[1];
+    c->pos[2] = bcenter[2] + 4*(b.pmax[2] - b.pmin[2]) + ((b.pmax[1] - bcenter[1])/tan(0.5*fovy));
+    printf("c->pos: %f, %f, %f\n", c->pos[0], c->pos[1], c->pos[2]); 
+
+    c->viewDir[0] = 0;
+    c->viewDir[1] = 0;
+    c->viewDir[2] = -1;
+
+    fpIdentity(c->modelview);
+//    fpperspective(c->projection, fovy, ratio, znear, zfar);
+}

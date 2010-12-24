@@ -917,3 +917,7 @@ void bindMainFramebuffer(){
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, r->viewPortWidth, r->viewPortHeight);
 }
+
+camera* getcamera() {
+    return &c;
+}
