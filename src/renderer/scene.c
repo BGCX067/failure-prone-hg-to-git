@@ -116,7 +116,7 @@ scene* initializeDae(char* filename){
                 tri->mat.kd[1] = 0.6;
                 tri->mat.kd[2] = 0.6;
                 tri->mat.kd[3] = 1.0;
-                tri->mat.shaderid = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
+                //tri->mat.shaderid = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag") );
 
                 //char* material = ezxml_attr(trixml, "material");
                 //printf("material: %s \n", material);
@@ -350,8 +350,8 @@ void drawScene(scene* scn){
 				triangles* tri = NULL;
 				for( int k = 0; k < m->tris->size; k++){ //para cada chunk de triangles do mesh
 					tri = fplist_getdata(k, m->tris);
-					bindMaterial(&tri->mat, scn->lights->first->data);
-					bindShader(tri->mat.shaderid);
+					//bindMaterial(&tri->mat, scn->lights->first->data);
+					//bindShader(tri->mat.shaderid);
 					drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES );
 				}
 			}

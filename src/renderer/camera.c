@@ -120,11 +120,11 @@ void cameraHandleEvent(camera *c, event *e) {
         }
     } else if (c->type == TRACKBALL) {
         if(e->type & MOUSE_MOTION_EVENT && e->buttonLeft ) {
-            printf("c->type == TRACKBALL && e->type & MOUSE_BUTTON_PRESS\n");
+            //printf("c->type == TRACKBALL && e->type & MOUSE_BUTTON_PRESS\n");
             if(!initializedtrackball) {
                 //Mapeia de coordenadas de janela para a trackball [-1, 1]
                 //FIXME hardcoded o tamanho da janela (800, 600)
-                printf("\tinicializando trackball, escrevendo em lastpos\n");
+                //printf("\tinicializando trackball, escrevendo em lastpos\n");
                 float x = e->x/400.0 - 1.0;
                 float y = 1.0 - e->y/300.0;
                 float z = sqrt(1.0 - x*x - y*y);
@@ -136,7 +136,7 @@ void cameraHandleEvent(camera *c, event *e) {
             } else {
                 //Mapeia de coordenadas de janela para a trackball [-1, 1]
                 //FIXME hardcoded o tamanho da janela (800, 600)
-                printf("\ttrackball inicializada, arrastando mouse\n");
+                //printf("\ttrackball inicializada, arrastando mouse\n");
                 float x = e->x/400.0 - 1.0;
                 float y = 1.0 - e->y/300.0;
                 float z = sqrt(1.0 - x*x - y*y);
@@ -165,7 +165,7 @@ void cameraHandleEvent(camera *c, event *e) {
                 }
             }
         } else if(e->type & MOUSE_BUTTON_RELEASE) {
-            printf("c->type == TRACKBALL && e->type & MOUSE_BUTTON_RELEASE\n");
+            //printf("c->type == TRACKBALL && e->type & MOUSE_BUTTON_RELEASE\n");
             initializedtrackball = 0;
             VEC3_ZERO(lastpos);
             VEC3_ZERO(currpos);
@@ -223,7 +223,7 @@ void camerafit(camera *c, boundingbox b, float fovy, float ratio, float znear, f
     c->pos[0] = bcenter[0];
     c->pos[1] = bcenter[1];
     c->pos[2] = bcenter[2] + 4*(b.pmax[2] - b.pmin[2]) + ((b.pmax[1] - bcenter[1])/tan(0.5*fovy));
-    printf("c->pos: %f, %f, %f\n", c->pos[0], c->pos[1], c->pos[2]); 
+    //printf("c->pos: %f, %f, %f\n", c->pos[0], c->pos[1], c->pos[2]); 
 
     c->viewDir[0] = 0;
     c->viewDir[1] = 0;

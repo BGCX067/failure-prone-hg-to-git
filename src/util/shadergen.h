@@ -11,11 +11,11 @@ enum {
     SPOTLIGHT = 1 << 6 /* FAIL */
 };
 
-typedef struct _material {
+typedef struct _shaderflags {
     int flags; 
-}material;
+}shaderflags;
 
-void shadergen(material m, char** vertShader, char** fragShader);
+void shadergen(shaderflags m, char** vertShader, char** fragShader);
 
 
 #endif

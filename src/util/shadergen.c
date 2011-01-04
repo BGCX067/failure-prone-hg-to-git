@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 
-char* createVSGlobals(material m) {
+char* createVSGlobals(shaderflags m) {
     char* header = "#version 330 core\n\n";
     char* ret;
     char* phong = ""; 
@@ -53,7 +53,7 @@ char* createVSGlobals(material m) {
     return ret;
 }
 
-char* createVSFuncs(material m) {
+char* createVSFuncs(shaderflags m) {
     char *ret = "";
     char* phong = "";
 
@@ -88,7 +88,7 @@ char* createVSFuncs(material m) {
     return ret;
 }
 
-char* createVSMain(material m) {
+char* createVSMain(shaderflags m) {
     char* ret;
     char* phong = ""; 
     char* normalmap = "";
@@ -142,7 +142,7 @@ char* createVSMain(material m) {
     return ret;
 }
 
-char* createFSGlobal(material m) {
+char* createFSGlobal(shaderflags m) {
     char* ret;
     char* phong = "";
     char* attenuation = "";
@@ -220,7 +220,7 @@ char* createFSGlobal(material m) {
     return ret;
 }
 
-char* createFSFuncs(material m) {
+char* createFSFuncs(shaderflags m) {
     char* ret = "";
     char* att = "";
     char* phong = "";
@@ -253,7 +253,7 @@ char* createFSFuncs(material m) {
                      "\tvec3 n = normal;"
                      "\tvec3 lightPos = (modelview*vec4(LightPosition, 1.0)).xyz;\n"
                      "\tvec3 lightVec = lightPos - position;\n"
-                     "\tvec3 viewVec = normalize(position);\n"
+                     "\tvec3 viewVec = normalize( -position);\n"
                      "\tvec3 halfVec = normalize(lightVec + viewVec);\n"
                      "\tfloat diffCoef = max(dot(n, lightVec), 0.0);\n"
                      "\tfloat specCoef = pow(max(dot(viewVec, halfVec), 0.0), shininess);\n"
@@ -313,7 +313,7 @@ char* createFSFuncs(material m) {
     return ret;
 }
 
-char* createFSMainBody(material m) {
+char* createFSMainBody(shaderflags m) {
     char* ret;
     char* phong = ""; 
     char* tex = "";
@@ -353,7 +353,7 @@ char* createFSMainBody(material m) {
     return ret;
 }
 
-char* createFSMainFragColor(material m) {
+char* createFSMainFragColor(shaderflags m) {
     char* ret;
     char* phong = ""; 
     char* tex = "";
@@ -389,7 +389,7 @@ char* createFSMainFragColor(material m) {
     return ret;
 }
 
-char* createFSMain(material m) {
+char* createFSMain(shaderflags m) {
     char* ret;
     char* main = "";
     char* fragcolor = "";
@@ -405,7 +405,7 @@ char* createFSMain(material m) {
 }
 
 //TODO passar ponteiro pra ponteiro é uma solução ruim
-void shadergen(material m, char** vertShader, char** fragShader) {
+void shadergen(shaderflags m, char** vertShader, char** fragShader) {
     //create vert shader
     char* vsglobal = createVSGlobals(m);
     char* vsfunc = createVSFuncs(m);

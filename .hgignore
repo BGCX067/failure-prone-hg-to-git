@@ -2,6 +2,9 @@
 ^objs_optimized$
 ^tools/particles/deps_optimized$
 ^tools/particles/objs_optimized$
+^tools/md2loader$
+^tools/ms3dloader$
+
 
 .*.*.swp
 .*.*.orig
