@@ -69,10 +69,11 @@ scene* initializeDae(char* filename){
 	}else{
 		ezxml_t geometry;
 		for ( geometry = ezxml_child(library_geometries, "geometry"); geometry;  geometry = geometry->next){
-			ezxml_t mesh;
-			for(mesh = ezxml_child(geometry, "mesh"); mesh; mesh = mesh->next){
-				s->meshCount++;	
-			}
+			//ezxml_t mesh;
+			//for(mesh = ezxml_child(geometry, "mesh"); mesh; mesh = mesh->next){
+			//	s->meshCount++;	
+			//}
+			s->meshCount++;	
 		}
 		
 		for(geometry = ezxml_child(library_geometries, "geometry"); geometry; geometry = geometry->next){
@@ -92,6 +93,7 @@ scene* initializeDae(char* filename){
                 m->trianglesCount++;
             }
             //TODO passar  destrutor?
+            printf("m->trianglesCount: %d\n", m->trianglesCount);
             //m->tris = fplist_init(NULL); //malloc(sizeof(triangles)*s->meshes[i]->trianglesCount);
             m->tris = fplist_init(free);
             int triCount = 0;
@@ -130,7 +132,7 @@ scene* initializeDae(char* filename){
                     tok = strtok(NULL, " ");
                     k++;
                 }
-                //printf("leu os indices\n");
+                printf("leu os indices\n");
 
                 ezxml_t input = ezxml_child(trixml, "input");
                 int texSetIndices = -1;
@@ -144,24 +146,26 @@ scene* initializeDae(char* filename){
                             sourceName[k-1] = sourceName[k];
                         sourceName[strlen(sourceName)-1] = '\0';
                     }
-                    //printf("sourceNAme: %s  semantic: %s  \n", sourceName, semantic);
+                    printf("sourceNAme: %s  semantic: %s  \n", sourceName, semantic);
                     if (strcmp(semantic, "VERTEX") == 0){
-                        //printf(" Vertex \n");
+                        printf("\tVertex \n");
                         ezxml_t source = getVertexSource(sourceName, meshxml);
                         if (source){
-                            //printf("source \n");
+                            printf("\t\tsource \n");
                             ezxml_t floatArray = ezxml_child(source, "float_array");
                             if (floatArray){
-                                //printf("floatArray\n");
+                                printf("\t\t\tfloatArray\n");
                                 tri->verticesCount = atoi(ezxml_attr(floatArray, "count"));
                                 getFloatArray( tri->vertices, floatArray->txt, atoi(ezxml_attr(floatArray, "count")) );
                             }else{
                                 ezxml_t vertexInput;
-                                //printf("vertexInput\n");
+                                printf("\t\t\tvertexInput\n");
                                 for(vertexInput = ezxml_child(source, "input"); vertexInput; vertexInput = vertexInput->next){
                                     char* semantic = ezxml_attr(vertexInput, "semantic");
+                                    printf("\t\t\t\tsemantic: %s\n", semantic);
                                     if (strcmp(semantic, "POSITION" ) == 0){
                                         sourceName = ezxml_attr(vertexInput, "source");
+                                        printf("\t\t\t\t\tsourcename: %s\n", sourceName);
                                         if ( sourceName[0] = '#'){
                                             for(int k = 1; k <strlen(sourceName);k++)
                                                 sourceName[k-1] = sourceName[k];
@@ -171,7 +175,9 @@ scene* initializeDae(char* filename){
                                         if (source){
                                             ezxml_t float_array = ezxml_child(source, "float_array");
                                             if (float_array){
+                                                printf("\t\t\t\t\tfloat array pro source la\n");
                                                 tri->verticesCount = atoi(ezxml_attr(float_array, "count"));
+                                                printf("\t\t\t\t\ttri->verticesCount: %d\n", tri->verticesCount);
                                                 getFloatArray(&(tri->vertices), float_array->txt, atoi(ezxml_attr(float_array, "count")));
                                             }
                                         }
@@ -182,11 +188,14 @@ scene* initializeDae(char* filename){
                             printf("nao achou o source %s \n", sourceName);
                     }
                     else if ( strcmp(semantic,  "NORMAL") == 0){
+                        printf("\tNormal\n");
                         ezxml_t source = getSource(sourceName, meshxml);
+                        printf("\tsourcename: %s\n", sourceName);
                         if (source){
                             ezxml_t float_array = ezxml_child(source,  "float_array");
                             if (float_array){
                                 tri->normalsCount = atoi(ezxml_attr(float_array, "count"));
+                                printf("\t\ttri->normalsCount: %d\n", tri->normalsCount);
                                 getFloatArray(&(tri->normals), float_array->txt, tri->normalsCount);
                             }
                         }
@@ -212,21 +221,21 @@ scene* initializeDae(char* filename){
                         }
                     }
                     else if ( strcmp(semantic, "TEXCOORD")  == 0){
-                        //printf("lendo texcoords\n");
+                        printf("lendo texcoords\n");
                         texCoord* texSet = malloc(sizeof(texCoord));
                         texSet->set = atoi( ezxml_attr(input, "set"));
-                        //printf("texcoord set: %d\n", texSet->set);
+                        printf("texcoord set: %d\n", texSet->set);
                         ezxml_t source = getSource(sourceName, meshxml);
                         if (source){
-                            //	printf("achou o source\n");
+                            printf("\tachou o source\n");
                             ezxml_t float_array = ezxml_child(source, "float_array");
                             if (float_array){
-                                //		printf("achou o float_array\n");
+                                printf("\t\tachou o float_array\n");
                                 texSet->count = atoi(ezxml_attr(float_array, "count"));
-                                //		printf("count :%d\n", texSet->count);
+                                printf("\t\tcount :%d\n", texSet->count);
                                 //printf("texcoords: %s\n", float_array->txt);
                                 getFloatArray( &(texSet->texCoords), float_array->txt, texSet->count);
-                                //		printf("float array lida\n");
+                                printf("\t\tfloat array lida\n");
                             }
                             ezxml_t technique_common = ezxml_child(source, "technique_common");
                             if (technique_common){
@@ -245,25 +254,25 @@ scene* initializeDae(char* filename){
                                 texSet->components = 2;
 
                         }
-                        //printf("lido components:%d \n", texSet->components);
+                        printf("lido components:%d \n", texSet->components);
                         tri->numTexSets++;
                         texSetIndices++;
                         tri->texCoords[texSetIndices] = texSet;
                         tri->totalAttrs++;
                     }
                     input = input->next;
-
                 }
+                printf("\t\tinserindo tri em m->tris\n");
                 fplist_insback(tri, m->tris);
                 triCount++;
             }
+            printf("\t\tinserindo mesh em s->meshes\n");
             i++;
             fplist_insback(m, s->meshes);
             //}
 		}
 
 	}
-
 
 	ezxml_free(dae);
 	printf("scena lida.\n");

@@ -66,7 +66,7 @@ int fplist_insback(void *data, fplist *l) {
     
     /* Primeiro elemento */
     if(!l->first) {
-        printf("!l->first\n");
+        //printf("!l->first\n");
         l->first = n;
         l->last = n;
         n->prev = NULL;

@@ -40,9 +40,10 @@ renderer *mainrenderer;
 void initializeGame(){
 
 	samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
+    tex = initializeTexture("../../data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
 
-
-	cena = initializeDae("../../data/models/spaceship2.dae");
+	//cena = initializeDae("../../data/models/duck_triangulate_deindexer.dae");
+    cena = initializeDae("../../data/models/duck_triangulate_deindexer.dae");
 	//minimalShader = initializeShader( readTextFile("../../data/shaders/minimal.vert"), readTextFile("../../data/shaders/minimal.frag") );
     
 
@@ -50,9 +51,9 @@ void initializeGame(){
 	l->pos[0] = 10;
 	l->pos[1] = 100;
 	l->pos[2] = 200;
-	l->color[0] = 0.4;
+	l->color[0] = 1.0;
 	l->color[1] = 1.0;
-	l->color[2] = 0.1;
+	l->color[2] = 1.0;
 	l->color[3] = 1.0;
 	addLight(cena, l);
 	setupScene(cena);
@@ -64,9 +65,10 @@ void initializeGame(){
     printf("\tpmax: %f, %f, %f\n", cena->b.pmax[0], cena->b.pmax[1], cena->b.pmax[2]);
 
     shaderflags f;
-    f.flags = PHONG;
+    f.flags = PHONG | TEX;
     char *vertShader, *fragShader;
     shadergen(f, &vertShader, &fragShader);
+    
     printf("VERTEX SHADER:\n");
     printf("%s\n\n", vertShader);
 
@@ -74,6 +76,8 @@ void initializeGame(){
     printf("%s\n\n", fragShader);
 
     minimalShader = initializeShader(vertShader, fragShader);
+
+    //tex = initializeTexture("data/material.jpg", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
 }
 
 int render(float ifps, event *e, scene *cena){
@@ -119,7 +123,9 @@ int render(float ifps, event *e, scene *cena){
 	ambient[2] = 0.1;
 	ambient[3] = 0.1;
 	setShaderConstant4f(minimalShader, "globalAmbient", ambient);
-
+    
+    bindSamplerState(0, samplerstate);
+    bindTexture(0, tex);
 	bindShader(minimalShader);
 	drawScene(cena);
 

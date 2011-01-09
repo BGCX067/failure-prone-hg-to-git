@@ -250,9 +250,9 @@ char* createFSFuncs(shaderflags m) {
 
     if(m.flags & PHONG) {
         char* beginphong = "vec4 phong() {\n"
-                     "\tvec3 n = normal;"
+                     "\tvec3 n = normal;\n"
                      "\tvec3 lightPos = (modelview*vec4(LightPosition, 1.0)).xyz;\n"
-                     "\tvec3 lightVec = lightPos - position;\n"
+                     "\tvec3 lightVec = normalize(lightPos - position);\n"
                      "\tvec3 viewVec = normalize( -position);\n"
                      "\tvec3 halfVec = normalize(lightVec + viewVec);\n"
                      "\tfloat diffCoef = max(dot(n, lightVec), 0.0);\n"
@@ -260,8 +260,13 @@ char* createFSFuncs(shaderflags m) {
                      "\tif (diffCoef <= 0.0)\n"
                      "\t\tspecCoef = 0.0;\n"
                      "\tvec4 ambient = Ka*globalAmbient;\n"
-                     "\tvec4 diffuse = Kd*LightColor*diffCoef;\n"
                      "\tvec4 specular = Ks*LightColor*specCoef;\n";
+        char *diffusecolor;
+        if(m.flags & TEX){
+            diffusecolor = "\tvec4 diffuse = Kd*vec4(texture(tex, texCoord).rgb, 1.0)*diffCoef;\n";
+        } else {
+            diffusecolor = "\tvec4 diffuse = Kd*LightColor*diffCoef;\n";
+        }
         char* color = "";
         if(m.flags & ATTENUATION)
             color = "\tvec4 phong = ambient + (attenuation(position, lightPos)*(diffuse + specular));\n";
@@ -272,9 +277,9 @@ char* createFSFuncs(shaderflags m) {
         char* endphong = "\treturn phong;\n"
                          "}\n";
 
-        size_t phonglen = strlen(beginphong) + strlen(color) + strlen(endphong) + 1;
+        size_t phonglen = strlen(beginphong) + strlen(color) + strlen(endphong) + strlen(diffusecolor) + 1;
         phong = malloc(sizeof(char)*phonglen);
-        sprintf(phong, "%s%s%s%s", beginphong, color, endphong);
+        sprintf(phong, "%s%s%s%s", beginphong, diffusecolor, color, endphong);
         /*char* beginphong = "vec4 phong(vec3 n, vec3 lightDir) {\n"
                 "\tvec3 viewVec = normalize(EyePosition - position);\n"
                 "\tvec3 halfVec = normalize(lightDir + viewVec);\n"
@@ -326,7 +331,7 @@ char* createFSMainBody(shaderflags m) {
         phong = "\tvec4 phongColor = phong();\n";
     }
 
-    if(m.flags & TEX) {
+    if(m.flags & TEX && !(m.flags & PHONG)) {
         tex = "\tvec4 texColor = vec4(texture(tex, texCoord).rgb, 1.0);\n";
     }
 
@@ -368,7 +373,7 @@ char* createFSMainFragColor(shaderflags m) {
         refract = "\tfragColor = mix(texColor*phongColor, envcolor, 0.3);\n"
                  "}\n";
     } else if(((m.flags & PHONG)|| (m.flags & NORMAL_MAP)) && (m.flags &TEX)) {
-        texphong = "\tfragColor = phongColor*texColor;\n"
+        texphong = "\tfragColor = phongColor;\n"
                    "}\n";
     } else if((m.flags & PHONG) || (m.flags & NORMAL_MAP)) {
         phong = "\tfragColor = phongColor;\n"

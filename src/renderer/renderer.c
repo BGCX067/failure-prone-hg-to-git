@@ -772,10 +772,10 @@ unsigned int createVAO(){
 
 void drawArraysVAO(unsigned int vaoID, int type, int numVerts){
 
-	//if (vaoID != r->prevVAO){
-	//	r->prevVAO = vaoID;
-	//	glBindVertexArray(vaoID);
-	//}
+	if (vaoID != r->prevVAO){
+		r->prevVAO = vaoID;
+		glBindVertexArray(vaoID);
+	}
 	glBindVertexArray(vaoID);
 	glDrawArrays(type, 0, numVerts);
 	glBindVertexArray(0);//TODO voltar pro VAO anterior?
@@ -802,15 +802,16 @@ unsigned int initializeIndexedVAO( unsigned int  indicesID, vertexAttribute** at
 
 unsigned int drawIndexedVAO(unsigned int vaoID, unsigned int triCount, int geometryType){
 
-    //printf("vaoid %d \n", vaoID);
-    //printf("prevVAO %d \n", r->prevVAO);
+   // printf("vaoid %d \n", vaoID);
+   // printf("prevVAO %d \n", r->prevVAO);
     if (vaoID != r->prevVAO){
 		r->prevVAO = vaoID;
 		glBindVertexArray(vaoID);
 	}
-    //printf("draw elements \n");
+   // printf("draw elements \n");
+   // printf("tricount: %d\n", triCount);
 	glDrawElements(geometryType, triCount, GL_UNSIGNED_INT, NULL);
-    //printf("end draw elements \n");
+//    printf("end draw elements \n");
 }
 
 unsigned int initializeVBO(unsigned int size, int mode, const void* data){
