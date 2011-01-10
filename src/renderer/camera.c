@@ -55,7 +55,7 @@ void setupViewMatrix(camera *c) {
         mat4 m, mvcpy;
         quatToMatrix(c->orientation, m);
         m[15] = 1.0;
-        fptranslatef(c->modelview, -c->pos[0], -c->pos[1], -c->pos[2]);
+        fptranslatef(c->modelview, 0.0 /*-c->pos[0]*/, 0.0/*-c->pos[1]*/, -c->pos[2]);
         memcpy(mvcpy, c->modelview, 16*sizeof(float));
         fpMultMatrix(c->modelview, mvcpy, m);
         c->modelview[15] = 1.0;
@@ -223,7 +223,8 @@ void camerafit(camera *c, boundingbox b, float fovy, float ratio, float znear, f
     c->pos[0] = bcenter[0];
     c->pos[1] = bcenter[1];
     c->pos[2] = bcenter[2] + 4*(b.pmax[2] - b.pmin[2]) + ((b.pmax[1] - bcenter[1])/tan(0.5*fovy));
-    //printf("c->pos: %f, %f, %f\n", c->pos[0], c->pos[1], c->pos[2]); 
+    printf("c->pos: %f, %f, %f\n", c->pos[0], c->pos[1], c->pos[2]); 
+    printf("bcenter: %f, %f, %f\n", bcenter[0], bcenter[1], bcenter[2]); 
 
     c->viewDir[0] = 0;
     c->viewDir[1] = 0;

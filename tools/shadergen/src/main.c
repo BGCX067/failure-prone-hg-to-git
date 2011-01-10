@@ -42,7 +42,6 @@ void initializeGame(){
 	samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
     tex = initializeTexture("../../data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
 
-	//cena = initializeDae("../../data/models/duck_triangulate_deindexer.dae");
     cena = initializeDae("../../data/models/duck_triangulate_deindexer.dae");
 	//minimalShader = initializeShader( readTextFile("../../data/shaders/minimal.vert"), readTextFile("../../data/shaders/minimal.frag") );
     
@@ -60,9 +59,6 @@ void initializeGame(){
     
     //FIXME 
     camerafit(getcamera(), cena->b, 45.0, 800.0/600.0, 1.0, 10000.0);
-    printf("boundingbox da cena\n");
-    printf("\tpmin: %f, %f, %f\n", cena->b.pmin[0], cena->b.pmin[1], cena->b.pmin[2]);
-    printf("\tpmax: %f, %f, %f\n", cena->b.pmax[0], cena->b.pmax[1], cena->b.pmax[2]);
 
     shaderflags f;
     f.flags = PHONG | TEX;
@@ -76,13 +72,18 @@ void initializeGame(){
     printf("%s\n\n", fragShader);
 
     minimalShader = initializeShader(vertShader, fragShader);
-
-    //tex = initializeTexture("data/material.jpg", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
 }
 
 int render(float ifps, event *e, scene *cena){
 
 	beginRender(e);
+
+    vec3 bcenter;
+    bbcenter(cena->b, bcenter);
+
+    mat4 mvcpy;
+    fptranslatef(getcamera()->modelview, -bcenter[0], -bcenter[1], -bcenter[2]);
+    fpMultMatrix(getcamera()->mvp, getcamera()->projection, getcamera()->modelview);
 
     float kd[4], ks[4], ka[4], shininess, pos[3], color[4];
     shininess  = 4.0;
@@ -128,8 +129,9 @@ int render(float ifps, event *e, scene *cena){
     bindTexture(0, tex);
 	bindShader(minimalShader);
 	drawScene(cena);
-
+    
     batch *bbox = initializeBatch();
+
     begin(bbox, GL_LINES, 24, 0);
         vertex3f(bbox, cena->b.pmin[0], cena->b.pmin[1], cena->b.pmin[2]);
         vertex3f(bbox, cena->b.pmin[0], cena->b.pmin[1], cena->b.pmax[2]);
@@ -171,6 +173,7 @@ int render(float ifps, event *e, scene *cena){
 
         vertex3f(bbox, cena->b.pmax[0], cena->b.pmin[1], cena->b.pmax[2]);
         vertex3f(bbox, cena->b.pmax[0], cena->b.pmin[1], cena->b.pmin[2]);
+
     end(bbox);
 
     draw(bbox);
