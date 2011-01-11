@@ -24,43 +24,23 @@ void initCamera(camera *c, cameratype t) {
 
 //FIXME fazer um setupViewMatrix de verdade
 void setupViewMatrix(camera *c) {
-    if(c->type == FIRSTPERSON) {
-        vec3 right;
-        cross(c->viewDir, c->up, right);
-        vecNormalize(right);
 
-        vec3 up;
-        cross(right, c->viewDir, up);
-        vecNormalize(up);
+	if (c->type == FIRSTPERSON){
+		fpLookAt(c->modelview, c->pos, c->viewDir, c->up);
+	}else if (c->type == TRACKBALL){
+		fpIdentity(c->modelview);
+		mat4 m, mvcpy;
+		quatToMatrix(c->orientation, m);
+		m[15] = 1.0;
+		fptranslatef(c->modelview, 0.0 /*-c->pos[0]*/, 0.0/*-c->pos[1]*/, -c->pos[2]);
+		memcpy(mvcpy, c->modelview, 16*sizeof(float));
+		fpMultMatrix(c->modelview, mvcpy, m);
+		c->modelview[15] = 1.0;
 
-        c->modelview[0] = right[0];
-        c->modelview[4] = right[1];
-        c->modelview[8] = right[2];
+	}
 
-        c->modelview[1] = up[0];
-        c->modelview[5] = up[1];
-        c->modelview[9] = up[2];
-
-        c->modelview[2] = -c->viewDir[0];
-        c->modelview[6] = -c->viewDir[1];
-        c->modelview[10] = -c->viewDir[2];
-
-        c->modelview[3] = c->modelview[7] = c->modelview[11] = 0.0;
-        c->modelview[12] = c->modelview[13] = c->modelview[14] = 0.0; 
-        c->modelview[15] = 1.0;
-
-        fptranslatef(c->modelview, -c->pos[0], -c->pos[1], -c->pos[2]);
-    } else if (c->type == TRACKBALL) {
-        fpIdentity(c->modelview);
-        mat4 m, mvcpy;
-        quatToMatrix(c->orientation, m);
-        m[15] = 1.0;
-        fptranslatef(c->modelview, 0.0 /*-c->pos[0]*/, 0.0/*-c->pos[1]*/, -c->pos[2]);
-        memcpy(mvcpy, c->modelview, 16*sizeof(float));
-        fpMultMatrix(c->modelview, mvcpy, m);
-        c->modelview[15] = 1.0;
-    }
 }
+
 
 void resettrackball() {
     initializedtrackball = 0;
@@ -212,6 +192,7 @@ void cameraHandleEvent(camera *c, event *e) {
 
 /* assume um fit na "frente do modelo" */
 void camerafit(camera *c, boundingbox b, float fovy, float ratio, float znear, float zfar) {
+
     QUAT_IDENTITY(c->orientation);
     c->up[0] = 0.0;
     c->up[1] = 1.0;
@@ -233,3 +214,4 @@ void camerafit(camera *c, boundingbox b, float fovy, float ratio, float znear, f
     fpIdentity(c->modelview);
 //    fpperspective(c->projection, fovy, ratio, znear, zfar);
 }
+

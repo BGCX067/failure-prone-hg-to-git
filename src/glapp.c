@@ -58,6 +58,7 @@ glapp* setVideoMode(int w, int h, int fullscreen){
 	glapp* appwin =  (glapp*)malloc(sizeof(glapp));
 	appwin->width = w;
 	appwin->height = h;
+	appwin->warpmouse = 1;
 
 	GLXFBConfig* fbc = None;
 	int fbcCount = 0;
@@ -338,9 +339,19 @@ void mainloop(glapp* app, int(idle)(float, event*, scene *), int(render)(float, 
 
 		glXSwapBuffers(display, window);
 		evt.button &= ~(BUTTON_UP | BUTTON_DOWN);
-        	//setMouse(app->width/2, app->height/2);
+
+		if (app->warpmouse)
+	        	setMouse(app->width/2, app->height/2);
 	}
 }
 
+
+void warpmouse(glapp* app, int i){
+
+	if (app){
+		app->warpmouse = 1;
+	}
+
+}
 //#endif
 

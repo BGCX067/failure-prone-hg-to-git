@@ -143,6 +143,38 @@ void fpperspective(mat4 m, float fovy, float ratio, float znear, float zfar) {
     m[14] = -(zfar*doubleznear) * one_deltaz;
 }
 
+void fpLookAt(mat4 result, vec3 pos, vec3 look, vec3  up){
+
+    vec3 right;
+    cross(look, up, right);
+    vecNormalize(right);
+    
+    vec3 newup;
+    cross(right, look, newup);
+    vecNormalize(newup);
+
+    result[0] = right[0];
+    result[4] = right[1];
+    result[8] = right[2];
+
+    result[1] = newup[0];
+    result[5] = newup[1];
+    result[9] = newup[2];
+
+    result[2] = -look[0];
+    result[6] = -look[1];
+    result[10] = -look[2];
+
+    result[3] = result[7] = result[11] = 0.0;
+    result[12] = result[13] = result[14] = 0.0; 
+    result[15] = 1.0;
+
+
+    fptranslatef(result, -pos[0], -pos[1], -pos[2]);
+
+
+}
+
 void fpOrtho( mat4 m, float xMin, float xMax, float yMin, float yMax, float zMin, float zMax){
 
 	fpIdentity(m);

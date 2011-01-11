@@ -131,11 +131,11 @@ const char* TexViewWidgetFSSource = {
             texel = texture2DLod( samp, gl_TexCoord[0].xy, mipLevel);\n\
         else\n\
             texel = texture2D( samp, gl_TexCoord[0].xy);\n\
-        texel = texel * texelScale + texelOffset;\n\
-        gl_FragColor  = texel.x * vec4( texelSwizzling.x == 0, texelSwizzling.y == 0, texelSwizzling.z == 0, texelSwizzling.w == 0 );\n\
-        gl_FragColor += texel.y * vec4( texelSwizzling.x == 1, texelSwizzling.y == 1, texelSwizzling.z == 1, texelSwizzling.w == 1 );\n\
-        gl_FragColor += texel.z * vec4( texelSwizzling.x == 2, texelSwizzling.y == 2, texelSwizzling.z == 2, texelSwizzling.w == 2 );\n\
-        gl_FragColor += texel.w * vec4( texelSwizzling.x == 3, texelSwizzling.y == 3, texelSwizzling.z == 3, texelSwizzling.w == 3 );\n\
+      //  texel = texel * texelScale + texelOffset;\n\
+    //    gl_FragColor  = texel.x * vec4( texelSwizzling.x == 0, texelSwizzling.y == 0, texelSwizzling.z == 0, texelSwizzling.w == 0 );\n\
+     //   gl_FragColor += texel.y * vec4( texelSwizzling.x == 1, texelSwizzling.y == 1, texelSwizzling.z == 1, texelSwizzling.w == 1 );\n\
+     //   gl_FragColor += texel.z * vec4( texelSwizzling.x == 2, texelSwizzling.y == 2, texelSwizzling.z == 2, texelSwizzling.w == 2 );\n\
+      //  gl_FragColor += texel.w * vec4( texelSwizzling.x == 3, texelSwizzling.y == 3, texelSwizzling.z == 3, texelSwizzling.w == 3 );\n\
 	gl_FragColor = vec4(texture2D(samp, gl_TexCoord[0].xy).rgb, 1.0); \n\
 //	gl_FragColor = vec4(gl_TexCoord[0].x, 0.0, 0.0, 1.0); \n\
     }\n\
@@ -969,9 +969,8 @@ int drawTextureView(rect* r, int texID, rect* rt, rect* rz, int mipLevel, float 
     p.y = rt->y;
     drawFrame( r, p, 0, 0 );
 
-//    glEnable(GL_TEXTURE_2D);
-    //glBindTexture(GL_TEXTURE_2D, texID);
     bindTexture(0, texID);
+//    glBindTexture(GL_TEXTURE_2D,  texID);
 
     setShaderConstant1f( gui->textureViewShader, "mipLevel", (float) mipLevel);
     setShaderConstant1f( gui->textureViewShader, "texelScale", texelScale);
@@ -996,8 +995,6 @@ int drawTextureView(rect* r, int texID, rect* rt, rect* rz, int mipLevel, float 
     glEnd();
 
     bindShader(0);
- //   glBindTexture(GL_TEXTURE_2D, 0);
-//    glDisable(GL_TEXTURE_2D);
 }
 
 int doLineEdit(int id,  rect* r, char* text, int maxTextLength ){

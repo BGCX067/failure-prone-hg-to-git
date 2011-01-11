@@ -179,6 +179,8 @@ void beginRender(event *e) {
     //FIXME tentar usar 2 uniforms do tipo mat4 dá erro
     //FIXME para correção de perspectiva (substituir aqueles GL_PERSPECTIVE_CORRECTION_HINT)
 	fpMultMatrix(c.mvp, c.projection, c.modelview);
+//	for(int i = 0; i < 16; i++)
+//		printf("projection[%d] %f \n", i, c.projection[i]);
 }
 
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, cameratype t){

@@ -7,6 +7,8 @@ typedef struct _glapp{
 	int width;
 	int height;
 	int depth;
+
+	int warpmouse;
 }glapp;
 
 
@@ -80,6 +82,8 @@ void closeVideo();
 
 void setWindowTitle(char* title);
 void setMouse(int x, int y);
+
+void warpmouse(glapp* app, int yesno);
 
 int  getTime();
 

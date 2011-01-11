@@ -11,5 +11,5 @@ void main() {
 //    vec2 color2 = texture(tex, texCoord).rg;
  //   fragColor = vec4(texture(tex,texCoord).xyz, 1.0);
   //    fragColor = vec4(normal, 1.0);
-    fragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    fragColor = vec4(1.0, 1.0, 1.0, 1.0);
 }
