@@ -349,7 +349,7 @@ void mainloop(glapp* app, int(idle)(float, event*, scene *), int(render)(float, 
 void warpmouse(glapp* app, int i){
 
 	if (app){
-		app->warpmouse = 1;
+		app->warpmouse = i;
 	}
 
 }
