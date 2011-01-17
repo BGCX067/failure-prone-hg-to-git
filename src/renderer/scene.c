@@ -325,7 +325,9 @@ int setupScene(scene* s){
 		for( int i = 0; i < s->meshes->size; i++){ // para da mesh da cena
 			m = fplist_getdata(i, s->meshes);
 			createVBO(m);
-            setboundingbox(m);
+            //setmeshboundingbox(m);
+            triangles *t = fplist_getdata(i, m->tris);
+            setboundingbox(&(m->b), t->vertices, t->verticesCount/3);
 
             if(m->b.pmin[0] < s->b.pmin[0])
                 s->b.pmin[0] = m->b.pmin[0];

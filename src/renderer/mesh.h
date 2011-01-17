@@ -44,7 +44,7 @@ typedef struct _mesh{
 }mesh;
 
 void createVBO(mesh* mesh);
-void setboundingbox(mesh *m);
+void setmeshboundingbox(mesh *m);
 
 
 #endif

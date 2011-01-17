@@ -122,7 +122,7 @@ void createVBO(mesh* m){
 
 }
 
-void setboundingbox(mesh *m) {
+void setmeshboundingbox(mesh *m) {
     //memset(m->b.pmin, 9999999, 3*sizeof(float));
     //memset(m->b.pmax, -999999, 3*sizeof(float));
     m->b.pmin[0] = 99999999;

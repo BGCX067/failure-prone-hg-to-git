@@ -10,6 +10,7 @@ typedef struct _boundingbox {
 } boundingbox;
 
 void bbcenter(boundingbox b, vec3 v);
+void setboundingbox(boundingbox *b, float *vertices, int numvertices);
 
 
 #endif
