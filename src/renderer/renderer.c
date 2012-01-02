@@ -1,13 +1,12 @@
-#include "../util/GLee.h"
+#include "GL3/glew.h"
+#include "GL3/glext.h"
 #include "renderer.h"
 #include "camera.h"
 #include "math/matrix.h"
 #include "../glapp.h"
 #include "../util/image.h"
 #include "../util/textfile.h"
-#include <GL/gl.h>
 #include <GL/glu.h>
-#include <GL/glext.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -30,7 +29,7 @@ enum Semantic{
 	TIME,
 	EYEPOS,
 	MVP,
-    	MODELVIEW,
+    MODELVIEW,
 	LIGHTPOS
 };
 
@@ -121,11 +120,11 @@ int constantTypeSizes[CONSTANT_TYPE_COUNT] = {
 
 
 void *uniformFuncs[CONSTANT_TYPE_COUNT];
-typedef GLvoid (APIENTRY *UNIFORM_FUNC)(GLint location, GLsizei count, const void *value);
-typedef GLvoid (APIENTRY *UNIFORM_MAT_FUNC)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+/*typedef GLvoid (APIENTRY *UNIFORM_FUNC)(GLint location, GLsizei count, const void *value);
+typedef GLvoid (APIENTRY *UNIFORM_MAT_FUNC)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);*/
 
 
-typedef void (APIENTRYP PFNGLGENSAMPLERSPROC) (GLsizei count, GLuint *samplers);
+/*typedef void (APIENTRYP PFNGLGENSAMPLERSPROC) (GLsizei count, GLuint *samplers);
 typedef void (APIENTRYP PFNGLDELETESAMPLERSPROC) (GLsizei count, const GLuint *samplers);
 typedef GLboolean (APIENTRYP PFNGLISSAMPLERPROC) (GLuint sampler);
 typedef void (APIENTRYP PFNGLBINDSAMPLERPROC) (GLenum unit, GLuint sampler);
@@ -148,7 +147,7 @@ PFNGLBINDSAMPLERPROC glBindSampler = NULL;
 PFNGLSAMPLERPARAMETERIPROC  glSamplerParameteri = NULL;
 PFNGLSAMPLERPARAMETERFPROC  glSamplerParameterf = NULL;
 PFNGLSAMPLERPARAMETERIVPROC glSamplerParameteriv = NULL;
-PFNGLSAMPLERPARAMETERFVPROC glSamplerParameterfv = NULL;
+PFNGLSAMPLERPARAMETERFVPROC glSamplerParameterfv = NULL;*/
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -185,7 +184,7 @@ void beginRender(event *e) {
 
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, cameratype t){
 	r = (renderer*) malloc(sizeof(renderer));
-    	r->framebuffers = fparray_init(NULL, free, sizeof(framebuffer));
+    r->framebuffers = fparray_init(NULL, free, sizeof(framebuffer));
 	r->fovy = fovy;
 	r->zfar = zfar;
 	r->znear = znear;
@@ -198,7 +197,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, 
 	//FIXME  gambi feia, o glee so inicializa as fncoes quando sao chamadas
 	//mas o ponteiro pra funcao uniformFuncs nao chama elas, logo nao inicializa
 	//logo nao fucionam
-	float foo[4];
+/*	float foo[4];
 	float foo2[3];
 	glUniform4fv(99, 0, foo);
 	glUniform3fv(99, 0, foo2);
@@ -227,7 +226,15 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, 
 	glSamplerParameterf = (PFNGLSAMPLERPARAMETERFPROC)glXGetProcAddress("glSamplerParameterf");
 	glSamplerParameterfv = (PFNGLSAMPLERPARAMETERFVPROC)glXGetProcAddress("glSamplerParameterfv");
 	//glSamplerParameterIiv = (PFNGLSAMPLERPARAMETERIIVPROC)glXGetProcAddress("glSamplerParameterIiv");
-	//glSamplerParameterIuiv = (PFNGLSAMPLERPARAMETERIUIVPROC)glXGetProcAddress("glSamplerParameterIuiv");
+	//glSamplerParameterIuiv = (PFNGLSAMPLERPARAMETERIUIVPROC)glXGetProcAddress("glSamplerParameterIuiv");*/
+
+    glewExperimental=1;
+    GLenum err = glewInit();
+    if (GLEW_OK != err) 
+        /* Problem: glewInit failed, something is seriously wrong. */
+        printf("Error: %s\n", glewGetErrorString(err));
+    printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+
 
 
 	float ratio = (float) w / (float) h;
@@ -651,12 +658,18 @@ void bindShader(unsigned int program){
 		if (shdr->uniforms[i]->dirty ){
 			shdr->uniforms[i]->dirty = 0;
 			if (shdr->uniforms[i]->type >= CONSTANT_MAT2){
-				((UNIFORM_MAT_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) shdr->uniforms[i]->data);
-			} else {
-				((UNIFORM_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
+				//((UNIFORM_MAT_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) shdr->uniforms[i]->data);
+                glUniformMatrix4fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) shdr->uniforms[i]->data);
+			} else if (shdr->uniforms[i]->type == CONSTANT_VEC3){
+                glUniform3fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
+				//((UNIFORM_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
                 //((UNIFORM_FUNC) uniformFuncs[2])(0, 1, color);
 				//glUniform4fv(shaders[program]->uniforms[i]->location, shaders[program]->uniforms[i]->size, (GLfloat*) shaders[program]->uniforms[i]->data);
-			}
+            } else if (shdr->uniforms[i]->type == CONSTANT_VEC4){
+                glUniform4fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
+            } else if (shdr->uniforms[i]->type == CONSTANT_FLOAT){
+                glUniform1f(shdr->uniforms[i]->location, *(shdr->uniforms[i]->data));
+            }
 		}else if ( shdr->uniforms[i]->semantic == EYEPOS){
 			setShaderConstant3f(program, "eyePosition",  c.pos);
 		}else if (shdr->uniforms[i]->semantic == TIME){

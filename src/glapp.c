@@ -9,7 +9,8 @@
 #include <X11/keysym.h>
 #include <X11/extensions/xf86vmode.h>
 #include <GL/glx.h>
-#include <GL/glxext.h>
+//#include <GL/glxext.h>
+#include "GL3/glxext.h"
 #include <sys/time.h>
 #include <time.h>
 
