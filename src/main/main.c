@@ -12,7 +12,7 @@
 #include "renderer/camera.h"
 #include "util/shadergen.h"
 
-int idle(float ifps, event* e, scene* s){
+int idle(float ifps, event* e, Scene* s){
 	
 
 	//printf("x:  %f y: %f \n ",playerBody->p.x, playerBody->p.y );
@@ -33,7 +33,7 @@ unsigned int tex;
 
 float elapsedTime;
 
-scene* cena;
+Scene* cena;
 
 renderer *mainrenderer;
 
@@ -46,7 +46,7 @@ void initializeGame(){
 	//minimalShader = initializeShader( readTextFile("../../data/shaders/minimal.vert"), readTextFile("../../data/shaders/minimal.frag") );
     
 
-	light* l = malloc(sizeof(light));
+	Light* l = malloc(sizeof(Light));
 	l->pos[0] = 10;
 	l->pos[1] = 100;
 	l->pos[2] = 200;
@@ -74,7 +74,7 @@ void initializeGame(){
     minimalShader = initializeShader(vertShader, fragShader);
 }
 
-int render(float ifps, event *e, scene *cena){
+int render(float ifps, event *e, Scene *cena){
 
 	beginRender(e);
 
@@ -184,7 +184,6 @@ int render(float ifps, event *e, scene *cena){
 
 
 int main(){
-
 	glapp* app = setVideoMode(800, 600, 0);
 	if (!app){
 		printf("Invalid Video Mode\n");

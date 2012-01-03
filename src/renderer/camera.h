@@ -7,20 +7,20 @@
 #include "../math/boundingbox.h"
 #include "../glapp.h"
 
-typedef enum _cameratype { FIRSTPERSON, TRACKBALL } cameratype;
+typedef enum _cameratype { FIRSTPERSON, TRACKBALL } CameraType;
 
-typedef struct camera {
+typedef struct {
     vec3 pos, up, viewDir;
     quaternion orientation;
     mat4 modelview;
     mat4 projection;
     mat4 mvp;
-    cameratype type;
-}camera;
+    CameraType type;
+} Camera;
 
-void initCamera(camera *c, cameratype t);
-void cameraHandleEvent(camera *c, event *e);
-void setupViewMatrix(camera *c);
-void camerafit(camera *c, boundingbox b, float fovy, float ratio, float znear, float zfar);
+void initCamera(Camera *c, CameraType t);
+void cameraHandleEvent(Camera *c, event *e);
+void setupViewMatrix(Camera *c);
+void camerafit(Camera *c, boundingbox b, float fovy, float ratio, float znear, float zfar);
 
 #endif

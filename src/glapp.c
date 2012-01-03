@@ -256,8 +256,7 @@ int getKeyCode(int key){
 }
 
 
-void mainloop(glapp* app, int(idle)(float, event*, scene *), int(render)(float, event*, scene*), scene* s ){
-
+void mainloop(glapp* app, int(idle)(float, event*, Scene *), int(render)(float, event*, Scene*), Scene* s ){
 	event evt;
     evt.buttonLeft =  evt.buttonRight = 0;
 	memset(evt.keys, 0, 512*sizeof(int));

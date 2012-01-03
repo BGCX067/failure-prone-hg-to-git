@@ -118,37 +118,6 @@ int constantTypeSizes[CONSTANT_TYPE_COUNT] = {
 	sizeof(float) * 16,
 };
 
-
-void *uniformFuncs[CONSTANT_TYPE_COUNT];
-/*typedef GLvoid (APIENTRY *UNIFORM_FUNC)(GLint location, GLsizei count, const void *value);
-typedef GLvoid (APIENTRY *UNIFORM_MAT_FUNC)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);*/
-
-
-/*typedef void (APIENTRYP PFNGLGENSAMPLERSPROC) (GLsizei count, GLuint *samplers);
-typedef void (APIENTRYP PFNGLDELETESAMPLERSPROC) (GLsizei count, const GLuint *samplers);
-typedef GLboolean (APIENTRYP PFNGLISSAMPLERPROC) (GLuint sampler);
-typedef void (APIENTRYP PFNGLBINDSAMPLERPROC) (GLenum unit, GLuint sampler);
-typedef void (APIENTRYP PFNGLSAMPLERPARAMETERIPROC) (GLuint sampler, GLenum pname, GLint param);
-typedef void (APIENTRYP PFNGLSAMPLERPARAMETERIVPROC) (GLuint sampler, GLenum pname, const GLint *param);
-typedef void (APIENTRYP PFNGLSAMPLERPARAMETERFPROC) (GLuint sampler, GLenum pname, GLfloat param);
-typedef void (APIENTRYP PFNGLSAMPLERPARAMETERFVPROC) (GLuint sampler, GLenum pname, const GLfloat *param);
-typedef void (APIENTRYP PFNGLSAMPLERPARAMETERIIVPROC) (GLuint sampler, GLenum pname, const GLint *param);
-typedef void (APIENTRYP PFNGLSAMPLERPARAMETERIUIVPROC) (GLuint sampler, GLenum pname, const GLuint *param);
-typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERIVPROC) (GLuint sampler, GLenum pname, GLint *params);
-typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERIIVPROC) (GLuint sampler, GLenum pname, GLint *params);
-typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERFVPROC) (GLuint sampler, GLenum pname, GLfloat *params);
-typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERIFVPROC) (GLuint sampler, GLenum pname, GLfloat *params);
-														
-
-PFNGLGENSAMPLERSPROC glGenSamplers = NULL;
-PFNGLDELETESAMPLERSPROC glDeleteSamplers = NULL;
-PFNGLISSAMPLERPROC glIsSampler = NULL;
-PFNGLBINDSAMPLERPROC glBindSampler = NULL;
-PFNGLSAMPLERPARAMETERIPROC  glSamplerParameteri = NULL;
-PFNGLSAMPLERPARAMETERFPROC  glSamplerParameterf = NULL;
-PFNGLSAMPLERPARAMETERIVPROC glSamplerParameteriv = NULL;
-PFNGLSAMPLERPARAMETERFVPROC glSamplerParameterfv = NULL;*/
-
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
 int prevShader = 0;
@@ -160,29 +129,20 @@ int prevSamplerState = -1;
 fparray* samplerStates = NULL;
 
 renderer* r;
-camera c;
+Camera c;
 
 float elapsedTime;
 
 void beginRender(event *e) { 
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
 	cameraHandleEvent(&c, e);
 	setupViewMatrix(&c);
 
-	//printf("pos %f %f %f up %f %f %f viewDir %f %f %f\n", c.pos[0], c.pos[1], c.pos[2], c.up[0], c.up[1], c.up[2], c.viewDir[0], c.viewDir[1], c.viewDir[2]);
-
-    //FIXME perspective divide não está sendo feito em canto nenhum
-    //FIXME multiplicação mais rápida na gpu? tentar montar MVP na gpu passando modelview e projection apenas
-    //FIXME tentar usar 2 uniforms do tipo mat4 dá erro
-    //FIXME para correção de perspectiva (substituir aqueles GL_PERSPECTIVE_CORRECTION_HINT)
 	fpMultMatrix(c.mvp, c.projection, c.modelview);
-//	for(int i = 0; i < 16; i++)
-//		printf("projection[%d] %f \n", i, c.projection[i]);
 }
 
-renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, cameratype t){
+renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, CameraType t){
 	r = (renderer*) malloc(sizeof(renderer));
     r->framebuffers = fparray_init(NULL, free, sizeof(framebuffer));
 	r->fovy = fovy;
@@ -194,47 +154,12 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, 
 	r->viewPortHeight = h;
 	r->prevFramebuffer = -1;
 
-	//FIXME  gambi feia, o glee so inicializa as fncoes quando sao chamadas
-	//mas o ponteiro pra funcao uniformFuncs nao chama elas, logo nao inicializa
-	//logo nao fucionam
-/*	float foo[4];
-	float foo2[3];
-	glUniform4fv(99, 0, foo);
-	glUniform3fv(99, 0, foo2);
-	uniformFuncs[CONSTANT_FLOAT] = (void *) glUniform1fv;
-	uniformFuncs[CONSTANT_VEC2]  = (void *) glUniform2fv;
-	uniformFuncs[CONSTANT_VEC3]  = (void *) glUniform3fv;
-	uniformFuncs[CONSTANT_VEC4]  = (void *) glUniform4fv;
-	uniformFuncs[CONSTANT_INT]   = (void *) glUniform1iv;
-	uniformFuncs[CONSTANT_IVEC2] = (void *) glUniform2iv;
-	uniformFuncs[CONSTANT_IVEC3] = (void *) glUniform3iv;
-	uniformFuncs[CONSTANT_IVEC4] = (void *) glUniform4iv;
-	uniformFuncs[CONSTANT_BOOL]  = (void *) glUniform1iv;
-	uniformFuncs[CONSTANT_BVEC2] = (void *) glUniform2iv;
-	uniformFuncs[CONSTANT_BVEC3] = (void *) glUniform3iv;
-	uniformFuncs[CONSTANT_BVEC4] = (void *) glUniform4iv;
-	uniformFuncs[CONSTANT_MAT2]  = (void *) glUniformMatrix2fv;
-	uniformFuncs[CONSTANT_MAT3]  = (void *) glUniformMatrix3fv;
-	uniformFuncs[CONSTANT_MAT4]  = (void *) glUniformMatrix4fv;
-
-	glGenSamplers = (PFNGLGENSAMPLERSPROC)glXGetProcAddress("glGenSamplers");
-        glDeleteSamplers = (PFNGLDELETESAMPLERSPROC)glXGetProcAddress("glDeleteSamplers");
-	glIsSampler = (PFNGLISSAMPLERPROC)glXGetProcAddress("glIsSampler");
-	glBindSampler = (PFNGLBINDSAMPLERPROC)glXGetProcAddress("glBindSampler");
-	glSamplerParameteri = (PFNGLSAMPLERPARAMETERIPROC)glXGetProcAddress("glSamplerParameteri");
-	glSamplerParameteriv = (PFNGLSAMPLERPARAMETERIVPROC)glXGetProcAddress("glSamplerParameteriv");
-	glSamplerParameterf = (PFNGLSAMPLERPARAMETERFPROC)glXGetProcAddress("glSamplerParameterf");
-	glSamplerParameterfv = (PFNGLSAMPLERPARAMETERFVPROC)glXGetProcAddress("glSamplerParameterfv");
-	//glSamplerParameterIiv = (PFNGLSAMPLERPARAMETERIIVPROC)glXGetProcAddress("glSamplerParameterIiv");
-	//glSamplerParameterIuiv = (PFNGLSAMPLERPARAMETERIUIVPROC)glXGetProcAddress("glSamplerParameterIuiv");*/
-
     glewExperimental=1;
     GLenum err = glewInit();
     if (GLEW_OK != err) 
         /* Problem: glewInit failed, something is seriously wrong. */
         printf("Error: %s\n", glewGetErrorString(err));
     printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
-
 
 
 	float ratio = (float) w / (float) h;
@@ -934,6 +859,6 @@ void bindMainFramebuffer(){
 	glViewport(0, 0, r->viewPortWidth, r->viewPortHeight);
 }
 
-camera* getcamera() {
+Camera* getcamera() {
     return &c;
 }

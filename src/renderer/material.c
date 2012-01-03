@@ -1,7 +1,7 @@
 #include "material.h"
 #include "renderer.h"
 
-void bindMaterial(material* m, light* l ){
+void bindMaterial(Material* m, Light* l ){
 
 	if (!m || !l)
 		return 0;

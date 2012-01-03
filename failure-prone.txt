@@ -7,7 +7,8 @@ struct material: ambient, array diffuse (pode ser texture), specular (pode ser t
 struct texture: texid, samplerid, slot
 struct node: mesh*, mat4 transformation, list children
 
-1- mesh* initMesh(int numTris);
+1- mesh* initMesh(); - FEITO
+    1.1 - Não recebe mais numtris pq agora usa uma lista
 2- // gerar os arrays de geometria/indices
 3- tri* addTris(mesh* );
 4.1- void addVertices(tri* t, int num, int comp, float* vertices); //e outros

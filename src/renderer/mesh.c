@@ -2,12 +2,12 @@
 #include "../util/fplist.h"
 #include "renderer.h"
 #include <stdio.h>
+#include <stdlib.h>
 
-void createVBO(mesh* m){
-
+void createVBO(Mesh* m){
 	printf("criando vbo a:  %d \n" , m->trianglesCount);
 	fpnode *n = m->tris->first;
-	triangles* tri = NULL;
+	Triangles* tri = NULL;
 
 	//verifica quais vertex attributes existem no mesh e configura a struct attrs
 	while( n != NULL ){
@@ -122,7 +122,7 @@ void createVBO(mesh* m){
 
 }
 
-void setmeshboundingbox(mesh *m) {
+void setmeshboundingbox(Mesh *m) {
     //memset(m->b.pmin, 9999999, 3*sizeof(float));
     //memset(m->b.pmax, -999999, 3*sizeof(float));
     m->b.pmin[0] = 99999999;
@@ -135,7 +135,7 @@ void setmeshboundingbox(mesh *m) {
 
     //para cada triangles da lista
     for(int i = 0; i < m->tris->size; i++) {
-        triangles *t = fplist_getdata(i, m->tris);
+        Triangles *t = fplist_getdata(i, m->tris);
         printf("t->verticesCount: %d\n", t->verticesCount);
         for(int j = 0; j < t->verticesCount/3; j++) {
             //X
@@ -156,3 +156,40 @@ void setmeshboundingbox(mesh *m) {
         }
     }
 }
+
+Mesh* initMesh() {
+    Mesh *m = malloc(sizeof(Mesh));
+    m->tris = fplist_init(free);
+    return m;
+}
+
+void addTris(Mesh *m, Triangles *tri) {
+    fplist_insback(tri, m->tris);
+}
+
+void addVertices(Triangles *t, int num, int comp, float *vertices) {
+    t->verticesCount = num;
+    //TODO alocar vetor ou só mudar ponteiro?
+    //Desalocar memoria antiga?
+    t->vertices = vertices;
+    //TODO onde guardar comp?
+}
+
+void addNormals(Triangles* t, int num, int comp, float *normals) {
+    t->normalsCount = num;
+    t->normals = normals;
+}
+
+void addTexCoords(Triangles *t, int num, int comp, int texset, float *texcoords) {
+    t->texCoords[texset] = malloc(sizeof(TexCoord));
+    t->texCoords[texset]->count = num;
+    t->texCoords[texset]->components = comp;
+    t->texCoords[texset]->set = texset;
+    t->texCoords[texset]->texCoords = texcoords;
+}
+
+void addIndices(Triangles *t, int num, unsigned int *indices) {
+    t->indicesCount = num;
+    t->indices = indices;
+}
+

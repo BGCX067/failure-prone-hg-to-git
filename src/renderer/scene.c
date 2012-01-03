@@ -41,7 +41,7 @@ void getFloatArray(float** array, char* values, int count){
 	}
 }
 
-scene* initializeDae(char* filename){
+Scene* initializeDae(char* filename){
 
 	ezxml_t dae = ezxml_parse_file(filename);
 	if (!dae){
@@ -49,7 +49,7 @@ scene* initializeDae(char* filename){
 		return NULL;
 	}
 
-	scene* s = initializeScene();//malloc(sizeof(scene));
+	Scene* s = initializeScene();//malloc(sizeof(scene));
 	//s->meshCount  = 0;
 	//s->textureCount = 0;
 
@@ -86,7 +86,7 @@ scene* initializeDae(char* filename){
             }
 
             //for(meshxml = ezxml_child(geometry, "mesh"); meshxml; meshxml = meshxml->next){
-            mesh* m = malloc(sizeof(mesh));
+            Mesh* m = malloc(sizeof(Mesh));
             ezxml_t trixml;
             m->trianglesCount = 0;
             for( trixml = ezxml_child(meshxml, "triangles");  trixml; trixml = trixml->next){
@@ -99,7 +99,7 @@ scene* initializeDae(char* filename){
             int triCount = 0;
             //triangles* tri;
             for (trixml = ezxml_child(meshxml, "triangles"); trixml; trixml = trixml->next){
-                triangles* tri = malloc(sizeof(triangles));
+                Triangles* tri = malloc(sizeof(Triangles));
                 //TODO memset?
                 initializeTriangles( tri );
                 int count = atoi( ezxml_attr(trixml, "count"))*3;
@@ -222,7 +222,7 @@ scene* initializeDae(char* filename){
                     }
                     else if ( strcmp(semantic, "TEXCOORD")  == 0){
                         printf("lendo texcoords\n");
-                        texCoord* texSet = malloc(sizeof(texCoord));
+                        TexCoord* texSet = malloc(sizeof(TexCoord));
                         texSet->set = atoi( ezxml_attr(input, "set"));
                         printf("texcoord set: %d\n", texSet->set);
                         ezxml_t source = getSource(sourceName, meshxml);
@@ -279,29 +279,29 @@ scene* initializeDae(char* filename){
 	return s;
 }
 
-void initializeTriangles(triangles* tri){
+void initializeTriangles(Triangles* tri){
 
-	memset(tri, 0, sizeof(triangles));
+	memset(tri, 0, sizeof(Triangles));
 	tri->verticesComponents = 3;
 
 }
 
-int addMesh(scene* s, mesh *m){
+int addMesh(Scene* s, Mesh *m){
 	return fplist_insback(m, s->meshes );
 }
 
-int addNode(scene* s, node* n){
+int addNode(Scene* s, Node* n){
 	return fplist_insback(n, s->nodes);
 }
 
-int addLight(scene* s, light* l){
+int addLight(Scene* s, Light* l){
 	return fplist_insback(l, s->lights);
 }
 
-scene* initializeScene(){
+Scene* initializeScene(){
 
-	scene * s = malloc(sizeof(scene));
-	memset(s, sizeof(scene),  0);
+	Scene * s = malloc(sizeof(Scene));
+	memset(s, sizeof(Scene),  0);
 	//TODO deixa null aqui?
 	s->meshes = fplist_init(free);
 	s->nodes = fplist_init(free);
@@ -309,7 +309,7 @@ scene* initializeScene(){
 	return s;
 }
 
-int setupScene(scene* s){
+int setupScene(Scene* s){
 	if (s == NULL)
 		return 0;
     s->b.pmin[0] = 99999999;
@@ -321,12 +321,12 @@ int setupScene(scene* s){
     s->b.pmax[2] = -999999999;
 
 	if (s->meshes){
-		mesh* m = NULL;
+		Mesh* m = NULL;
 		for( int i = 0; i < s->meshes->size; i++){ // para da mesh da cena
 			m = fplist_getdata(i, s->meshes);
 			createVBO(m);
             //setmeshboundingbox(m);
-            triangles *t = fplist_getdata(i, m->tris);
+            Triangles *t = fplist_getdata(i, m->tris);
             setboundingbox(&(m->b), t->vertices, t->verticesCount/3);
 
             if(m->b.pmin[0] < s->b.pmin[0])
@@ -348,17 +348,17 @@ int setupScene(scene* s){
 	return 1;
 }
 
-void drawScene(scene* scn){
+void drawScene(Scene* scn){
 
 	if (scn == NULL)
 		return;
 
 	if (scn->meshes){
-		mesh* m = NULL;
+		Mesh* m = NULL;
 		for( int i = 0; i < scn->meshes->size; i++){ // para da mesh da cena
 			m = fplist_getdata(i, scn->meshes);
 			if (m->tris){
-				triangles* tri = NULL;
+				Triangles* tri = NULL;
 				for( int k = 0; k < m->tris->size; k++){ //para cada chunk de triangles do mesh
 					tri = fplist_getdata(k, m->tris);
 					//bindMaterial(&tri->mat, scn->lights->first->data);

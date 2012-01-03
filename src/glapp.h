@@ -87,6 +87,6 @@ void warpmouse(glapp* app, int yesno);
 
 int  getTime();
 
-void mainloop(glapp* app, int(idle)(float, event*, scene* ), int(render)(float, event*, scene*), scene* s);
+void mainloop(glapp* app, int(idle)(float, event*, Scene* ), int(render)(float, event*, Scene*), Scene* s);
 
 #endif

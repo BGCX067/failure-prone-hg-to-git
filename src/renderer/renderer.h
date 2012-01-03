@@ -118,9 +118,9 @@ typedef struct _rect{
 	int x, y, w, h;
 }rect;
 
-renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, cameratype t);
+renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, CameraType t);
 
-int render(float ifps, event *e, scene* s);
+int render(float ifps, event *e, Scene* s);
 void begin2d();
 void end2d();
 
@@ -178,6 +178,6 @@ void setShaderConstantRaw(int shaderid, const char *name, const void *data, cons
 
 
 //FIXME remover essa porcaria
-camera* getcamera();
+Camera* getcamera();
 
 #endif

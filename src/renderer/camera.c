@@ -5,7 +5,7 @@ int initializedtrackball;
 vec3 lastpos;
 vec3 currpos;
 
-void initCamera(camera *c, cameratype t) {
+void initCamera(Camera *c, CameraType t) {
     QUAT_IDENTITY(c->orientation);
     VEC3_ZERO(c->pos);
     c->up[0] = 0.0;
@@ -23,7 +23,7 @@ void initCamera(camera *c, cameratype t) {
 }
 
 //FIXME fazer um setupViewMatrix de verdade
-void setupViewMatrix(camera *c) {
+void setupViewMatrix(Camera *c) {
 
 	if (c->type == FIRSTPERSON){
 		fpLookAt(c->modelview, c->pos, c->viewDir, c->up);
@@ -48,7 +48,7 @@ void resettrackball() {
     VEC3_ZERO(currpos);
 }
 
-void cameraHandleEvent(camera *c, event *e) {
+void cameraHandleEvent(Camera *c, event *e) {
     //TODO pegar o tamanho da janela
     static int i = 0;
     if(c->type == FIRSTPERSON) {
@@ -191,7 +191,7 @@ void cameraHandleEvent(camera *c, event *e) {
 
 
 /* assume um fit na "frente do modelo" */
-void camerafit(camera *c, boundingbox b, float fovy, float ratio, float znear, float zfar) {
+void camerafit(Camera *c, boundingbox b, float fovy, float ratio, float znear, float zfar) {
 
     QUAT_IDENTITY(c->orientation);
     c->up[0] = 0.0;

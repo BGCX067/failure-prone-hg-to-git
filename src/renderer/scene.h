@@ -9,12 +9,10 @@
 #include "light.h"
 
 typedef struct _node{
-	mesh* model;
-
+	Mesh* model;
 	vec3 pos;	
-
 	struct _node* child;
-} node;
+} Node;
 
 typedef struct _scene{
 	int nodeCount;
@@ -26,16 +24,16 @@ typedef struct _scene{
 	fplist* nodes;
 
     boundingbox b;
-}scene;
+}Scene;
 
-void initializeTriangles(triangles* tri);
+void initializeTriangles(Triangles* tri);
 
-int addMesh(scene* s, mesh *m);
-int addNode(scene* s, node *m);
-int addLight(scene* s, light* l);
+int addMesh(Scene* s, Mesh *m);
+int addNode(Scene* s, Node *m);
+int addLight(Scene* s, Light* l);
 
-scene* initializeDae(char* filename);
+Scene* initializeDae(char* filename);
 
-scene* initializeScene();
+Scene* initializeScene();
 
 #endif
