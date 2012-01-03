@@ -186,6 +186,7 @@ void addTexCoords(Triangles *t, int num, int comp, int texset, float *texcoords)
     t->texCoords[texset]->components = comp;
     t->texCoords[texset]->set = texset;
     t->texCoords[texset]->texCoords = texcoords;
+    t->numTexSets++;
 }
 
 void addIndices(Triangles *t, int num, unsigned int *indices) {
