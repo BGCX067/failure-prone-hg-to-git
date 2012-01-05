@@ -40,7 +40,7 @@ void begin(batch *b, int primitive, int nverts, int texSets){
 		memset(b->texCoords, NULL, sizeof(float*)*texSets);
 	}
 
-	b->vaoid = createVAO();	
+	b->vaoid = initEmptyVAO();	
 }
 
 void vertex3f(batch* b, float x, float y, float z){
@@ -175,11 +175,11 @@ void end(batch* b){
 		}
 
 
-	vertexAttribute** attr = initializeVertexFormat();
+	VertexAttribute** attr = initializeVertexFormat();
 
         
         if(b->vertexVBO !=0) {
-		attr[ATTR_VERTEX] = malloc(sizeof(vertexAttribute));
+		attr[ATTR_VERTEX] = malloc(sizeof(VertexAttribute));
 		attr[ATTR_VERTEX]->count = b->numVerts;
 		attr[ATTR_VERTEX]->size = b->numVerts*sizeof(float);
 		attr[ATTR_VERTEX]->type = ATTR_VERTEX;
@@ -189,7 +189,7 @@ void end(batch* b){
 	}
                 
 	if(b->colorVBO != 0) {
-		attr[ATTR_COLOR] = malloc(sizeof(vertexAttribute));
+		attr[ATTR_COLOR] = malloc(sizeof(VertexAttribute));
 		attr[ATTR_COLOR]->count = b->numVerts;
 		attr[ATTR_COLOR]->size = b->numVerts*sizeof(float);
 		attr[ATTR_COLOR]->type = ATTR_COLOR;
@@ -199,7 +199,7 @@ void end(batch* b){
 	}
                 
 	if(b->normalVBO != 0) {
-		attr[ATTR_NORMAL] = malloc(sizeof(vertexAttribute));
+		attr[ATTR_NORMAL] = malloc(sizeof(VertexAttribute));
 		attr[ATTR_NORMAL]->count = b->numVerts;
 		attr[ATTR_NORMAL]->size = b->numVerts*sizeof(float);
 		attr[ATTR_NORMAL]->type = ATTR_NORMAL;
@@ -211,7 +211,7 @@ void end(batch* b){
 	for(unsigned int i = 0; i < b->numTexSets; i++)
 		if(b->texCoordsVBO[i] != 0) {
 			//printf("configurando texcoords vbo %d vboid: %d \n", i, b->texCoordsVBO[i]);
-			attr[ATTR_TEXCOORD0+i] = malloc(sizeof(vertexAttribute));
+			attr[ATTR_TEXCOORD0+i] = malloc(sizeof(VertexAttribute));
 			attr[ATTR_TEXCOORD0+i]->count = b->numVerts;
 			attr[ATTR_TEXCOORD0+i]->size = b->numVerts*sizeof(float);
 			attr[ATTR_TEXCOORD0+i]->type = ATTR_TEXCOORD0+i;

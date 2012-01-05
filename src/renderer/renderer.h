@@ -4,12 +4,13 @@
 
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include "../glapp.h"
+//#include "../glapp.h"
 #include "../util/fplist.h"
 #include "../util/fparray.h"
 #include "camera.h"
+#include "vertexattribute.h"
+//#include "scene.h"
 
-#define MAX_VERTEX_ATTRS 16
 
 enum TextureTarget{
 
@@ -56,36 +57,6 @@ enum Type{
 	FLOAT = GL_FLOAT
 };
 
-enum AttributeType{
-	ATTR_VERTEX = 0,
-	ATTR_NORMAL = 2,
-	ATTR_COLOR = 3,
-	ATTR_SECONDARY_COLOR = 4,
-	ATTR_FOG_COORD = 5,
-
-	ATTR_TANGENT = 6,
-	ATTR_BINORMAL = 7,
-
-	ATTR_TEXCOORD0 = 8,
-	ATTR_TEXCOORD1 = 9,
-	ATTR_TEXCOORD2 = 10,
-	ATTR_TEXCOORD3 = 11,
-	ATTR_TEXCOORD4 = 12,
-	ATTR_TEXCOORD5 = 13,
-	ATTR_TEXCOORD6 = 14,
-	ATTR_TEXCOORD7 = 15
-
-};
-
-typedef struct _vertexAttribute{
-	unsigned int count;
-	unsigned int size;
-	unsigned int offset;
-	unsigned int components;
-	int type;
-	unsigned int vboID; //opcional
-}vertexAttribute;
-
 typedef struct _framebuffer{
 	int width, height;
 	int id;
@@ -127,7 +98,7 @@ void end2d();
 void disableDepth();
 void enableDepth();
 
-vertexAttribute** initializeVertexFormat();
+VertexAttribute** initializeVertexFormat();
 
 //textures
 int initializeSamplerState(int wrapmode, int minfilter, int magfilter, int anisotropy);
@@ -141,22 +112,35 @@ void bindMainFramebuffer();
 void bindFramebuffer(int id);
 unsigned int initializeFramebuffer(void* data, int width, int height, int format, int internalFormat, int type );
 
+
+/////////////////////
 //VBOS
+/////////////////////
 unsigned int initializeVBO(unsigned int size, int mode, const void* data);
-void killVBO(unsigned int id);
 void* mapVBO(unsigned int id,  int mode);
 void unmapVBO(unsigned int id);
+void destroyVBO(unsigned int id);
 
+/////////////////////
 //VAO
-//passando o vaoid, o formato dos vertices attrs e os vbos, essa funcao configura a vao
-void initializeVAO(unsigned int vaoID, vertexAttribute** attrs); 
-//cria uma vaoid vazia e retorna
-unsigned int createVAO();
-void drawArraysVAO(unsigned int vaoID, int type, int numVerts);
+////////////////////
+//FIXME função não implementada
+//void initializeVAO(unsigned int vaoID, VertexAttribute** attrs); 
 
+//cria uma vaoid vazia e retorna
 //parecida com a initializeVAO mas essa eh pra geometria indexada, entao passa os indicesID
-unsigned int initializeIndexedVAO( unsigned int indicesID, vertexAttribute** attrs);
-unsigned int  drawIndexedVAO(unsigned int  vaoID,  unsigned int triCount, int geometryType);
+//FIXME OLD
+//unsigned int initializeIndexedVAO( unsigned int indicesID, VertexAttribute** attrs);
+
+void drawArraysVAO(unsigned int vaoID, int type, int numVerts);
+void drawIndexedVAO(unsigned int  vaoID,  unsigned int triCount, int geometryType);
+
+//VAO API NOVA
+unsigned int initEmptyVAO();
+void configureVAO(unsigned int vaoid, VertexAttribute** attrs);
+void configureIndexedVAO(unsigned int vaoid, unsigned int indicesid, VertexAttribute** attrs);
+void destroyVAO(unsigned int vaoid);
+
 
 //shaders
 unsigned int initializeShader(const char* vertexSource, const char* fragmentSource);

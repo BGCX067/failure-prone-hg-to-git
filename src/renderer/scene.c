@@ -363,7 +363,7 @@ void drawScene(Scene* scn){
 					tri = fplist_getdata(k, m->tris);
 					//bindMaterial(&tri->mat, scn->lights->first->data);
 					//bindShader(tri->mat.shaderid);
-					drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES );
+					drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES);
 				}
 			}
 		}

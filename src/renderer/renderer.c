@@ -678,54 +678,38 @@ void setShaderConstantRaw(int shaderid, const char* name, const void* data, int 
 	}
 }
 
-void killVBO(unsigned int id){
-	glDeleteBuffers(1, &id);
-}
 
-vertexAttribute** initializeVertexFormat(){
-	vertexAttribute** attr = malloc(sizeof(vertexAttribute*)*MAX_VERTEX_ATTRS);
+
+VertexAttribute** initializeVertexFormat(){
+	VertexAttribute** attr = malloc(sizeof(VertexAttribute*)*MAX_VERTEX_ATTRS);
 	for (int i = 0; i < MAX_VERTEX_ATTRS; i++)
 		attr[i] = NULL;
 	return attr;
 }
 
-void configureVAO(unsigned int vaoID,   vertexAttribute** attrs){
+///////////////////////////////
+//      VAO Related
+///////////////////////////////
+unsigned int initEmptyVAO(){
+	unsigned int vaoID;
+	glGenVertexArrays(1, &vaoID);
+	return vaoID;
+}
+
+void configureVAO(unsigned int vaoID, VertexAttribute** attrs){
 	glBindVertexArray(vaoID);
 	for(unsigned int i = 0; i < MAX_VERTEX_ATTRS; i++){
 		if (attrs[i]){
 			glEnableVertexAttribArray(i);
-			//printf("configure vao id:  %d vboid %d \n", i, attrs[i]->vboID); 
 			glBindBuffer(GL_ARRAY_BUFFER, attrs[i]->vboID);
 			glVertexAttribPointer(i, attrs[i]->components, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(attrs[i]->offset));
-		//	glDisableVertexAttribArray(i);
 		}
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(r->prevVAO);
 }
 
-unsigned int createVAO(){
-	unsigned int vaoID;
-	glGenVertexArrays(1, &vaoID);
-	return vaoID;
-}
-
-void drawArraysVAO(unsigned int vaoID, int type, int numVerts){
-
-	if (vaoID != r->prevVAO){
-		r->prevVAO = vaoID;
-		glBindVertexArray(vaoID);
-	}
+void configureIndexedVAO(unsigned int vaoID, unsigned int indicesid, VertexAttribute** attrs){
 	glBindVertexArray(vaoID);
-	glDrawArrays(type, 0, numVerts);
-	glBindVertexArray(0);//TODO voltar pro VAO anterior?
-}
-
-unsigned int initializeIndexedVAO( unsigned int  indicesID, vertexAttribute** attrs){
-	unsigned int vaoID;
-	glGenVertexArrays(1, &vaoID);
-	glBindVertexArray(vaoID);
-	
 	for(unsigned int i = 0; i < MAX_VERTEX_ATTRS; i++){
 		if (attrs[i]){
 			glEnableVertexAttribArray(i);
@@ -733,34 +717,31 @@ unsigned int initializeIndexedVAO( unsigned int  indicesID, vertexAttribute** at
 			glVertexAttribPointer(i, attrs[i]->components, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(attrs[i]->offset));
 		}
 	}
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,  indicesID);
-
-	glBindVertexArray(r->prevVAO);
-	return vaoID;
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,  indicesid);
 }
 
-unsigned int drawIndexedVAO(unsigned int vaoID, unsigned int triCount, int geometryType){
-
-   // printf("vaoid %d \n", vaoID);
-   // printf("prevVAO %d \n", r->prevVAO);
-    if (vaoID != r->prevVAO){
-		r->prevVAO = vaoID;
-		glBindVertexArray(vaoID);
-	}
-   // printf("draw elements \n");
-   // printf("tricount: %d\n", triCount);
-	glDrawElements(geometryType, triCount, GL_UNSIGNED_INT, NULL);
-//    printf("end draw elements \n");
+void destroyVAO(unsigned int vaoID) {
+    glDeleteVertexArrays(1, &vaoID);
 }
 
+void drawArraysVAO(unsigned int vaoID, int type, int numVerts){
+	glBindVertexArray(vaoID);
+	glDrawArrays(type, 0, numVerts);
+}
+
+void drawIndexedVAO(unsigned int vaoID, unsigned int triCount, int geometryType){
+    glBindVertexArray(vaoID);
+    glDrawElements(geometryType, triCount, GL_UNSIGNED_INT, NULL);
+}
+
+///////////////////////////////
+//      VBO Related
+///////////////////////////////
 unsigned int initializeVBO(unsigned int size, int mode, const void* data){
 	unsigned int vboID;
 	glGenBuffers(1, &vboID);
 	glBindBuffer(GL_ARRAY_BUFFER, vboID);
 	glBufferData(GL_ARRAY_BUFFER, size, data, mode);
-	glBindBuffer(GL_ARRAY_BUFFER, r->prevVBO); //volta
-	//printf("initialize vbo: %d %d \n", vboID, r->prevVBO);
 	return vboID;
 }
 
@@ -777,6 +758,9 @@ void unmapVBO(unsigned int id){
 	glBindBuffer(GL_ARRAY_BUFFER, r->prevVBO);
 }
 
+void destroyVBO(unsigned int id){
+	glDeleteBuffers(1, &id);
+}
 
 int checkFramebufferStatus( int silent)
 {

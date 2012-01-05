@@ -4,6 +4,7 @@
 #include "../util/fplist.h"
 #include "../math/boundingbox.h"
 #include "material.h"
+#include "vertexattribute.h"
 
 #define MAX_TEXCOORDS 8
 
@@ -18,7 +19,9 @@ typedef struct _triangles{
     //OpenGL related
 	unsigned int vboId, indicesId, vaoId;
     //TODO um vbo para cada atributo - adicionar os outros
-    unsigned int vertVBO, normalVBO, texVBO;
+    //TODO 2: se usar vertexattrib, não precisa desses ids, guardar na propria struct
+    unsigned int verticesVBO, normalsVBO, texVBO[MAX_TEXCOORDS], binormalsVBO, tangentsVBO;
+    VertexAttribute *attrs[MAX_VERTEX_ATTRS];
 
 	unsigned int indicesCount, verticesCount, normalsCount, tangentsCount, binormalsCount;
 	unsigned int verticesComponents;
@@ -49,17 +52,15 @@ void setmeshboundingbox(Mesh *m);
 
 //TODO: API de mesh
 /*2- // gerar os arrays de geometria/indices
-4.1- void addVertices(tri* t, int num, int comp, float* vertices); //e outros
-4.2- void addNormals(tri* t, int num, int comp, float* normals); //e outros
-4.3- void addTexCoords(tri* t, int num, int comp, int texset, float* normals); //e outros
-4.4- void addIndices(tri* t, int count, unsigned int* indices );
-5- initVBO(mesh* );*/
+5- O(mesh* );*/
 
 Mesh* initMesh();
-void addTris(Mesh *m, Triangles *tri);
+Triangles* addTris(Mesh *m);
 void addVertices(Triangles *t, int num, int comp, float *vertices);
 void addNormals(Triangles* t, int num, int comp, float *normals);
 void addTexCoords(Triangles *t, int num, int comp, int texset, float *texcoords);
 void addIndices(Triangles *t, int count, unsigned int *indices);
+void prepareMesh(Mesh *m);
+
 
 #endif

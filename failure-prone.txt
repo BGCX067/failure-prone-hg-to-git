@@ -10,12 +10,12 @@ struct node: mesh*, mat4 transformation, list children
 1- mesh* initMesh(); - FEITO
     1.1 - Não recebe mais numtris pq agora usa uma lista
 2- // gerar os arrays de geometria/indices
-3- tri* addTris(mesh* );
-4.1- void addVertices(tri* t, int num, int comp, float* vertices); //e outros
-4.2- void addNormals(tri* t, int num, int comp, float* normals); //e outros
-4.3- void addTexCoords(tri* t, int num, int comp, int texset, float* normals); //e outros
-4.4- void addIndices(tri* t, int count, unsigned int* indices );
-5- initVBO(mesh* );
+3- tri* addTris(mesh* ); - FEITO
+4.1- void addVertices(tri* t, int num, int comp, float* vertices); //e outros - FEITO
+4.2- void addNormals(tri* t, int num, int comp, float* normals); //e outros - FEITO
+4.3- void addTexCoords(tri* t, int num, int comp, int texset, float* normals); //e outros - FEITO
+4.4- void addIndices(tri* t, int count, unsigned int* indices ); - FEITO
+5- initVBO(mesh* ); - FEITO
 
 
 API Alto Nivel do RENDERER
@@ -57,6 +57,7 @@ API Baixo Nivel do RENDERER (vao/vbo, texturas, shaders, samṕler state, frameb
 4- void destroyTexture();
 5- void bindTexture(int slot, int texid);
 
+//VAO E VBO feito
 1- unsigned int initializeIndexVBO(int indicesCount, unsigned int* indices);
 2- unsigned int initializeDataVBO(int count, int mode, void* data);//tri->vertVBO = init...(count, mode, tri->vertices);
 3- void* mapVBO(unsigned int vboid, int mode);
