@@ -36,6 +36,7 @@ typedef struct _triangles{
 	unsigned int numTexSets;
 
 	Material mat;
+    Material *material;
 }Triangles;
 
 typedef struct _mesh{
@@ -45,6 +46,9 @@ typedef struct _mesh{
     //TODO armazena um ponteiro pra uma lista. deveria armazenar um objeto lista mesmo
 	fplist*  tris;
     boundingbox b;
+
+    //FIXME usando o id só pra montar o scenegraph
+    char *id;
 }Mesh;
 
 void createVBO(Mesh* mesh);

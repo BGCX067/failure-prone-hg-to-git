@@ -1,6 +1,9 @@
 #ifndef _GUI_H_
 #define _GUI_H_
+
 #include "util/fontstash.h"
+#include "../glapp.h"
+
 typedef struct _GUI{
 
 	int widgetShader;

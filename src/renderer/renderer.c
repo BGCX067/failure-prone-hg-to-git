@@ -10,21 +10,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-typedef struct _texture{
-	unsigned int id;
-	int state;
-	int target;
-}texture;
-
-typedef struct _samplerState{
-	unsigned int id;
-	int wrapmode;
-	int anisotropy;
-	int minfilter;
-	int magfilter;
-	//minlod, maxlod, lodbias, comparemode, comparefunc 
-} samplerState;
-
 enum Semantic{
 	TIME,
 	EYEPOS,
@@ -120,13 +105,13 @@ int constantTypeSizes[CONSTANT_TYPE_COUNT] = {
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-int prevShader = 0;
-fparray* shaders = NULL;
+//int prevShader = 0;
+//fparray* shaders = NULL;
 
-int prevTexture = -1;
-fparray* textures = NULL; 
-int prevSamplerState = -1;
-fparray* samplerStates = NULL;
+//int prevTexture = -1;
+//fparray* textures = NULL; 
+//int prevSamplerState = -1;
+//fparray* samplerStates = NULL;
 
 renderer* r;
 Camera c;
@@ -142,17 +127,17 @@ void beginRender(event *e) {
 	fpMultMatrix(c.mvp, c.projection, c.modelview);
 }
 
-renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, CameraType t){
+renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, int cameratype){
 	r = (renderer*) malloc(sizeof(renderer));
-    r->framebuffers = fparray_init(NULL, free, sizeof(framebuffer));
+//    r->framebuffers = fparray_init(NULL, free, sizeof(framebuffer));
 	r->fovy = fovy;
 	r->zfar = zfar;
 	r->znear = znear;
-	r->prevVBO = 0;
-	r->prevVAO = -1;
+	//r->prevVBO = 0;
+	//r->prevVAO = -1;
 	r->viewPortWidth = w;
 	r->viewPortHeight = h;
-	r->prevFramebuffer = -1;
+	//r->prevFramebuffer = -1;
 
     glewExperimental=1;
     GLenum err = glewInit();
@@ -177,7 +162,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
- 	initCamera(&c, t);
+ 	initCamera(&c, cameratype);
 
 	fpperspective(c.projection, fovy, ratio, znear, zfar);
 	//fpOrtho(projection, 0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);	
@@ -234,7 +219,7 @@ void disableDepth(){
 //////
 
 int initializeSamplerState(int wrapmode, int minfilter, int magfilter, int anisotropy){
-
+/*
 	if (samplerStates == NULL)
 		samplerStates = fparray_init(NULL, free, sizeof(samplerState));
 
@@ -278,11 +263,11 @@ int initializeSamplerState(int wrapmode, int minfilter, int magfilter, int aniso
 
 	fparray_inspos(state, state->id, samplerStates);
 
-	return state->id;
+	return state->id;*/
 }
 
 void bindSamplerState(unsigned int unit, unsigned int id){
-
+/*
 	samplerState* samplerid = fparray_getdata(id, samplerStates);
 	samplerState* prevSampler = fparray_getdata(prevSamplerState, samplerStates);
 
@@ -295,14 +280,11 @@ void bindSamplerState(unsigned int unit, unsigned int id){
 			prevSamplerState = id;
 		}
 
-	}
+	}*/
 }
 
 unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type){
-
-    if (textures == NULL)
-        textures = fparray_init(NULL, free, sizeof(texture));
-
+    /*
     unsigned int textureID;
     glGenTextures(1, &textureID);
     glBindTexture(target, textureID);
@@ -355,11 +337,11 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
     if (prevTexture >= 0)
         bindTexture(0, prevTexture);
 
-    return textureID;
+    return textureID;*/
 }
 
 unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type){
-
+/*
         if (textures == NULL)
             textures = fparray_init(NULL, free, sizeof(texture));
 
@@ -382,11 +364,11 @@ unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, i
 
 	return textureID;
 
-
+    */
 }
 
 void bindTexture(int slot, int id){
-
+/*
 	texture* tex = fparray_getdata(id, textures);
 	texture* prevTex = fparray_getdata(prevTexture,textures);
 
@@ -414,7 +396,7 @@ void bindTexture(int slot, int id){
 		glActiveTexture(GL_TEXTURE0 + slot);
 		prevTexture = id;
 	}
-
+    */
 }
 
 ////////
@@ -422,7 +404,7 @@ void bindTexture(int slot, int id){
 //////////
 unsigned int initializeShader(const char* vertexSource, const char* fragmentSource){
 
-	if (shaders == NULL)
+	/*if (shaders == NULL)
 		shaders = fparray_init(NULL, free, sizeof(shader));
 
 
@@ -560,23 +542,24 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 	}
 
 	free(name);
-    	fparray_inspos(newShader, shaderProgram, shaders);
-	glUseProgram(prevShader);
+    fparray_inspos(newShader, shaderProgram, shaders);
+	//glUseProgram(prevShader);
 	
-	return shaderProgram;
+	return shaderProgram;*/
 }
 
 void bindShader(unsigned int program){
-	if (program == 0){
-		glUseProgram(0);
-		prevShader = 0;
-		return;
-	}
+    /*
+	//if (program == 0){
+	//	glUseProgram(0);
+		//prevShader = 0;
+	//	return;
+	//}
 
-	if (program != prevShader){
-		prevShader = program;
-		glUseProgram(program);
-	}
+	//if (program != prevShader){
+	//	prevShader = program;
+	//	glUseProgram(program);
+	//}
 
 	shader *shdr = fparray_getdata(program, shaders);
 	for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
@@ -609,7 +592,7 @@ void bindShader(unsigned int program){
 		//	float lightp[3] = {10.0, 10.0, 10.0 };
 //			setShaderConstant3f(program, "LightPosition",  lightp);
 		}
-	}
+	}*/
 }
 
 int printShaderCompilerLog(unsigned int shader){
@@ -667,7 +650,7 @@ void setShaderConstant4x4f(int shaderid, const char *name, const float constant[
 }
 
 void setShaderConstantRaw(int shaderid, const char* name, const void* data, int size){
-    shader *shdr = fparray_getdata(shaderid, shaders);
+    /*shader *shdr = fparray_getdata(shaderid, shaders);
 	for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
 		if (strcmp(name, shdr->uniforms[i]->name ) == 0 ){
 			if (memcmp(shdr->uniforms[i]->data, data, size)){
@@ -675,7 +658,7 @@ void setShaderConstantRaw(int shaderid, const char* name, const void* data, int 
 				shdr->uniforms[i]->dirty = 1;
 			}
 		}
-	}
+	}*/
 }
 
 
@@ -748,14 +731,14 @@ unsigned int initializeVBO(unsigned int size, int mode, const void* data){
 void* mapVBO(unsigned int vboID,int mode){
 	glBindBuffer(GL_ARRAY_BUFFER, vboID);
 	float* ret = (float*) glMapBuffer(GL_ARRAY_BUFFER, mode);
-	glBindBuffer(GL_ARRAY_BUFFER, r->prevVBO);
+	//glBindBuffer(GL_ARRAY_BUFFER, r->prevVBO);
 	return ret;
 }
 
 void unmapVBO(unsigned int id){
 	glBindBuffer(GL_ARRAY_BUFFER, id);
 	glUnmapBuffer(GL_ARRAY_BUFFER);
-	glBindBuffer(GL_ARRAY_BUFFER, r->prevVBO);
+	//glBindBuffer(GL_ARRAY_BUFFER, r->prevVBO);
 }
 
 void destroyVBO(unsigned int id){
@@ -815,7 +798,7 @@ unsigned int initializeFramebuffer(void* data, int width, int height, int format
     fb->height = height;
     fb->texid = texid;
 
-    fparray_inspos(fb, id, r->framebuffers);
+//    fparray_inspos(fb, id, r->framebuffers);
 
 	checkFramebufferStatus(0);
 
@@ -826,7 +809,7 @@ unsigned int initializeFramebuffer(void* data, int width, int height, int format
 }
 
 void bindFramebuffer(int id){
-	if (r->prevFramebuffer != id){
+	/*if (r->prevFramebuffer != id){
 		r->prevFramebuffer = id;
 		glBindFramebuffer(GL_FRAMEBUFFER, id);
 		//printf("vai pegar o array\n");
@@ -834,13 +817,13 @@ void bindFramebuffer(int id){
 		//printf("fb array done\n");
 		glViewport(0, 0, fb->width,  fb->height); 
 		//printf("viewport configurado \n");
-	}
+	}*/
 }
 
 void bindMainFramebuffer(){
-	r->prevFramebuffer = 0;
+	/*r->prevFramebuffer = 0;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, r->viewPortWidth, r->viewPortHeight);
+	glViewport(0, 0, r->viewPortWidth, r->viewPortHeight);*/
 }
 
 Camera* getcamera() {

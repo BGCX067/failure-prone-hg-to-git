@@ -3,7 +3,7 @@
 #include <GL/gl.h>
 #include <stdio.h>
 #include "util/fontstash.h"
-#include "../glapp.h"
+//#include "../glapp.h"
 #include "glime.h"
 //#include "util/fparray.h"
 #define STB_TRUETYPE_IMPLEMENTATION

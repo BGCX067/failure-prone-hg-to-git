@@ -4,35 +4,41 @@
 #include "mesh.h"
 #include "material.h"
 #include "../util/fplist.h"
-#include "../math/vec3.h"
 #include "../math/boundingbox.h"
 #include "light.h"
+#include "../math/matrix.h"
 
 typedef struct _node{
 	Mesh* model;
-	vec3 pos;	
-	struct _node* child;
+    mat4 transformation;
+	struct _node* parent;
+	struct _node** children;
 } Node;
 
 typedef struct _scene{
 	int nodeCount;
-	int textureCount;
 	int meshCount;
 
-	fplist* meshes;
-	fplist* lights;
-	fplist* nodes;
+	//fplist* meshes;
+    fplist* meshList;
+	fplist* lightList;
+    fplist* materialList;
+    fplist* texList;
+    
+    fplist* nodes;
 
     boundingbox b;
 }Scene;
 
-void initializeTriangles(Triangles* tri);
+//void initializeTriangles(Triangles* tri);
 
-int addMesh(Scene* s, Mesh *m);
-int addNode(Scene* s, Node *m);
-int addLight(Scene* s, Light* l);
+int addMesh(Scene *s, Mesh *m);
+int addLight(Scene *s, Light *l);
+int addMaterial(Scene *s, Material *m);
+int addTexture(Scene *s, Texture *t);
+int addNode(Scene *s, Node *m);
 
-Scene* initializeDae(char* filename);
+//Scene* initializeDae(char* filename);
 
 Scene* initializeScene();
 

@@ -1,19 +1,16 @@
-
 #ifndef _RENDERER_H_
 #define _RENDERER_H_
 
 #include <GL/gl.h>
 #include <GL/glu.h>
 //#include "../glapp.h"
-#include "../util/fplist.h"
-#include "../util/fparray.h"
-#include "camera.h"
+//#include "../util/fplist.h"
+//#include "../util/fparray.h"
+//#include "camera.h"
 #include "vertexattribute.h"
 //#include "scene.h"
 
-
 enum TextureTarget{
-
 	TEXTURE_1D = GL_TEXTURE_1D,
 	TEXTURE_2D = GL_TEXTURE_2D,
 	TEXTURE_3D = GL_TEXTURE_3D,
@@ -40,11 +37,27 @@ enum TextureInternalFormat{
 enum TextureSampler{
 	CLAMP  = GL_CLAMP,
 	CLAMP_TO_EDGE  = GL_CLAMP_TO_EDGE,
-
 	LINEAR = GL_LINEAR,
 	BILINEAR = GL_LINEAR_MIPMAP_LINEAR,
 	NEAREST = GL_NEAREST
 };
+
+typedef struct _texture{
+	unsigned int id;
+	int state;
+	int target;
+} Texture;
+
+typedef struct _samplerState{
+	unsigned int id;
+	int wrapmode;
+	int anisotropy;
+	int minfilter;
+	int magfilter;
+	//minlod, maxlod, lodbias, comparemode, comparefunc 
+} samplerState;
+
+
 
 enum GeometryType{
 
@@ -69,13 +82,13 @@ typedef struct _renderer{
 
 	float fovy, znear, zfar;
 
-	int prevVBO;
+	//int prevVBO;
 
-	int prevFramebuffer;
-    	fparray* framebuffers; 
+	//int prevFramebuffer;
+    //fparray* framebuffers; 
     
    
-   	int prevVAO;
+   	//int prevVAO;
 
 }renderer;
 
@@ -89,9 +102,9 @@ typedef struct _rect{
 	int x, y, w, h;
 }rect;
 
-renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, CameraType t);
+renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, int cameratype);
 
-int render(float ifps, event *e, Scene* s);
+//int render(float ifps, event *e, Scene* s);
 void begin2d();
 void end2d();
 
@@ -162,6 +175,6 @@ void setShaderConstantRaw(int shaderid, const char *name, const void *data, cons
 
 
 //FIXME remover essa porcaria
-Camera* getcamera();
+//Camera* getcamera();
 
 #endif

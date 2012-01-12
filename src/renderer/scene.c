@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <GL/gl.h>
-#include "renderer.h"
+//#include "renderer.h"
 
-ezxml_t getVertexSource(char* sourceName, ezxml_t mesh){
+/*ezxml_t getVertexSource(char* sourceName, ezxml_t mesh){
 
 	ezxml_t source = ezxml_child(mesh, "vertices");
 	for (source = ezxml_child(mesh, "vertices"); source; source = source->next){
@@ -40,6 +40,7 @@ void getFloatArray(float** array, char* values, int count){
 		k++;
 	}
 }
+
 
 Scene* initializeDae(char* filename){
 
@@ -277,7 +278,7 @@ Scene* initializeDae(char* filename){
 	ezxml_free(dae);
 	printf("scena lida.\n");
 	return s;
-}
+} */
 
 void initializeTriangles(Triangles* tri){
 
@@ -287,25 +288,35 @@ void initializeTriangles(Triangles* tri){
 }
 
 int addMesh(Scene* s, Mesh *m){
-	return fplist_insback(m, s->meshes );
+	return fplist_insback(m, s->meshList );
+}
+
+int addLight(Scene* s, Light* l){
+	return fplist_insback(l, s->lightList);
+}
+
+int addMaterial(Scene*s, Material *m) {
+    return fplist_insback(m, s->materialList);
+}
+
+int addTexture(Scene *s, Texture *t) {
+    return fplist_insback(t, s->texList);
 }
 
 int addNode(Scene* s, Node* n){
 	return fplist_insback(n, s->nodes);
 }
 
-int addLight(Scene* s, Light* l){
-	return fplist_insback(l, s->lights);
-}
-
 Scene* initializeScene(){
-
 	Scene * s = malloc(sizeof(Scene));
 	memset(s, sizeof(Scene),  0);
-	//TODO deixa null aqui?
-	s->meshes = fplist_init(free);
-	s->nodes = fplist_init(free);
-	s->lights = fplist_init(free);
+	
+    s->meshList = fplist_init(free);
+	s->lightList = fplist_init(free);
+    s->materialList = fplist_init(free);
+    s->texList = fplist_init(free);
+        
+    s->nodes = fplist_init(free);
 	return s;
 }
 
@@ -320,10 +331,10 @@ int setupScene(Scene* s){
     s->b.pmax[1] = -999999999;
     s->b.pmax[2] = -999999999;
 
-	if (s->meshes){
+	if (s->meshList){
 		Mesh* m = NULL;
-		for( int i = 0; i < s->meshes->size; i++){ // para da mesh da cena
-			m = fplist_getdata(i, s->meshes);
+		for( int i = 0; i < s->meshList->size; i++){ // para da mesh da cena
+			m = fplist_getdata(i, s->meshList);
 			createVBO(m);
             //setmeshboundingbox(m);
             Triangles *t = fplist_getdata(i, m->tris);
@@ -353,10 +364,10 @@ void drawScene(Scene* scn){
 	if (scn == NULL)
 		return;
 
-	if (scn->meshes){
+	if (scn->meshList){
 		Mesh* m = NULL;
-		for( int i = 0; i < scn->meshes->size; i++){ // para da mesh da cena
-			m = fplist_getdata(i, scn->meshes);
+		for( int i = 0; i < scn->meshList->size; i++){ // para da mesh da cena
+			m = fplist_getdata(i, scn->meshList);
 			if (m->tris){
 				Triangles* tri = NULL;
 				for( int k = 0; k < m->tris->size; k++){ //para cada chunk de triangles do mesh
