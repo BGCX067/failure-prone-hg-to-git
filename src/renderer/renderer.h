@@ -43,9 +43,11 @@ enum TextureSampler{
 };
 
 typedef struct _texture{
-	unsigned int id;
+	unsigned int texid;
 	int state;
 	int target;
+
+    char *id;
 } Texture;
 
 typedef struct _samplerState{
@@ -57,10 +59,7 @@ typedef struct _samplerState{
 	//minlod, maxlod, lodbias, comparemode, comparefunc 
 } samplerState;
 
-
-
 enum GeometryType{
-
 	TRIANGLES = GL_TRIANGLES,
 	POINTS = GL_POINTS
 };
@@ -115,10 +114,18 @@ VertexAttribute** initializeVertexFormat();
 
 //textures
 int initializeSamplerState(int wrapmode, int minfilter, int magfilter, int anisotropy);
-unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type);
+
+//unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type);
 void bindSamplerState(unsigned int unit, unsigned int id);
-unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type);
+//unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type);
 void bindTexture(int slot, int id);
+
+//////////////////////
+//TEXTURES
+/////////////////////
+Texture* initialize2DTexture(char *filename);
+Texture* initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type);
+Texture* initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type);
 
 //framebuffers
 void bindMainFramebuffer();

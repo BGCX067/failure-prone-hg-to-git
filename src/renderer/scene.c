@@ -295,7 +295,7 @@ int addLight(Scene* s, Light* l){
 	return fplist_insback(l, s->lightList);
 }
 
-int addMaterial(Scene*s, Material *m) {
+int addMaterial(Scene *s, Material *m) {
     return fplist_insback(m, s->materialList);
 }
 

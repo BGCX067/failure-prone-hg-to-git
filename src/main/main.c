@@ -1,5 +1,4 @@
 #include <stdio.h>
-
 #include "glapp.h"
 #include "math/vec3.h"
 #include "renderer/renderer.h"
@@ -8,9 +7,9 @@
 #include "renderer/glime.h"
 #include "renderer/camera.h"
 #include "util/shadergen.h"
+#include "util/colladaloader.h"
 
 int idle(float ifps, event* e, Scene* s){
-	//printf("x:  %f y: %f \n ",playerBody->p.x, playerBody->p.y );
 	return 1;
 }
 
@@ -22,16 +21,18 @@ Scene* cena;
 renderer *mainrenderer;
 
 void initializeGame(){
+    cena = readColladaFile("data/models/duck_triangulate_deindexer.dae");
+
     shaderflags f;
     f.flags = PHONG | TEX;
     char *vertShader, *fragShader;
     shadergen(f, &vertShader, &fragShader);
     
-    printf("VERTEX SHADER:\n");
+/*    printf("VERTEX SHADER:\n");
     printf("%s\n\n", vertShader);
 
     printf("FRAG SHADER:\n");
-    printf("%s\n\n", fragShader);
+    printf("%s\n\n", fragShader);*/
 
     minimalShader = initializeShader(vertShader, fragShader);
 }

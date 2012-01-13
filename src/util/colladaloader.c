@@ -67,23 +67,15 @@ void readMaterial(ezxml_t collada, Scene *s) {
     ezxml_t library_images = ezxml_child(collada, "library_images");
     
     for(ezxml_t imagetag = ezxml_child(library_images, "image"); imagetag; imagetag = imagetag->next) {
-        Texture *t = malloc(sizeof(Texture));
+        char *file = ezxml_child(imagetag, "init_from")->txt;
+        Texture *t = initialize2DTexture(file);
         t->id = ezxml_attr(imagetag, "id");
-        
-        char *filepath = ezxml_child(imagetag, "init_from")->txt;
-        //int n;
-        //t->data = stbi_load(filepath, &t->width, &t->height, &n, 0);
-        
-
-        
         addTexture(s, t);
     }
 
     ezxml_t library_materials = ezxml_child(collada, "library_materials");
-
     for (ezxml_t materialtag = ezxml_child(library_materials, "material"); materialtag; materialtag = materialtag->next) {
         Material *mat = malloc(sizeof(Material));
-
         mat->id = ezxml_attr(materialtag, "id");
 
         ezxml_t instance_effect = ezxml_child(materialtag, "instance_effect");
@@ -108,11 +100,9 @@ void readMaterial(ezxml_t collada, Scene *s) {
 
         //le as informações de material
         ezxml_t emission = ezxml_child(techniquetype, "emission");
-        printf("componente emission do material: %s\n", ezxml_child(emission, "color")->txt);
         readMaterialComponent(mat->ke, ezxml_child(emission, "color")->txt);
 
         ezxml_t ambient = ezxml_child(techniquetype, "ambient");
-        printf("componente ambient do material: %s\n", ezxml_child(ambient, "color")->txt);
         readMaterialComponent(mat->ka, ezxml_child(ambient, "color")->txt);
 
         ezxml_t diffuse = ezxml_child(techniquetype, "diffuse");
@@ -120,7 +110,6 @@ void readMaterial(ezxml_t collada, Scene *s) {
         //lê a componente difusa do material, de uma textura ou de uma cor sólida
         if(ezxml_child(diffuse, "texture")) {
             char *textureid = ezxml_attr(ezxml_child(diffuse, "texture"), "texture");
-            printf("componente difusa do material eh uma textura: %s\n", textureid);
             
             //procura a textura com id lido
             Texture *t;
@@ -137,11 +126,9 @@ void readMaterial(ezxml_t collada, Scene *s) {
         }
         //TODO possibilidade de ler specular de textura
         ezxml_t specular = ezxml_child(techniquetype, "specular");
-        printf("componente specular do material: %s\n", ezxml_child(specular, "color")->txt);
         readMaterialComponent(mat->ks, ezxml_child(specular, "color")->txt);
 
         ezxml_t shininess = ezxml_child(techniquetype, "shininess");
-        printf("componente shininess do material: %s\n", ezxml_child(shininess, "float")->txt);
         mat->shininess = atof(ezxml_child(shininess, "float")->txt);
 
         //Adiciona o material na lista de materials da cena
@@ -151,7 +138,8 @@ void readMaterial(ezxml_t collada, Scene *s) {
 
 void readLibraryGeometries(ezxml_t library_geometries, Scene *s) {
     for(ezxml_t geometry = ezxml_child(library_geometries, "geometry"); geometry; geometry = geometry->next) {
-        Mesh *m = malloc(sizeof(Mesh));
+        Mesh *m = initMesh();
+        
         m->id = ezxml_attr(geometry, "id");
 
         //Lê tag mesh
@@ -264,6 +252,7 @@ void readLibraryGeometries(ezxml_t library_geometries, Scene *s) {
                     }
                 }
             }
+
             unsigned int *tIndices = malloc(sizeof(unsigned int)*3*numtriangles);
             for(unsigned int i = 0; i < 3*numtriangles; i++)
                 tIndices[i] = i;
@@ -292,7 +281,8 @@ void readLibraryGeometries(ezxml_t library_geometries, Scene *s) {
             }
             addTexCoords(t, 2*3*numtriangles, 2, 0, tTexCoords);
         }
-        //fplist_insback(m, s->meshList);
+
+        prepareMesh(m);
         addMesh(s, m);
     }
 }

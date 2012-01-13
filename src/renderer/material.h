@@ -4,20 +4,6 @@
 #include "light.h"
 #include "renderer.h"
 
-/*typedef struct {
-    //OpenGL related
-    unsigned int texid;
-    unsigned int state;
-    unsigned int target;
-
-    //TODO: Remover essas variáveis
-    unsigned char *data;
-    unsigned int width, height;
-
-    //FIXME isso aqui não é realmente necessário, só na hora de ler do arquivo
-    char* id;
-}Texture;*/
-
 enum MatComponentSource {
     VEC, TEXTURE
 };

@@ -58,6 +58,8 @@ void setmeshboundingbox(Mesh *m);
 /*2- // gerar os arrays de geometria/indices
 5- O(mesh* );*/
 
+
+//FIXME remover esse initMesh por algo em scene como addMesh()
 Mesh* initMesh();
 Triangles* addTris(Mesh *m);
 void addVertices(Triangles *t, int num, int comp, float *vertices);

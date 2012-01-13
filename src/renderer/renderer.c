@@ -283,25 +283,26 @@ void bindSamplerState(unsigned int unit, unsigned int id){
 	}*/
 }
 
-unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type){
-    /*
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(target, textureID);
+Texture* initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type){
+    Texture *t = malloc(sizeof(Texture));
+    glGenTextures(1, &t->texid);
+    glBindTexture(target, t->texid);
 
-    if ( filename != NULL ){
+    t->target = target;
+
+    if(filename != NULL) {
         //TODO fazer 1d e 3d
         int x, y, n;
         unsigned char* data = NULL;
-        if ((target == TEXTURE_2D) || (target == TEXTURE_RECTANGLE) ){
+        if ((t->target == TEXTURE_2D) || (t->target == TEXTURE_RECTANGLE) ){
             data = stbi_load(filename, &x, &y, &n, 0);
             if (!data){
                 printf("Error loading: %s texture. \n", filename );
                 return 0;
             }
-	    printf("numero de canais %d \n", n);
-            glTexImage2D(target, 0, internalFormat, x, y, 0, imageFormat, type, data);
-        }else if ( target == TEXTURE_CUBEMAP ){
+            glTexImage2D(t->target, 0, internalFormat, x, y, 0, imageFormat, type, data);
+            stbi_image_free(data);
+        } else if (target == TEXTURE_CUBEMAP) {
             char buff[1024];
             GLuint facetargets[] = {
                 GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
@@ -325,46 +326,26 @@ unsigned int initializeTexture(char* filename, int target, int imageFormat, int 
             }
 
         }
-        stbi_image_free(data);
     }
 
-    texture* tex = (texture*) malloc(sizeof(texture));
-    tex->id = textureID;
-    tex->target = target;
-
-    fparray_inspos(tex, textureID, textures);
-
-    if (prevTexture >= 0)
-        bindTexture(0, prevTexture);
-
-    return textureID;*/
+    return t;
 }
 
-unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type){
-/*
-        if (textures == NULL)
-            textures = fparray_init(NULL, free, sizeof(texture));
+Texture* initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type){
+    Texture *t = malloc(sizeof(Texture));
+    glGenTextures(1, &t->texid);
+    glBindTexture(target, t->texid);
 
-	unsigned int textureID;
-	glGenTextures(1, &textureID);
-	glBindTexture(target, textureID);
-
-	if ((target == TEXTURE_2D) || (target == TEXTURE_RECTANGLE) ){
+    t->target = target;
+    if ((target == TEXTURE_2D) || (target == TEXTURE_RECTANGLE) ){
 		glTexImage2D(target, 0, internalFormat, x, y, 0, imageFormat, type, data);
 	}
+    return t;
+}
 
-	texture* tex = (texture*) malloc(sizeof(texture));
-	tex->id = textureID;
-	tex->target = target;
 
-    	fparray_inspos(tex, textureID, textures);
-
-	if (prevTexture >= 0)
-		bindTexture(0, prevTexture);
-
-	return textureID;
-
-    */
+Texture* initialize2DTexture(char *filename) {
+    return initializeTexture(filename, TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
 }
 
 void bindTexture(int slot, int id){
