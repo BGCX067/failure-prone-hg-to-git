@@ -10,38 +10,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-enum Semantic{
-	TIME,
-	EYEPOS,
-	MVP,
-    MODELVIEW,
-	LIGHTPOS
-};
-
-typedef struct _uniform{
-
-	int location;
-	char* name;
-	unsigned char* data;
-	int size;
-	int type;
-	int semantic;
-	short int dirty;
-
-}uniform;
-
-typedef struct _sampler{
-	char* name;
-	unsigned int index;
-	unsigned int location;
-}sampler;
-
-typedef struct _shader{
-	uniform** uniforms;
-	int numUniforms;
-	sampler** samplers;
-	int numSamplers;
-}shader;
 
 enum ConstantType {
 	CONSTANT_FLOAT,
@@ -104,14 +72,6 @@ int constantTypeSizes[CONSTANT_TYPE_COUNT] = {
 };
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
-
-//int prevShader = 0;
-//fparray* shaders = NULL;
-
-//int prevTexture = -1;
-//fparray* textures = NULL; 
-//int prevSamplerState = -1;
-//fparray* samplerStates = NULL;
 
 renderer* r;
 Camera c;
@@ -218,21 +178,8 @@ void disableDepth(){
 //TEXTURAS E SAMPLERS
 //////
 
-int initializeSamplerState(int wrapmode, int minfilter, int magfilter, int anisotropy){
-/*
-	if (samplerStates == NULL)
-		samplerStates = fparray_init(NULL, free, sizeof(samplerState));
+SamplerState* initializeSamplerState(int wrapmode, int minfilter, int magfilter, int anisotropy){
 
-	//se ja tem um state igual  retorna o id dele
-	for(int i = 0; i < samplerStates->size; i++){
-		samplerState* state = fparray_getdata(i, samplerStates);
-		if (state){
-			if ( (state->minfilter == minfilter) && (state->wrapmode == wrapmode) && (state->wrapmode == wrapmode) && (state->anisotropy == anisotropy)){
-				return state->id;
-			}
-		}
-	}
-	//se nao cria um
 	unsigned int samplerID;
 	glGenSamplers(1, &samplerID);
 	glSamplerParameteri(samplerID, GL_TEXTURE_MIN_FILTER, minfilter);
@@ -254,44 +201,33 @@ int initializeSamplerState(int wrapmode, int minfilter, int magfilter, int aniso
 	glSamplerParameteri(samplerID, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 	//glSamplerParameteri(samplerID, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
 	
-	samplerState* state = (samplerState*) malloc(sizeof(samplerState));
+	SamplerState* state = (SamplerState*) malloc(sizeof(SamplerState));
 	state->id = samplerID;
 	state->minfilter = minfilter;
 	state->magfilter = magfilter;
 	state->wrapmode = wrapmode;
 	state->anisotropy = anisotropy;
 
-	fparray_inspos(state, state->id, samplerStates);
-
-	return state->id;*/
+	return state;
 }
 
-void bindSamplerState(unsigned int unit, unsigned int id){
-/*
-	samplerState* samplerid = fparray_getdata(id, samplerStates);
-	samplerState* prevSampler = fparray_getdata(prevSamplerState, samplerStates);
+//TODO sampler state é uma coisa que nao muda muito e se beneficiaria de testar se o prev mudou
+void bindSamplerState(SamplerState* s, unsigned int unit){
 
-	if (prevSamplerState == -1){
-		prevSamplerState = id;
-		glBindSampler(unit, samplerid->id);
-	}else{
-		if (samplerid->id != prevSampler->id){
-			glBindSampler(unit, samplerid->id);
-			prevSamplerState = id;
-		}
-
-	}*/
+	if (s!= NULL){
+		glBindSampler(unit, s->id);
+	}
 }
 
 Texture* initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type){
     Texture *t = malloc(sizeof(Texture));
+    t->state = NULL;
     glGenTextures(1, &t->texid);
     glBindTexture(target, t->texid);
 
     t->target = target;
 
     if(filename != NULL) {
-        //TODO fazer 1d e 3d
         int x, y, n;
         unsigned char* data = NULL;
         if ((t->target == TEXTURE_2D) || (t->target == TEXTURE_RECTANGLE) ){
@@ -331,6 +267,7 @@ Texture* initializeTexture(char* filename, int target, int imageFormat, int inte
     return t;
 }
 
+//TODO fazer 1d, 3d e cubemap
 Texture* initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type){
     Texture *t = malloc(sizeof(Texture));
     glGenTextures(1, &t->texid);
@@ -348,45 +285,19 @@ Texture* initialize2DTexture(char *filename) {
     return initializeTexture(filename, TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
 }
 
-void bindTexture(int slot, int id){
-/*
-	texture* tex = fparray_getdata(id, textures);
-	texture* prevTex = fparray_getdata(prevTexture,textures);
+void bindTexture(Texture* t, unsigned int slot){
 
-	if (tex == NULL){
-		printf("ERRO: tex ta null \n");
+	if (t != NULL){
+		glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(t->target, t->texid );
 	}
 
-
-	if (prevTexture == -1){
-		prevTexture = id;
-		glEnable(tex->target );
-		glActiveTexture(GL_TEXTURE0 + slot);
-		//TODO nao precisa mais do enable quando usa shaders
-		glBindTexture(tex->target, tex->id );
-
-	}else{
-		if (tex->target != prevTex->target){//se targets diferentes ,disabla o antigo e enabala o novo
-			glDisable(prevTex->target);
-			glEnable(tex->target);
-		}
-		if (tex->id != prevTex->id){ //  se id dierente, ta bind
-			glBindTexture(tex->target, tex->id);
-		}
-
-		glActiveTexture(GL_TEXTURE0 + slot);
-		prevTexture = id;
-	}
-    */
 }
 
 ////////
 // SHADERS
 //////////
-unsigned int initializeShader(const char* vertexSource, const char* fragmentSource){
-
-	/*if (shaders == NULL)
-		shaders = fparray_init(NULL, free, sizeof(shader));
+Shader* initializeShader(const char* vertexSource, const char* fragmentSource){
 
 
 	if (!vertexSource && !fragmentSource)
@@ -450,7 +361,7 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 	glGetProgramiv(shaderProgram, GL_ACTIVE_ATTRIBUTES, &attributeCount);
 	glGetProgramiv(shaderProgram, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxAttrLength);
 
-	shader* newShader =  (shader*) malloc( sizeof(shader));
+	Shader* newShader =  (Shader*) malloc( sizeof(Shader));
 	newShader->numUniforms = newShader->numSamplers = 0;
 	//conta quantas uniforms sao samplers ou variaveis uniforms
 	char* name = (char*) malloc (sizeof(char)*maxLength);
@@ -465,10 +376,10 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 			if (strncmp(name, "gl_", 3) != 0)
 				newShader->numUniforms++;
 	}
-	newShader->uniforms = (uniform**)malloc(sizeof(uniform*)*newShader->numUniforms);
-	newShader->samplers = (sampler**)malloc(sizeof(sampler*)*newShader->numSamplers);
+	newShader->uniforms = (Uniform**)malloc(sizeof(Uniform*)*newShader->numUniforms);
+	newShader->samplers = (Sampler**)malloc(sizeof(Sampler*)*newShader->numSamplers);
 	int samplers = 0;
-	for (int i = 0; i < attributeCount; i++){
+	/*for (int i = 0; i < attributeCount; i++){
 		GLenum type;
 		GLint length, size;
 		glGetActiveAttrib(shaderProgram, i, maxAttrLength, &length, &size, &type, attrName );
@@ -476,7 +387,7 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 			glBindAttribLocation(shaderProgram, ATTR_TANGENT, "Tangent");
 		if ( strcmp(name, "Binormal") == 0 )
 			glBindAttribLocation(shaderProgram, ATTR_BINORMAL, "Binormal");
-	}
+	}*/
 	int numUniforms = 0;
 	int numSamplers = 0;
 	for(int i = 0; i < uniformCount; i++){
@@ -486,7 +397,7 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 		if (type >= GL_SAMPLER_1D && type <= GL_SAMPLER_2D_RECT_SHADOW_ARB){
 			GLint location = glGetUniformLocation(shaderProgram, name);
 			glUniform1i(location, samplers); //informa o shader a texunit
-			sampler* sam = (sampler*) malloc( sizeof(sampler));
+			Sampler* sam = (Sampler*) malloc( sizeof(Sampler));
 			sam->name = (char*) malloc( sizeof( char)*(length + 1));
 			sam->index = samplers;
 			sam->location = location;
@@ -496,7 +407,7 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 			numSamplers++;
 		}else{
 			if (strncmp(name, "gl_", 3) != 0){
-				uniform* uni = (uniform*) malloc(sizeof(uniform));
+				Uniform* uni = (Uniform*) malloc(sizeof(Uniform));
 				uni->name = (char*) malloc( sizeof(char)*(length + 1));
 				uni->location = glGetUniformLocation(shaderProgram, name);
 				uni->type = getConstantType(type);
@@ -523,26 +434,16 @@ unsigned int initializeShader(const char* vertexSource, const char* fragmentSour
 	}
 
 	free(name);
-    fparray_inspos(newShader, shaderProgram, shaders);
 	//glUseProgram(prevShader);
 	
-	return shaderProgram;*/
+	return newShader;
 }
 
-void bindShader(unsigned int program){
-    /*
-	//if (program == 0){
-	//	glUseProgram(0);
-		//prevShader = 0;
-	//	return;
-	//}
+void bindShader(Shader* shdr){
 
-	//if (program != prevShader){
-	//	prevShader = program;
-	//	glUseProgram(program);
-	//}
+	if (shdr == NULL)
+		return;    
 
-	shader *shdr = fparray_getdata(program, shaders);
 	for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
 		if (shdr->uniforms[i]->dirty ){
 			shdr->uniforms[i]->dirty = 0;
@@ -560,20 +461,20 @@ void bindShader(unsigned int program){
                 glUniform1f(shdr->uniforms[i]->location, *(shdr->uniforms[i]->data));
             }
 		}else if ( shdr->uniforms[i]->semantic == EYEPOS){
-			setShaderConstant3f(program, "eyePosition",  c.pos);
+			setShaderConstant3f(shdr, "eyePosition",  c.pos);
 		}else if (shdr->uniforms[i]->semantic == TIME){
 		//	setShaderConstant1f(program, "Time", ifps);
-			  setShaderConstant1f(program, "time", elapsedTime);
+			  setShaderConstant1f(shdr, "time", elapsedTime);
 		}else if  (shdr->uniforms[i]->semantic == MVP){
-			setShaderConstant4x4f(program, "mvp", c.mvp);
+			setShaderConstant4x4f(shdr, "mvp", c.mvp);
         	}else if  (shdr->uniforms[i]->semantic == MODELVIEW){
-			setShaderConstant4x4f(program, "modelview", c.modelview);
+			setShaderConstant4x4f(shdr, "modelview", c.modelview);
 		
 //		else if (r->shaders[program]->uniforms[i]->semantic == LIGHTPOS){
 		//	float lightp[3] = {10.0, 10.0, 10.0 };
 //			setShaderConstant3f(program, "LightPosition",  lightp);
 		}
-	}*/
+	}
 }
 
 int printShaderCompilerLog(unsigned int shader){
@@ -606,32 +507,32 @@ int printShaderLinkerLog(unsigned int program){
 	return 0;
 }
 
-void setShaderConstant1i(int shaderid, const char *name, const int constant){
-	setShaderConstantRaw(shaderid, name, &constant, sizeof(int));
+void setShaderConstant1i(Shader* s, const char *name, const int constant){
+	setShaderConstantRaw(s, name, &constant, sizeof(int));
 }
 
-void setShaderConstant1f(int shaderid, const char *name, const float constant){
-	setShaderConstantRaw(shaderid, name, &constant, sizeof(float));
+void setShaderConstant1f(Shader* s, const char *name, const float constant){
+	setShaderConstantRaw(s, name, &constant, sizeof(float));
 }
 
-void setShaderConstant2f(int shaderid, const char* name, const float constant[]){
-	setShaderConstantRaw(shaderid, name, constant, sizeof(float)*2);
+void setShaderConstant2f(Shader *s, const char* name, const float constant[]){
+	setShaderConstantRaw(s, name, constant, sizeof(float)*2);
 }
 
-void setShaderConstant3f(int shaderid, const char *name,  const float constant[]){
-	setShaderConstantRaw(shaderid, name, constant, sizeof(float)*3);
+void setShaderConstant3f(Shader* s, const char *name,  const float constant[]){
+	setShaderConstantRaw(s, name, constant, sizeof(float)*3);
 }
 
-void setShaderConstant4f(int shaderid, const char *name, const float constant[]){
-	setShaderConstantRaw(shaderid, name, constant, sizeof(float)*4);
+void setShaderConstant4f(Shader* s, const char *name, const float constant[]){
+	setShaderConstantRaw(s, name, constant, sizeof(float)*4);
 }
 
-void setShaderConstant4x4f(int shaderid, const char *name, const float constant[]) {
-	setShaderConstantRaw(shaderid, name, constant, sizeof(float)*16);
+void setShaderConstant4x4f(Shader* s, const char *name, const float constant[]) {
+	setShaderConstantRaw(s, name, constant, sizeof(float)*16);
 }
 
-void setShaderConstantRaw(int shaderid, const char* name, const void* data, int size){
-    /*shader *shdr = fparray_getdata(shaderid, shaders);
+void setShaderConstantRaw(Shader* shdr, const char* name, const void* data, int size){
+
 	for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
 		if (strcmp(name, shdr->uniforms[i]->name ) == 0 ){
 			if (memcmp(shdr->uniforms[i]->data, data, size)){
@@ -639,7 +540,7 @@ void setShaderConstantRaw(int shaderid, const char* name, const void* data, int 
 				shdr->uniforms[i]->dirty = 1;
 			}
 		}
-	}*/
+	}
 }
 
 

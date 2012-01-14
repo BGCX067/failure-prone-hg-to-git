@@ -1,8 +1,8 @@
 #version 330
 
-in vec3 invertexpos;
-in vec3 innormal;
-in vec2 intexcoord;
+layout(location = 0) in vec3 invertexpos;
+layout(location = 2) in vec3 innormal;
+layout(location = 8) in vec2 intexcoord;
 
 out vec3 vertexpos;
 out vec3 normal;

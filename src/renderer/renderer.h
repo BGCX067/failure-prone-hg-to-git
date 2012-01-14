@@ -42,14 +42,6 @@ enum TextureSampler{
 	NEAREST = GL_NEAREST
 };
 
-typedef struct _texture{
-	unsigned int texid;
-	int state;
-	int target;
-
-    char *id;
-} Texture;
-
 typedef struct _samplerState{
 	unsigned int id;
 	int wrapmode;
@@ -57,7 +49,15 @@ typedef struct _samplerState{
 	int minfilter;
 	int magfilter;
 	//minlod, maxlod, lodbias, comparemode, comparefunc 
-} samplerState;
+} SamplerState;
+
+typedef struct _texture{
+	unsigned int texid;
+	SamplerState* state;
+	int target;
+
+    char *id;
+} Texture;
 
 enum GeometryType{
 	TRIANGLES = GL_TRIANGLES,
@@ -74,6 +74,40 @@ typedef struct _framebuffer{
 	int id;
 	int texid;
 } framebuffer;
+
+enum Semantic{
+	TIME,
+	EYEPOS,
+	MVP,
+	MODELVIEW,
+	LIGHTPOS
+};
+
+typedef struct _uniform{
+
+	int location;
+	char* name;
+	unsigned char* data;
+	int size;
+	int type;
+	int semantic;
+	short int dirty;
+
+}Uniform;
+
+typedef struct _sampler{
+	char* name;
+	unsigned int index;
+	unsigned int location;
+}Sampler;
+
+typedef struct _shader{
+	Uniform** uniforms;
+	int numUniforms;
+	Sampler** samplers;
+	int numSamplers;
+}Shader;
+
 
 typedef struct _renderer{
 
@@ -112,20 +146,22 @@ void enableDepth();
 
 VertexAttribute** initializeVertexFormat();
 
-//textures
-int initializeSamplerState(int wrapmode, int minfilter, int magfilter, int anisotropy);
 
-//unsigned int initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type);
-void bindSamplerState(unsigned int unit, unsigned int id);
-//unsigned int initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type);
-void bindTexture(int slot, int id);
+//////////
+//TEXTURE SAMPLERS
+/////////
+//TODO destroy sampler
+SamplerState* initializeSamplerState(int wrapmode, int minfilter, int magfilter, int anisotropy);
+void bindSamplerState(SamplerState* s, unsigned int slot);
 
 //////////////////////
-//TEXTURES
+//TEXTURES OBJECTS
 /////////////////////
+// TODO destroy texture
 Texture* initialize2DTexture(char *filename);
 Texture* initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type);
 Texture* initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type);
+void bindTexture(Texture* t, unsigned int slot);
 
 //framebuffers
 void bindMainFramebuffer();
@@ -144,14 +180,6 @@ void destroyVBO(unsigned int id);
 /////////////////////
 //VAO
 ////////////////////
-//FIXME função não implementada
-//void initializeVAO(unsigned int vaoID, VertexAttribute** attrs); 
-
-//cria uma vaoid vazia e retorna
-//parecida com a initializeVAO mas essa eh pra geometria indexada, entao passa os indicesID
-//FIXME OLD
-//unsigned int initializeIndexedVAO( unsigned int indicesID, VertexAttribute** attrs);
-
 void drawArraysVAO(unsigned int vaoID, int type, int numVerts);
 void drawIndexedVAO(unsigned int  vaoID,  unsigned int triCount, int geometryType);
 
@@ -163,22 +191,22 @@ void destroyVAO(unsigned int vaoid);
 
 
 //shaders
-unsigned int initializeShader(const char* vertexSource, const char* fragmentSource);
-void bindShader(unsigned int program);
+Shader* initializeShader(const char* vertexSource, const char* fragmentSource);
+void bindShader(Shader* program);
 int printShaderCompilerLog(unsigned int shader);
 int printShaderLinkerLog(unsigned int program);
-void setShaderConstant1i(int shaderid, const char *name, const int constant);
-void setShaderConstant1f(int shaderid, const char *name, const float constant);
-void setShaderConstant2f(int shaderid, const char *name, const float constant[]);
-void setShaderConstant3f(int shaderid, const char *name, const float constant[]);
-void setShaderConstant4f(int shaderid, const char *name, const float constant[]);
-void setShaderConstant4x4f(int shaderid, const char *name, const float constant[]);
+void setShaderConstant1i(Shader* s, const char *name, const int constant);
+void setShaderConstant1f(Shader* s, const char *name, const float constant);
+void setShaderConstant2f(Shader* s, const char *name, const float constant[]);
+void setShaderConstant3f(Shader* s, const char *name, const float constant[]);
+void setShaderConstant4f(Shader* s, const char *name, const float constant[]);
+void setShaderConstant4x4f(Shader* s, const char *name, const float constant[]);
 /*void setShaderConstantArray1f(const char *name, const float *constant, const uint count);
 void setShaderConstantArray2f(const char *name, const vec2  *constant, const uint count);
 void setShaderConstantArray3f(const char *name, const vec3  *constant, const uint count);
 void setShaderConstantArray4f(const char *name, const vec4  *constant, const uint count);
 void setShaderConstantArray4x4f(const char *name, const mat4 *constant, const uint count);*/
-void setShaderConstantRaw(int shaderid, const char *name, const void *data, const int size);
+void setShaderConstantRaw(Shader* s, const char *name, const void *data, const int size);
 
 
 //FIXME remover essa porcaria

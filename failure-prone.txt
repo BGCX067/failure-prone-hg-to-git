@@ -37,25 +37,25 @@ API Alto Nivel do RENDERER
 9- //outras funcoes de transformacao
 
 API Baixo Nivel do RENDERER (vao/vbo, texturas, shaders, samṕler state, framebuffers)
-1- shader* initShader(char*, char*); //retornar o shader*
+*1- shader* initShader(char*, char*); //retornar o shader*
 2- void destroyShader(shader* );
 3- Passar parametros - TODO - os dois casos?/definir semantics da engine/uniform buffers
 4- void bindShader(shader*);
 
-1- sampler* initSampler(int min, int max);
+*1- sampler* initSampler(int min, int max);
 2- void destroySampler(sampler*);
-3- void bindSampler(sampler*);
+*3- void bindSampler(sampler*);
 
 //Ver como vai ser a API de PostProcessing
 1- fbo* initFBO(int x, int y, ...);
 2- void destroyFBO(fbo*);
 3- void bindFBO(fbo*);
 
-1- tex* initTextureFromMem(void* data, int sizex, int sizey, int comps, unsigned, int target, int format, int internalFormat, int type);
-2- tex* initTextureFromFile(char* filename, int target, int format, int internalformat, int type);
-3- tex* initTextureImage( char* filename );
+*1- tex* initTextureFromMem(void* data, int sizex, int sizey, int comps, unsigned, int target, int format, int internalFormat, int type);
+*2- tex* initTextureFromFile(char* filename, int target, int format, int internalformat, int type);
+*3- tex* initTextureImage( char* filename );
 4- void destroyTexture();
-5- void bindTexture(int slot, int texid);
+*5- void bindTexture(int slot, int texid);
 
 //VAO E VBO feito
 1- unsigned int initializeIndexVBO(int indicesCount, unsigned int* indices);

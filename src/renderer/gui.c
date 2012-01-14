@@ -969,7 +969,7 @@ int drawTextureView(rect* r, int texID, rect* rt, rect* rz, int mipLevel, float 
     p.y = rt->y;
     drawFrame( r, p, 0, 0 );
 
-    bindTexture(0, texID);
+//    bindTexture(0, texID);
 //    glBindTexture(GL_TEXTURE_2D,  texID);
 
     setShaderConstant1f( gui->textureViewShader, "mipLevel", (float) mipLevel);
