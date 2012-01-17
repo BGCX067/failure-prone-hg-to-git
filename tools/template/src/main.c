@@ -14,6 +14,7 @@ int idle(float ifps, event* e, Scene* s){
 }
 
 Scene* cena;
+Shader *shdr;
 renderer *mainrenderer;
 Camera c;
 
@@ -25,14 +26,14 @@ void initializeGame(){
     Triangles *t = addTris(m);
 
     float *vertices = malloc(sizeof(float)*9);
-    vertices[0] = -0.8; vertices[1] = -0.8; vertices[2] = 0.0;
-    vertices[3] = 0.8; vertices[4] = -0.8; vertices[5] = 0.0;
-    vertices[6] = 0.0; vertices[7] = 0.8; vertices[8] = 0.0;
+    vertices[0] = -0.8; vertices[1] = -0.8; vertices[2] = -1.0;
+    vertices[3] = 0.8; vertices[4] = -0.8; vertices[5] = -1.0;
+    vertices[6] = 0.0; vertices[7] = 0.8; vertices[8] = -1.0;
 
     unsigned int *indices = malloc(sizeof(unsigned int)*3);
     indices[0] = 0;
-    indices[0] = 1;
-    indices[0] = 2;
+    indices[1] = 1;
+    indices[2] = 2;
     
     addVertices(t, 9, 3, vertices);
     addIndices(t, 3, indices);
@@ -43,7 +44,7 @@ void initializeGame(){
 
     char *vertshader = readTextFile("data/shaders/vertshader.vert");
     char *fragshader = readTextFile("data/shaders/fragshader.frag");
-    initializeShader(vertshader, fragshader); 
+    shdr = initializeShader(vertshader, fragshader); 
 
 //    printf("vertex shader:\n%s\n", vertshader);
 //    printf("fragment shader:\n%s\n", fragshader);
@@ -61,6 +62,17 @@ void initializeGame(){
 int render(float ifps, event *e, Scene *cena){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     drawScene(cena);
+
+/*    batch *tri = initializeBatch();
+    begin(tri, GL_TRIANGLES, 24, 0);
+        vertex3f(tri, -0.8, -0.8, -1.0);
+        vertex3f(tri, 0.8, -0.8, -1.0);
+        vertex3f(tri, 0.0, 0.8, -1.0);
+    end(tri);
+
+    draw(tri);*/
+
+
     glFlush();
 //    swapBuffers();
 /*    //transformações da camera

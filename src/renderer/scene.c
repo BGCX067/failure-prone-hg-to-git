@@ -371,8 +371,6 @@ void drawScene(Scene* scn){
 				Triangles* tri = NULL;
 				for( int k = 0; k < m->tris->size; k++){ //para cada chunk de triangles do mesh
 					tri = fplist_getdata(k, m->tris);
-					//bindMaterial(&tri->mat, scn->lights->first->data);
-					//bindShader(tri->mat.shaderid);
 					drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES);
 				}
 			}

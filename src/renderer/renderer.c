@@ -361,6 +361,7 @@ Shader* initializeShader(const char* vertexSource, const char* fragmentSource){
 	glGetProgramiv(shaderProgram, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxAttrLength);
 
 	Shader* newShader =  (Shader*) malloc( sizeof(Shader));
+    newShader->progid = shaderProgram;
 	newShader->numUniforms = newShader->numSamplers = 0;
 	//conta quantas uniforms sao samplers ou variaveis uniforms
 	char* name = (char*) malloc (sizeof(char)*maxLength);
@@ -555,6 +556,7 @@ VertexAttribute** initializeVertexFormat(){
 unsigned int initEmptyVAO(){
 	unsigned int vaoID;
 	glGenVertexArrays(1, &vaoID);
+    glBindVertexArray(vaoID);
 	return vaoID;
 }
 
@@ -567,7 +569,7 @@ void configureVAO(unsigned int vaoID, VertexAttribute** attrs){
 			glVertexAttribPointer(i, attrs[i]->components, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(attrs[i]->offset));
 		}
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void configureIndexedVAO(unsigned int vaoID, unsigned int indicesid, VertexAttribute** attrs){

@@ -223,8 +223,10 @@ void addIndices(Triangles *t, int num, unsigned int *indices) {
 
 void prepareMesh(Mesh *m) {
     //Para cada triangles
+    
     for(fpnode *n = m->tris->first; n != NULL; n = n->next) {
         Triangles *tri = n->data;
+        
         //Criar VBO de indices
         tri->indicesId = initializeVBO(tri->indicesCount*sizeof(unsigned int), GL_STATIC_DRAW, tri->indices);
         tri->verticesVBO = initializeVBO(tri->verticesCount*sizeof(float), GL_STATIC_DRAW, tri->vertices);
@@ -232,8 +234,6 @@ void prepareMesh(Mesh *m) {
 
         if(tri->normals) {
             tri->normalsVBO = initializeVBO(tri->normalsCount*sizeof(float), GL_STATIC_DRAW, tri->normals);
-            
-            
         }
         if(tri->binormals)
             tri->binormalsVBO = initializeVBO(tri->binormalsCount*sizeof(float), GL_STATIC_DRAW, tri->binormals);
@@ -241,9 +241,9 @@ void prepareMesh(Mesh *m) {
             tri->tangentsVBO = initializeVBO(tri->tangentsCount*sizeof(float), GL_STATIC_DRAW, tri->tangents);
         for(unsigned int i = 0; i < tri->numTexSets; i++)
             tri->texVBO[i] = initializeVBO(tri->texCoords[i]->count*sizeof(float), GL_STATIC_DRAW, tri->texCoords[i]->texCoords);
-        
         tri->vaoId = initEmptyVAO();
         configureIndexedVAO(tri->vaoId, tri->indicesId, tri->attrs);
+        
     }
 }
 

@@ -106,6 +106,8 @@ typedef struct _shader{
 	int numUniforms;
 	Sampler** samplers;
 	int numSamplers;
+
+    unsigned int progid;
 }Shader;
 
 
