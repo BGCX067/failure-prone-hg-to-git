@@ -111,7 +111,8 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, 
 	glEnable(GL_DEPTH_TEST);
 	glViewport(0, 0, w, h);
 
-	glClearColor( 32.0/255.0, 32.0/255.0, 32.0/255.0, 1.0 );
+	//glClearColor( 32.0/255.0, 32.0/255.0, 32.0/255.0, 1.0 );
+	glClearColor( 0.5, 0.5, 0.5, 1.0 );
 	glClearDepth(1.0f);
 	glDepthFunc(GL_LEQUAL);
 	glShadeModel(GL_SMOOTH);
@@ -122,9 +123,9 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
- 	initCamera(&c, cameratype);
+ 	//initCamera(&c, cameratype);
 
-	fpperspective(c.projection, fovy, ratio, znear, zfar);
+	//fpperspective(c.projection, fovy, ratio, znear, zfar);
 	//fpOrtho(projection, 0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);	
 	//fpIdentity(modelview);
    
@@ -298,8 +299,6 @@ void bindTexture(Texture* t, unsigned int slot){
 // SHADERS
 //////////
 Shader* initializeShader(const char* vertexSource, const char* fragmentSource){
-
-
 	if (!vertexSource && !fragmentSource)
 		return 0;
 
@@ -434,8 +433,6 @@ Shader* initializeShader(const char* vertexSource, const char* fragmentSource){
 	}
 
 	free(name);
-	//glUseProgram(prevShader);
-	
 	return newShader;
 }
 

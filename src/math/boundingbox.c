@@ -1,14 +1,14 @@
 #include "boundingbox.h"
 
 
-void bbcenter(boundingbox b, vec3 v) {
+void bbcenter(BoundingBox b, vec3 v) {
     v[0] = 0.5*(b.pmin[0] + b.pmax[0]);
     v[1] = 0.5*(b.pmin[1] + b.pmax[1]);
     v[2] = 0.5*(b.pmin[2] + b.pmax[2]);
 }
 
 
-void setboundingbox(boundingbox *b, float *vertices, int numvertices) {
+void setboundingbox(BoundingBox *b, float *vertices, int numvertices) {
 
     b->pmin[0] = 99999999;
     b->pmin[1] = 99999999;

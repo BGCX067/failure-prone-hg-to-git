@@ -21,6 +21,6 @@ typedef struct {
 void initCamera(Camera *c, CameraType t);
 void cameraHandleEvent(Camera *c, event *e);
 void setupViewMatrix(Camera *c);
-void camerafit(Camera *c, boundingbox b, float fovy, float ratio, float znear, float zfar);
+void camerafit(Camera *c, BoundingBox b, float fovy, float ratio, float znear, float zfar);
 
 #endif

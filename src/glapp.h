@@ -89,4 +89,6 @@ int  getTime();
 
 void mainloop(glapp* app, int(idle)(float, event*, Scene* ), int(render)(float, event*, Scene*), Scene* s);
 
+void swapBuffers();
+
 #endif

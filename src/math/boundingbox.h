@@ -7,10 +7,10 @@
 typedef struct _boundingbox {
     vec3 pmin;
     vec3 pmax;
-} boundingbox;
+} BoundingBox;
 
-void bbcenter(boundingbox b, vec3 v);
-void setboundingbox(boundingbox *b, float *vertices, int numvertices);
+void bbcenter(BoundingBox b, vec3 v);
+void setboundingbox(BoundingBox *b, float *vertices, int numvertices);
 
 
 #endif

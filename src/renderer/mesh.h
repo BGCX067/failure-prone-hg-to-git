@@ -45,7 +45,7 @@ typedef struct _mesh{
 	//Triangles* tris;
     //TODO armazena um ponteiro pra uma lista. deveria armazenar um objeto lista mesmo
 	fplist*  tris;
-    boundingbox b;
+    BoundingBox b;
 
     //FIXME usando o id só pra montar o scenegraph
     char *id;

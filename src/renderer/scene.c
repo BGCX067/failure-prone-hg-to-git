@@ -360,7 +360,6 @@ int setupScene(Scene* s){
 }
 
 void drawScene(Scene* scn){
-
 	if (scn == NULL)
 		return;
 

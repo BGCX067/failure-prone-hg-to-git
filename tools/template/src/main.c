@@ -13,32 +13,57 @@ int idle(float ifps, event* e, Scene* s){
 	return 1;
 }
 
-int samplerstate;
-unsigned int minimalShader;
-float elapsedTime;
-
 Scene* cena;
 renderer *mainrenderer;
+Camera c;
 
 void initializeGame(){
-    cena = readColladaFile("data/models/duck_triangulate_deindexer.dae");
-
-    shaderflags f;
-    f.flags = PHONG | TEX;
-    char *vertShader, *fragShader;
-    shadergen(f, &vertShader, &fragShader);
+    initCamera(&c, TRACKBALL);
+    //cena = readColladaFile("../../data/models/duck_triangulate_deindexer.dae");
     
-/*    printf("VERTEX SHADER:\n");
-    printf("%s\n\n", vertShader);
+    Mesh *m = initMesh();
+    Triangles *t = addTris(m);
 
-    printf("FRAG SHADER:\n");
-    printf("%s\n\n", fragShader);*/
+    float *vertices = malloc(sizeof(float)*9);
+    vertices[0] = -0.8; vertices[1] = -0.8; vertices[2] = 0.0;
+    vertices[3] = 0.8; vertices[4] = -0.8; vertices[5] = 0.0;
+    vertices[6] = 0.0; vertices[7] = 0.8; vertices[8] = 0.0;
 
-    minimalShader = initializeShader(vertShader, fragShader);
+    unsigned int *indices = malloc(sizeof(unsigned int)*3);
+    indices[0] = 0;
+    indices[0] = 1;
+    indices[0] = 2;
+    
+    addVertices(t, 9, 3, vertices);
+    addIndices(t, 3, indices);
+    prepareMesh(m);
+
+    cena = initializeScene();
+    addMesh(cena, m);
+
+    char *vertshader = readTextFile("data/shaders/vertshader.vert");
+    char *fragshader = readTextFile("data/shaders/fragshader.frag");
+    initializeShader(vertshader, fragshader); 
+
+//    printf("vertex shader:\n%s\n", vertshader);
+//    printf("fragment shader:\n%s\n", fragshader);
+
+    BoundingBox bbox;
+    bbox.pmin[0] = -1.0;
+    bbox.pmin[1] = -1.0;
+    bbox.pmin[2] = -1.0;
+    bbox.pmax[0] = 1.0;
+    bbox.pmax[1] = 1.0;
+    bbox.pmax[2] = 1.0;
+    camerafit(&c, bbox, 45.0, 800/600, 0.1, 1000.0);
 }
 
 int render(float ifps, event *e, Scene *cena){
-/*
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    drawScene(cena);
+    glFlush();
+//    swapBuffers();
+/*    //transformações da camera
 	beginRender(e);
 	glFlush();*/
 }
@@ -56,7 +81,7 @@ int main(){
 	setWindowTitle("Mathfeel");
 	mainrenderer  = initializeRenderer(app->width, app->height, 0.1, 10000.0, 45.0, TRACKBALL);
 	initializeGame();
-	mainloop(app, idle, 0, cena );
+	mainloop(app, idle, render, cena );
 
 	closeVideo();
 	free(app);

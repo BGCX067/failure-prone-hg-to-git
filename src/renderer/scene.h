@@ -27,7 +27,7 @@ typedef struct _scene{
     
     fplist* nodes;
 
-    boundingbox b;
+    BoundingBox b;
 }Scene;
 
 //void initializeTriangles(Triangles* tri);
