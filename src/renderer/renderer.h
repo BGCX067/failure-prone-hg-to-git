@@ -184,8 +184,6 @@ void destroyVBO(unsigned int id);
 ////////////////////
 void drawArraysVAO(unsigned int vaoID, int type, int numVerts);
 void drawIndexedVAO(unsigned int  vaoID,  unsigned int triCount, int geometryType);
-
-//VAO API NOVA
 unsigned int initEmptyVAO();
 void configureVAO(unsigned int vaoid, VertexAttribute** attrs);
 void configureIndexedVAO(unsigned int vaoid, unsigned int indicesid, VertexAttribute** attrs);
@@ -210,8 +208,10 @@ void setShaderConstantArray4f(const char *name, const vec4  *constant, const uin
 void setShaderConstantArray4x4f(const char *name, const mat4 *constant, const uint count);*/
 void setShaderConstantRaw(Shader* s, const char *name, const void *data, const int size);
 
+/////////
+// Util
+/////////
+void printGPUMemoryInfo();
 
-//FIXME remover essa porcaria
-//Camera* getcamera();
 
 #endif

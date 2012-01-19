@@ -130,6 +130,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, 
 	//fpIdentity(modelview);
    
 	printf("Renderer inicializado.\n");
+	printGPUMemoryInfo();
 
 	return r;
 }
@@ -707,6 +708,35 @@ void bindMainFramebuffer(){
 	glViewport(0, 0, r->viewPortWidth, r->viewPortHeight);*/
 }
 
-Camera* getcamera() {
-    return &c;
+void printGPUMemoryInfo(){
+
+	if (GLEW_NVX_gpu_memory_info){
+		int m = 0;
+		glGetIntegerv(GL_GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, &m);
+		printf("Dedicated Video Memory: %d Kb. \n", m );
+		m = 0;
+		glGetIntegerv(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &m);
+		printf("Total Avaliable Memory: %d Kb. \n", m);
+		m = 0;
+		glGetIntegerv(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &m);
+		printf("Current Avaliable Dedicated Video Memory: %d Kb. \n", m);
+		m = 0;
+		glGetIntegerv(GL_GPU_MEMORY_INFO_EVICTION_COUNT_NVX, &m);
+		printf("Count of Total Evictions Seen By System: %d. \n", m);
+		m = 0;
+		glGetIntegerv(GL_GPU_MEMORY_INFO_EVICTED_MEMORY_NVX, &m);
+		printf("Size of Total Video Memory Evicted %d Kb. \n", m);
+	}else if ( GLEW_ATI_meminfo){
+		int vbo[4];
+		glGetIntegerv(GL_VBO_FREE_MEMORY_ATI, vbo);
+		int textures[4];
+		glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI, textures);
+		int renderbuffer[4];
+		glGetIntegerv(GL_RENDERBUFFER_FREE_MEMORY_ATI, renderbuffer);
+		printf( "VBO: total memory free in the pool: %d Kb. Largest avaliable free block: %d Kb. Total auxiliary memory free %d Kb. Largest auxiliary free block: %d Kb. \n", vbo[0], vbo[1], vbo[2], vbo[3] );
+		printf( "TEXTURE: total memory free in the pool: %d Kb. Largest avaliable free block: %d Kb. Total auxiliary memory free %d Kb. Largest auxiliary free block: %d Kb. \n", textures[0], textures[1], textures[2], textures[3] );
+		printf( "RENDERBUFFER: total memory free in the pool: %d Kb. Largest avaliable free block: %d Kb. Total auxiliary memory free %d Kb. Largest auxiliary free block: %d Kb. \n", renderbuffer[0], renderbuffer[1], renderbuffer[2], renderbuffer[3] );
+	}else 
+		printf("GPU Memory Info Not Supported.");
+
 }
