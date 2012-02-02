@@ -17,6 +17,7 @@ Scene* cena;
 Shader *shdr;
 renderer *mainrenderer;
 Camera c;
+BoundingBox bbox;
 
 void initializeGame(){
     initCamera(&c, TRACKBALL);
@@ -49,35 +50,36 @@ void initializeGame(){
 //    printf("vertex shader:\n%s\n", vertshader);
 //    printf("fragment shader:\n%s\n", fragshader);
 
-    BoundingBox bbox;
     bbox.pmin[0] = -1.0;
     bbox.pmin[1] = -1.0;
     bbox.pmin[2] = -1.0;
     bbox.pmax[0] = 1.0;
     bbox.pmax[1] = 1.0;
-    bbox.pmax[2] = 1.0;
+    bbox.pmax[2] = -1.0;
     camerafit(&c, bbox, 45.0, 800/600, 0.1, 1000.0);
 }
 
 int render(float ifps, event *e, Scene *cena){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //handle camera events
+    cameraHandleEvent(&c, e);
+    //setup matrixes
+    setupViewMatrix(&c);
+
+    vec3 bboxcenter;
+    bboxcenter[0] = 0.0;
+    bboxcenter[1] = 0.0;
+    bboxcenter[2] = -1.0;
+
+    //translada para o centro
+    fptranslatef(c.modelview, -bboxcenter[0], -bboxcenter[1], -bboxcenter[2]);
+    fpMultMatrix(c.mvp, c.projection, c.modelview);
+    setShaderConstant4x4f(shdr, "mvp", c.mvp);
+
+    bindShader(shdr);
     drawScene(cena);
 
-/*    batch *tri = initializeBatch();
-    begin(tri, GL_TRIANGLES, 24, 0);
-        vertex3f(tri, -0.8, -0.8, -1.0);
-        vertex3f(tri, 0.8, -0.8, -1.0);
-        vertex3f(tri, 0.0, 0.8, -1.0);
-    end(tri);
-
-    draw(tri);*/
-
-
     glFlush();
-//    swapBuffers();
-/*    //transformações da camera
-	beginRender(e);
-	glFlush();*/
 }
 
 

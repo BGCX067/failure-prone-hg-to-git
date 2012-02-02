@@ -425,7 +425,7 @@ Shader* initializeShader(const char* vertexSource, const char* fragmentSource){
 					uni->semantic = TIME;
 				if (strcmp(uni->name, "mvp") == 0)
 					uni->semantic = MVP;
-		                if (strcmp(uni->name, "modelview") == 0)
+		        if (strcmp(uni->name, "modelview") == 0)
 					uni->semantic = MODELVIEW;
 				newShader->uniforms[numUniforms] = uni;
 				numUniforms++;
@@ -438,42 +438,42 @@ Shader* initializeShader(const char* vertexSource, const char* fragmentSource){
 }
 
 void bindShader(Shader* shdr){
-
 	if (shdr == NULL)
 		return;    
 
-	for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
-		if (shdr->uniforms[i]->dirty ){
-			shdr->uniforms[i]->dirty = 0;
-			if (shdr->uniforms[i]->type >= CONSTANT_MAT2){
-				//((UNIFORM_MAT_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) shdr->uniforms[i]->data);
+    glUseProgram(shdr->progid);
+    for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
+        if (shdr->uniforms[i]->dirty ){
+            shdr->uniforms[i]->dirty = 0;
+            if (shdr->uniforms[i]->type >= CONSTANT_MAT2){
+                //((UNIFORM_MAT_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) shdr->uniforms[i]->data);
                 glUniformMatrix4fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) shdr->uniforms[i]->data);
-			} else if (shdr->uniforms[i]->type == CONSTANT_VEC3){
+            } else if (shdr->uniforms[i]->type == CONSTANT_VEC3){
                 glUniform3fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
-				//((UNIFORM_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
+                //((UNIFORM_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
                 //((UNIFORM_FUNC) uniformFuncs[2])(0, 1, color);
-				//glUniform4fv(shaders[program]->uniforms[i]->location, shaders[program]->uniforms[i]->size, (GLfloat*) shaders[program]->uniforms[i]->data);
+                //glUniform4fv(shaders[program]->uniforms[i]->location, shaders[program]->uniforms[i]->size, (GLfloat*) shaders[program]->uniforms[i]->data);
             } else if (shdr->uniforms[i]->type == CONSTANT_VEC4){
                 glUniform4fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
             } else if (shdr->uniforms[i]->type == CONSTANT_FLOAT){
                 glUniform1f(shdr->uniforms[i]->location, *(shdr->uniforms[i]->data));
             }
-		}else if ( shdr->uniforms[i]->semantic == EYEPOS){
-			setShaderConstant3f(shdr, "eyePosition",  c.pos);
-		}else if (shdr->uniforms[i]->semantic == TIME){
-		//	setShaderConstant1f(program, "Time", ifps);
-			  setShaderConstant1f(shdr, "time", elapsedTime);
-		}else if  (shdr->uniforms[i]->semantic == MVP){
-			setShaderConstant4x4f(shdr, "mvp", c.mvp);
-        	}else if  (shdr->uniforms[i]->semantic == MODELVIEW){
-			setShaderConstant4x4f(shdr, "modelview", c.modelview);
-		
-//		else if (r->shaders[program]->uniforms[i]->semantic == LIGHTPOS){
-		//	float lightp[3] = {10.0, 10.0, 10.0 };
-//			setShaderConstant3f(program, "LightPosition",  lightp);
-		}
-	}
-}
+        }else if ( shdr->uniforms[i]->semantic == EYEPOS){
+            setShaderConstant3f(shdr, "eyePosition",  c.pos);
+        }else if (shdr->uniforms[i]->semantic == TIME){
+            //	setShaderConstant1f(program, "Time", ifps);
+            setShaderConstant1f(shdr, "time", elapsedTime);
+        }/*else if  (shdr->uniforms[i]->semantic == MVP){
+           setShaderConstant4x4f(shdr, "mvp", c.mvp);
+           }*/else if  (shdr->uniforms[i]->semantic == MODELVIEW){
+               setShaderConstant4x4f(shdr, "modelview", c.modelview);
+
+               //		else if (r->shaders[program]->uniforms[i]->semantic == LIGHTPOS){
+               //	float lightp[3] = {10.0, 10.0, 10.0 };
+               //			setShaderConstant3f(program, "LightPosition",  lightp);
+           }
+           }
+    }
 
 int printShaderCompilerLog(unsigned int shader){
 	int compiled;
@@ -530,7 +530,6 @@ void setShaderConstant4x4f(Shader* s, const char *name, const float constant[]) 
 }
 
 void setShaderConstantRaw(Shader* shdr, const char* name, const void* data, int size){
-
 	for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
 		if (strcmp(name, shdr->uniforms[i]->name ) == 0 ){
 			if (memcmp(shdr->uniforms[i]->data, data, size)){
