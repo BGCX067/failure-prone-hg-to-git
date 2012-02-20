@@ -4,6 +4,12 @@
 ^tools/shadergen/deps_optimized$
 ^tools/particles/objs_optimized$
 ^tools/shadergen/objs_optimized$
+^tools/terrain/objs_optimized$
+^tools/terrain/deps_optimized$
+^tools/template/objs_optimized$
+^tools/template/deps_optimized$
+^tools/boids/objs_optimized$
+^tools/boids/deps_optimized$
 ^tools/md2loader$
 ^tools/ms3dloader$
 
