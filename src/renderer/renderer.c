@@ -223,7 +223,7 @@ void bindSamplerState(SamplerState* s, unsigned int unit){
 
 Texture* initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type){
     Texture *t = malloc(sizeof(Texture));
-    t->state = NULL;
+    t->state = initializeSamplerState(CLAMP, GL_LINEAR, GL_LINEAR, 0);
     glGenTextures(1, &t->texid);
     glBindTexture(target, t->texid);
 
@@ -288,12 +288,10 @@ Texture* initialize2DTexture(char *filename) {
 }
 
 void bindTexture(Texture* t, unsigned int slot){
-
 	if (t != NULL){
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(t->target, t->texid );
 	}
-
 }
 
 ////////
@@ -446,9 +444,11 @@ void bindShader(Shader* shdr){
     for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
         if (shdr->uniforms[i]->dirty ){
             shdr->uniforms[i]->dirty = 0;
-            if (shdr->uniforms[i]->type >= CONSTANT_MAT2){
-                //((UNIFORM_MAT_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) shdr->uniforms[i]->data);
+            if (shdr->uniforms[i]->type == CONSTANT_MAT4){
                 glUniformMatrix4fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) shdr->uniforms[i]->data);
+            } else if (shdr->uniforms[i]->type == CONSTANT_MAT3){
+                glUniformMatrix3fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) shdr->uniforms[i]->data);
+
             } else if (shdr->uniforms[i]->type == CONSTANT_VEC3){
                 glUniform3fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
                 //((UNIFORM_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
@@ -466,13 +466,13 @@ void bindShader(Shader* shdr){
             setShaderConstant1f(shdr, "time", elapsedTime);
         }/*else if  (shdr->uniforms[i]->semantic == MVP){
            setShaderConstant4x4f(shdr, "mvp", c.mvp);
-           }*/else if  (shdr->uniforms[i]->semantic == MODELVIEW){
-               setShaderConstant4x4f(shdr, "modelview", c.modelview);
+           }else if  (shdr->uniforms[i]->semantic == MODELVIEW){
+               setShaderConstant4x4f(shdr, "modelview", c.modelview);*/
 
                //		else if (r->shaders[program]->uniforms[i]->semantic == LIGHTPOS){
                //	float lightp[3] = {10.0, 10.0, 10.0 };
                //			setShaderConstant3f(program, "LightPosition",  lightp);
-           }
+           //}
            }
     }
 
@@ -524,6 +524,10 @@ void setShaderConstant3f(Shader* s, const char *name,  const float constant[]){
 
 void setShaderConstant4f(Shader* s, const char *name, const float constant[]){
 	setShaderConstantRaw(s, name, constant, sizeof(float)*4);
+}
+
+void setShaderConstant3x3f(Shader* s, const char *name, const float constant[]) {
+	setShaderConstantRaw(s, name, constant, sizeof(float)*9);
 }
 
 void setShaderConstant4x4f(Shader* s, const char *name, const float constant[]) {

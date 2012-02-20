@@ -4,6 +4,7 @@
 #include "vec3.h"
 
 typedef float mat4[16];
+typedef float mat3[9];
 
 void fpIdentity(mat4 m);
 void fpMultMatrix(mat4 res, mat4 a, mat4 b);
@@ -20,5 +21,7 @@ void fpLookAt(mat4 result, vec3 position, vec3 look, vec3 up);
 void fpperspective(mat4 m, float fovy, float ratio, float znear, float zfar);
 
 void fpOrtho( mat4 m, float xMin, float xMax, float yMin, float yMax, float zMin, float zMax);
+
+void fpNormalMatrix(mat3 normalmatrix, mat4 mv);
 
 #endif

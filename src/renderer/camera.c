@@ -36,9 +36,8 @@ void setupViewMatrix(Camera *c) {
 		memcpy(mvcpy, c->modelview, 16*sizeof(float));
 		fpMultMatrix(c->modelview, mvcpy, m);
 		c->modelview[15] = 1.0;
-
 	}
-
+    fpNormalMatrix(c->normalmatrix, c->modelview);
 }
 
 

@@ -45,9 +45,34 @@ int render(float ifps, event *e, Scene *cena){
     fptranslatef(c.modelview, -bboxcenter[0], -bboxcenter[1], -bboxcenter[2]);
     fpMultMatrix(c.mvp, c.projection, c.modelview);
     setShaderConstant4x4f(shdr, "mvp", c.mvp);
+    setShaderConstant4x4f(shdr, "modelview", c.modelview);
+    setShaderConstant3x3f(shdr, "normalmatrix", c.normalmatrix);
+    setShaderConstant3f(shdr, "eyepos", c.pos);
 
-    bindShader(shdr);
-    drawScene(cena);
+
+    //Passa informações da luz pro shader
+    Light *l = fplist_getdata(0, cena->lightList);
+    setShaderConstant3f(shdr, "lightpos", l->pos);
+    setShaderConstant3f(shdr, "lightintensity", l->color);
+
+    for(int i = 0; i < cena->meshList->size; i++) {
+	    Mesh *m = fplist_getdata(i, cena->meshList);
+        for(int j = 0; j < m->tris->size; j++) {
+            Triangles *tri = fplist_getdata(j, m->tris);
+            Material *mat = tri->material;
+            //Passsa material pro shader
+            setShaderConstant3f(shdr, "ka", mat->ka);
+            setShaderConstant3f(shdr, "ks", mat->ks);
+            setShaderConstant1f(shdr, "shininess", mat->shininess);
+            
+            if(mat->diffsource == TEXTURE) {
+                bindSamplerState(mat->diffmap->state, 0);
+                bindTexture(mat->diffmap, 0);
+            }
+            bindShader(shdr);
+            drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES);
+        }
+    }
 
     glFlush();
 }

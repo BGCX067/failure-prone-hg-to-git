@@ -200,6 +200,7 @@ void setShaderConstant1f(Shader* s, const char *name, const float constant);
 void setShaderConstant2f(Shader* s, const char *name, const float constant[]);
 void setShaderConstant3f(Shader* s, const char *name, const float constant[]);
 void setShaderConstant4f(Shader* s, const char *name, const float constant[]);
+void setShaderConstant3x3f(Shader* s, const char *name, const float constant[]);
 void setShaderConstant4x4f(Shader* s, const char *name, const float constant[]);
 /*void setShaderConstantArray1f(const char *name, const float *constant, const uint count);
 void setShaderConstantArray2f(const char *name, const vec2  *constant, const uint count);

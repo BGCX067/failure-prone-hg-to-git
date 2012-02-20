@@ -7,6 +7,12 @@
 #include "../math/boundingbox.h"
 #include "../glapp.h"
 
+/**
+ * TODO: camerafit deveria posicionar a camera de modo que não fosse mais necessário
+ * transladar o modelo para o centro do sistema de coordenada quando estiver no modo
+ * trackball
+ */
+
 typedef enum _cameratype { FIRSTPERSON, TRACKBALL } CameraType;
 
 typedef struct {
@@ -15,6 +21,7 @@ typedef struct {
     mat4 modelview;
     mat4 projection;
     mat4 mvp;
+    mat3 normalmatrix;
     CameraType type;
 } Camera;
 

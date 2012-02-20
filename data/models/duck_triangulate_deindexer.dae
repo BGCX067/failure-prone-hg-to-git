@@ -151,7 +151,7 @@ limitations under the License.
                 <vertices id="LOD3spShape-lib-vertices">
                     <input semantic="POSITION" source="#LOD3spShape-lib-positions"/>
                 </vertices>
-                <triangles count="4212" material="blinn3SG">
+                <triangles count="4212" material="blinn3">
                     <input offset="0" semantic="VERTEX" source="#LOD3spShape-lib-vertices"/>
                     <input offset="0" semantic="NORMAL" source="#LOD3spShape-lib-normals"/>
                     <input offset="0" semantic="TEXCOORD" source="#LOD3spShape-lib-map1" set="0"/>

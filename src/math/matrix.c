@@ -187,3 +187,41 @@ void fpOrtho( mat4 m, float xMin, float xMax, float yMin, float yMax, float zMin
 	m[14] = -((zMax + zMin)/(zMax - zMin));
 	m[15] = 1.0f;
 }
+
+void fpNormalMatrix(mat3 normalmatrix, mat4 mv) {
+    vec3 x0;
+    x0[0] = mv[0];
+    x0[1] = mv[1];
+    x0[2] = mv[2];
+
+    vec3 x1;
+    x1[0] = mv[4];
+    x1[1] = mv[5];
+    x1[2] = mv[6];
+
+    vec3 x2;
+    x2[0] = mv[8];
+    x2[1] = mv[9];
+    x2[2] = mv[10];
+
+    vec3 x1crossx2;
+    cross(x1, x2, x1crossx2);
+    vec3 x0crossx1;
+    cross(x0, x1, x0crossx1);
+    vec3 x2crossx0;
+    cross(x2, x0, x2crossx0);
+    
+     
+    float invdet = 1.0/dot(x0, x1crossx2);
+    normalmatrix[0] = invdet*x1crossx2[0];
+    normalmatrix[1] = invdet*x1crossx2[1];
+    normalmatrix[2] = invdet*x1crossx2[2];
+    
+    normalmatrix[3] = invdet*x2crossx0[0];
+    normalmatrix[4] = invdet*x2crossx0[1];
+    normalmatrix[5] = invdet*x2crossx0[2];
+
+    normalmatrix[6] = invdet*x0crossx1[0];
+    normalmatrix[7] = invdet*x0crossx1[1];
+    normalmatrix[8] = invdet*x0crossx1[2];
+}
