@@ -10,7 +10,11 @@ typedef struct _boundingbox {
 } BoundingBox;
 
 void bbcenter(BoundingBox b, vec3 v);
+
+//numvertices aqui é realmente o número de vertices (tamanho do vetor/3, em geral)
 void setboundingbox(BoundingBox *b, float *vertices, int numvertices);
+
+void bbunion(BoundingBox *res, BoundingBox b1, BoundingBox b2);
 
 
 #endif

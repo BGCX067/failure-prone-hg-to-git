@@ -36,3 +36,14 @@ void setboundingbox(BoundingBox *b, float *vertices, int numvertices) {
             b->pmax[2] = vertices[3*j + 2];
     }
 }
+
+
+void bbunion(BoundingBox *res, BoundingBox b1, BoundingBox b2) {
+    res->pmin[0] = b1.pmin[0] < b2.pmin[0] ? b1.pmin[0] : b2.pmin[0];
+    res->pmin[1] = b1.pmin[1] < b2.pmin[1] ? b1.pmin[1] : b2.pmin[1];
+    res->pmin[2] = b1.pmin[2] < b2.pmin[2] ? b1.pmin[2] : b2.pmin[2];
+
+    res->pmax[0] = b1.pmax[0] > b2.pmax[0] ? b1.pmax[0] : b2.pmax[0];
+    res->pmax[1] = b1.pmax[1] > b2.pmax[1] ? b1.pmax[1] : b2.pmax[1];
+    res->pmax[2] = b1.pmax[2] > b2.pmax[2] ? b1.pmax[2] : b2.pmax[2];
+}

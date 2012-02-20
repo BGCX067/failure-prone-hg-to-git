@@ -21,42 +21,14 @@ BoundingBox bbox;
 
 void initializeGame(){
     initCamera(&c, TRACKBALL);
-    //cena = readColladaFile("../../data/models/duck_triangulate_deindexer.dae");
     
-    Mesh *m = initMesh();
-    Triangles *t = addTris(m);
-
-    float *vertices = malloc(sizeof(float)*9);
-    vertices[0] = -0.8; vertices[1] = -0.8; vertices[2] = -1.0;
-    vertices[3] = 0.8; vertices[4] = -0.8; vertices[5] = -1.0;
-    vertices[6] = 0.0; vertices[7] = 0.8; vertices[8] = -1.0;
-
-    unsigned int *indices = malloc(sizeof(unsigned int)*3);
-    indices[0] = 0;
-    indices[1] = 1;
-    indices[2] = 2;
-    
-    addVertices(t, 9, 3, vertices);
-    addIndices(t, 3, indices);
-    prepareMesh(m);
-
-    cena = initializeScene();
-    addMesh(cena, m);
+    cena = readColladaFile("../../data/models/duck_triangulate_deindexer.dae");
 
     char *vertshader = readTextFile("data/shaders/vertshader.vert");
     char *fragshader = readTextFile("data/shaders/fragshader.frag");
     shdr = initializeShader(vertshader, fragshader); 
 
-//    printf("vertex shader:\n%s\n", vertshader);
-//    printf("fragment shader:\n%s\n", fragshader);
-
-    bbox.pmin[0] = -1.0;
-    bbox.pmin[1] = -1.0;
-    bbox.pmin[2] = -1.0;
-    bbox.pmax[0] = 1.0;
-    bbox.pmax[1] = 1.0;
-    bbox.pmax[2] = -1.0;
-    camerafit(&c, bbox, 45.0, 800/600, 0.1, 1000.0);
+    camerafit(&c, cena->b, 45.0, 800/600, 0.1, 1000.0);
 }
 
 int render(float ifps, event *e, Scene *cena){
@@ -67,9 +39,7 @@ int render(float ifps, event *e, Scene *cena){
     setupViewMatrix(&c);
 
     vec3 bboxcenter;
-    bboxcenter[0] = 0.0;
-    bboxcenter[1] = 0.0;
-    bboxcenter[2] = -1.0;
+    bbcenter(cena->b, bboxcenter);
 
     //translada para o centro
     fptranslatef(c.modelview, -bboxcenter[0], -bboxcenter[1], -bboxcenter[2]);

@@ -12,6 +12,7 @@
 ^tools/boids/deps_optimized$
 ^tools/md2loader$
 ^tools/ms3dloader$
+^tools/template$
 
 
 .*.*.swp

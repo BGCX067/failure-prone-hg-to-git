@@ -189,7 +189,7 @@ void readLibraryGeometries(ezxml_t library_geometries, Scene *s) {
                 inputs[currinput].sourceid = findsourceid(sources, numsources, inputsource);
                 inputs[currinput].offset = atoi(ezxml_attr(input, "offset"));
 
-                if(strcmp(ezxml_attr(input, "semantic"), "VERTEX") == 0)
+                if(strcmp(ezxml_attr(input, "semantic"), "VERTEX") == 0) 
                     inputs[currinput].semantic = VERTEX;
                 else if(strcmp(ezxml_attr(input, "semantic"), "NORMAL") == 0)
                     inputs[currinput].semantic = NORMAL;
@@ -264,6 +264,7 @@ void readLibraryGeometries(ezxml_t library_geometries, Scene *s) {
                 tVerts[k + 1] = vertices[i].pos[1];
                 tVerts[k + 2] = vertices[i].pos[2];
             }
+            setboundingbox(&t->b, tVerts, 3*numtriangles);
             addVertices(t, 3*3*numtriangles, 3, tVerts);
 
             float *tNormals = malloc(sizeof(float)*3*3*numtriangles);
@@ -284,6 +285,18 @@ void readLibraryGeometries(ezxml_t library_geometries, Scene *s) {
 
         prepareMesh(m);
         addMesh(s, m);
+    }
+    memset(s->b.pmin, 0, 3*sizeof(float));
+    memset(s->b.pmax, 0, 3*sizeof(float));
+    
+    //Calcula bounding box da cena
+    for(int i = 0; i < s->meshList->size; i++) {
+	    Mesh *m = fplist_getdata(i, s->meshList);
+        for(int j = 0; j < m->tris->size; j++) {
+            Triangles *t = fplist_getdata(j, m->tris); 
+            bbunion(&m->b, m->b, t->b);
+        }
+        bbunion(&s->b, s->b, m->b);
     }
 }
 

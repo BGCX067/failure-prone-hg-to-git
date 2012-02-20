@@ -162,6 +162,7 @@ void setmeshboundingbox(Mesh *m) {
 
 Mesh* initMesh() {
     Mesh *m = malloc(sizeof(Mesh));
+    memset(m, 0, sizeof(Mesh));
     m->tris = fplist_init(free);
     return m;
 }
@@ -234,13 +235,20 @@ void prepareMesh(Mesh *m) {
 
         if(tri->normals) {
             tri->normalsVBO = initializeVBO(tri->normalsCount*sizeof(float), GL_STATIC_DRAW, tri->normals);
+            tri->attrs[ATTR_NORMAL]->vboID = tri->normalsVBO;
         }
-        if(tri->binormals)
+        if(tri->binormals) {
             tri->binormalsVBO = initializeVBO(tri->binormalsCount*sizeof(float), GL_STATIC_DRAW, tri->binormals);
-        if(tri->tangents)
+            tri->attrs[ATTR_BINORMAL]->vboID = tri->binormalsVBO;
+        }
+        if(tri->tangents) {
             tri->tangentsVBO = initializeVBO(tri->tangentsCount*sizeof(float), GL_STATIC_DRAW, tri->tangents);
-        for(unsigned int i = 0; i < tri->numTexSets; i++)
+            tri->attrs[ATTR_TANGENT]->vboID = tri->tangentsVBO;
+        }
+        for(unsigned int i = 0; i < tri->numTexSets; i++) {
             tri->texVBO[i] = initializeVBO(tri->texCoords[i]->count*sizeof(float), GL_STATIC_DRAW, tri->texCoords[i]->texCoords);
+            tri->attrs[ATTR_TEXCOORD0 + i]->vboID = tri->texVBO[i];
+        }
         tri->vaoId = initEmptyVAO();
         configureIndexedVAO(tri->vaoId, tri->indicesId, tri->attrs);
         
