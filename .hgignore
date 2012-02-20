@@ -6,6 +6,7 @@
 ^tools/shadergen/objs_optimized$
 ^tools/md2loader$
 ^tools/ms3dloader$
+^tools/template$
 
 
 .*.*.swp

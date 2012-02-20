@@ -37,6 +37,8 @@ typedef struct _triangles{
 
 	Material mat;
     Material *material;
+
+    BoundingBox b;
 }Triangles;
 
 typedef struct _mesh{

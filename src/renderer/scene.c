@@ -309,7 +309,7 @@ int addNode(Scene* s, Node* n){
 
 Scene* initializeScene(){
 	Scene * s = malloc(sizeof(Scene));
-	memset(s, sizeof(Scene),  0);
+	memset(s, 0, sizeof(Scene));
 	
     s->meshList = fplist_init(free);
 	s->lightList = fplist_init(free);
@@ -362,7 +362,6 @@ int setupScene(Scene* s){
 void drawScene(Scene* scn){
 	if (scn == NULL)
 		return;
-
 	if (scn->meshList){
 		Mesh* m = NULL;
 		for( int i = 0; i < scn->meshList->size; i++){ // para da mesh da cena
