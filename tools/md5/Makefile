@@ -56,7 +56,7 @@
 
 
 # The name of the binary file we want to generate.  Also handles libraries! (.a)
-TARGET		= template.elf
+TARGET		= md5.elf
 
 
 ##########################################################################

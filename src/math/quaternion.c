@@ -1,5 +1,5 @@
 #include "quaternion.h"
-#include "math.h"
+#include <math.h>
 
 float quatLength(quaternion q) {
     return sqrt(q[0]*q[0]+q[1]*q[1]+q[2]*q[2]+q[3]*q[3]);
@@ -66,14 +66,22 @@ void rotateVec(vec3 v, quaternion q, vec3 res) {
     q2[2] = v[2];
     q2[3] = 0.0;
 
-    quaternion result;
+    quaternion result, tmp;
     
     quaternion conjq;
     conjugate(q, conjq);
-    mult(q, q2, result);
-    mult(result, conjq, result);
+    mult(q, q2, tmp);
+    mult(tmp, conjq, result);
     
     res[0] = result[0];
     res[1] = result[1];
     res[2] = result[2];
+}
+
+void quatComputeAngle(quaternion q) {
+    float t = 1.0f - q[0]*q[0] - q[1]*q[1] - q[2]*q[2];
+    if (t < 0.0f)
+        q[3] = 0.0f;
+    else
+        q[3] = -sqrt(t);
 }

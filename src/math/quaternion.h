@@ -16,5 +16,6 @@ void mult(quaternion q1, quaternion q2, quaternion res);
 void fromAxisAngle(vec3 v, float theta, quaternion q);
 void quatToMatrix(quaternion q, mat4 m);
 void rotateVec(vec3 v, quaternion q, vec3 res);
+void quatComputeAngle(quaternion q);
 
 #endif
