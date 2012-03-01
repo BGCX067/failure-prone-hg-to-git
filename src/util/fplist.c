@@ -79,6 +79,8 @@ int fplist_insback(void *data, fplist *l) {
     return l->size - 1;
 }
 
+//FIXME bugou quando tentei remover 1 elemento da lista quando
+//a lista só tinha 1 elemento
 void fplist_rmfront(fplist *l) {
     /* Ajusta os ponteiros */
     fpnode *n = l->first;

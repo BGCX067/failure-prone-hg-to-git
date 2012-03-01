@@ -93,8 +93,8 @@ void cameraHandleEvent(Camera *c, event *e) {
             cross(right, c->viewDir, c->up);
             vecNormalize(c->up);
 
-            mult(q2, q1, q2);
-            mult(q2, c->orientation, c->orientation);
+            quatMult(q2, q1, q2);
+            quatMult(q2, c->orientation, c->orientation);
             quatNormalize(c->orientation);
         }
     } else if (c->type == TRACKBALL) {
@@ -139,7 +139,7 @@ void cameraHandleEvent(Camera *c, event *e) {
                     fromAxisAngle(rotaxis, phi, q);
                     //printf("CAMERA - c->orientation: %f, %f, %f, %f\n", c->orientation[0], c->orientation[1], c->orientation[2], c->orientation[3]);
                     //mult(q, c->orientation, c->orientation);
-                    mult(c->orientation, q, c->orientation);
+                    quatMult(c->orientation, q, c->orientation);
                     quatNormalize(c->orientation);
                 }
             }

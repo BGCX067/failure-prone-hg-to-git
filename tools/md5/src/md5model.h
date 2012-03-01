@@ -30,34 +30,89 @@
 #ifndef __MD5MODEL_H__
 #define __MD5MODEL_H__
 
-/* Vectors */
-//typedef float vec2_t[2];
-//typedef float vec3_t[3];
+#include "mesh.h"
+#include "math/boundingbox.h"
+#include "math/quaternion.h"
+//Joint
+typedef struct {
+  char name[64];
+  int parent;
 
-/* Quaternion (x, y, z, w) */
-//typedef float quat4_t[4];
+  vec3 pos;
+  quaternion orient;
+} md5_joint_t;
 
-//enum {
-//  X, Y, Z, W
-//};
 
-/**
- * Quaternion prototypes
- */
-/*void Quat_computeW (quat4_t q);
-void Quat_normalize (quat4_t q);
-void Quat_multQuat (const quat4_t qa, const quat4_t qb, quat4_t out);
-void Quat_multVec (const quat4_t q, const vec3_t v, quat4_t out);
-void Quat_rotatePoint (const quat4_t q, const vec3_t in, vec3_t out);
-float Quat_dotProduct (const quat4_t qa, const quat4_t qb);
-void Quat_slerp (const quat4_t qa, const quat4_t qb, float t, quat4_t out);*/
+//Animation data 
+typedef struct
+{
+  int num_frames;
+  int num_joints;
+  int frameRate;
+
+  md5_joint_t **skelFrames;
+  BoundingBox *bboxes;
+
+  Mesh *mesh;
+} md5_anim_t;
+
+/* Vertex */
+typedef struct 
+{
+  float s, t;
+
+  int start; /* start weight */
+  int count; /* weight count */
+}md5_vertex_t;
+
+/* Triangle */
+typedef struct 
+{
+  int index[3];
+}md5_triangle_t;
+
+/* Weight */
+typedef struct
+{
+  int joint;
+  float bias;
+
+  vec3 pos;
+}md5_weight_t;
+
+
+/* MD5 mesh */
+typedef struct
+{
+    int num_verts;
+    int num_tris;
+    int num_weights;
+
+    char shader[256];
+
+    md5_weight_t *weights;
+    md5_triangle_t *triangles;
+    md5_vertex_t *vertices;
+}md5_mesh_t;
+
+/* MD5 model structure */
+typedef struct
+{
+  md5_joint_t *baseSkel;
+  md5_mesh_t *meshes;
+
+  int num_joints;
+  int num_meshes;
+} md5_model_t;
+
+
 
 /**
  * md5mesh prototypes
  */
-
-#include "mesh.h"
-Mesh* ReadMD5Model(const char *filename);
+md5_model_t* ReadMD5Model(const char *filename);
+int ReadMD5Anim(const char *filename, md5_anim_t *anim);
+Mesh* prepareMD5Mesh(md5_model_t *mdl, md5_joint_t *skeleton);
 
 
 //void FreeModel (struct md5_model_t *mdl);

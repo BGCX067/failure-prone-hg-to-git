@@ -356,7 +356,7 @@ void warpmouse(glapp* app, int i){
 
 
 void swapBuffers() {
-    glXSwapBuffers(display, *window);    
+    glXSwapBuffers(display, window);    
 }
 
 //#endif

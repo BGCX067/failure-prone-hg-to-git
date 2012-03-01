@@ -13,18 +13,27 @@ void quatNormalize(quaternion q) {
     q[3] /= len;
 }
 
-void conjugate(quaternion q, quaternion conj) {
+void quatConjugate(quaternion q, quaternion conj) {
     conj[0] = -q[0];
     conj[1] = -q[1];
     conj[2] = -q[2];
     conj[3] =  q[3];
 }
 
-void mult(quaternion q2, quaternion q1, quaternion res) {
+void quatMult(quaternion q2, quaternion q1, quaternion res) {
     res[0] = q2[1]*q1[2] - q2[2]*q1[1] + q2[3]*q1[0] + q2[0]*q1[3];
 	res[1] = q2[2]*q1[0] - q2[0]*q1[2] + q2[3]*q1[1] + q2[1]*q1[3];
 	res[2] = q2[0]*q1[1] - q2[1]*q1[0] + q2[3]*q1[2] + q2[2]*q1[3];
 	res[3] = q2[3]*q1[3] - q2[0]*q1[0] - q2[1]*q1[1] - q2[2]*q1[2];
+}
+
+
+void quatMultVec(quaternion q, vec3 v, quaternion res) {
+    res[3] = -(q[0]*v[0]) - (q[1]* v[1]) - (q[2]*v[2]);
+    res[0] = (q[3]*v[0]) + (q[1]*v[2]) - (q[2]*v[1]);
+    res[1] = (q[3]*v[1]) + (q[2]*v[0]) - (q[0]*v[2]);
+    res[2] = (q[3]*v[2]) + (q[0]*v[1]) - (q[1]*v[0]);
+
 }
 
 void fromAxisAngle(vec3 v, float theta, quaternion q) {
@@ -69,9 +78,10 @@ void rotateVec(vec3 v, quaternion q, vec3 res) {
     quaternion result, tmp;
     
     quaternion conjq;
-    conjugate(q, conjq);
-    mult(q, q2, tmp);
-    mult(tmp, conjq, result);
+    quatConjugate(q, conjq);
+    ////quatMult(q, q2, tmp);
+    quatMultVec(q, v, tmp);
+    quatMult(tmp, conjq, result);
     
     res[0] = result[0];
     res[1] = result[1];
@@ -85,3 +95,78 @@ void quatComputeAngle(quaternion q) {
     else
         q[3] = -sqrt(t);
 }
+
+
+
+float quatDotProduct(quaternion q1, quaternion q2) {
+    return q1[0]*q2[0] + q1[1]*q2[1] + q1[2]*q2[2] + q1[3]*q2[3];
+}
+
+void quatSlerp(quaternion q1, quaternion q2, float t, quaternion res) {
+    /* Check for out-of range parameter and return edge points if so */
+    if (t <= 0.0) {
+        memcpy(res, q1, sizeof(quaternion));
+        return;
+    }
+
+    if (t >= 1.0) {
+        memcpy(res, q2, sizeof (quaternion));
+        return;
+    }
+
+    /* Compute "cosine of angle between quaternions" using dot product */
+    float cosOmega = quatDotProduct(q1, q2);
+
+    /* If negative dot, use -q1.  Two quaternions q and -q
+       represent the same rotation, but may produce
+       different slerp.  We chose q or -q to rotate using
+       the acute angle. */
+    float q1w = q2[3];
+    float q1x = q2[0];
+    float q1y = q2[1];
+    float q1z = q2[2];
+
+    if (cosOmega < 0.0f) {
+        q1w = -q1w;
+        q1x = -q1x;
+        q1y = -q1y;
+        q1z = -q1z;
+        cosOmega = -cosOmega;
+    }
+
+    /* We should have two unit quaternions, so dot should be <= 1.0 */
+    //assert(cosOmega < 1.1f);
+
+    /* Compute interpolation fraction, checking for quaternions
+       almost exactly the same */
+    float k0, k1;
+    if (cosOmega > 0.9999f) {
+        /* Very close - just use linear interpolation,
+           which will protect againt a divide by zero */
+        k0 = 1.0f - t;
+        k1 = t;
+    } else {
+        /* Compute the sin of the angle using the
+           trig identity sin^2(omega) + cos^2(omega) = 1 */
+        float sinOmega = sqrt(1.0f - (cosOmega * cosOmega));
+
+        /* Compute the angle from its sin and cosine */
+        float omega = atan2(sinOmega, cosOmega);
+
+        /* Compute inverse of denominator, so we only have
+           to divide once */
+        float oneOverSinOmega = 1.0f/sinOmega;
+
+        /* Compute interpolation parameters */
+        k0 = sin((1.0f - t)*omega)*oneOverSinOmega;
+        k1 = sin(t*omega)*oneOverSinOmega;
+    }
+
+    /* Interpolate and return new quaternion */
+    res[3] = (k0*q1[3]) + (k1*q1w);
+    res[0] = (k0*q1[0]) + (k1*q1x);
+    res[1] = (k0*q1[1]) + (k1*q1y);
+    res[2] = (k0*q1[2]) + (k1*q1z);
+}
+
+

@@ -10,28 +10,88 @@
 #include "util/colladaloader.h"
 #include "md5model.h"
 
-int idle(float ifps, event* e, Scene* s){
-	return 1;
-}
+//Animation info
+typedef struct {
+    int curr_frame;
+    int next_frame;
+
+    double last_time;
+    double max_time;
+}anim_info_t;
 
 Scene* cena;
 Shader *shdr;
 renderer *mainrenderer;
 Camera c;
 BoundingBox bbox;
+md5_anim_t anim;
+anim_info_t animinfo;
+md5_joint_t *skeleton = NULL;
+md5_model_t *mdl;
+Mesh *md5mesh;
+
+int animated = 1;
+
+/**
+ * Perform animation related computations.  Calculate the current and
+ * next frames, given a delta time.
+ */
+void Animate(const md5_anim_t *anim, anim_info_t *animInfo, double dt) {
+    int maxFrames = anim->num_frames - 1;
+
+    animInfo->last_time += dt;
+
+    /* move to next frame */
+    if (animInfo->last_time >= animInfo->max_time){
+        animInfo->curr_frame++;
+        animInfo->next_frame++;
+        animInfo->last_time = 0.0;
+
+        if (animInfo->curr_frame > maxFrames)
+            animInfo->curr_frame = 0;
+
+        if (animInfo->next_frame > maxFrames)
+            animInfo->next_frame = 0;
+    }
+}
+
+int idle(float ifps, event* e, Scene* s){
+    Animate(&anim, &animinfo, ifps);
+
+    if(animated)
+        InterpolateSkeletons(anim.skelFrames[animinfo.curr_frame], anim.skelFrames[animinfo.next_frame],
+                         anim.num_joints, animinfo.last_time*anim.frameRate, skeleton);
+    else
+        skeleton = mdl->baseSkel;
+    md5mesh = prepareMD5Mesh(mdl, skeleton);
+	return 1;
+}
 
 void initializeGame(){
     initCamera(&c, TRACKBALL);
     
+    //Carrega a cena do collada temporariamente, apenas para ter luz e material na cena
     cena = readColladaFile("../../data/models/duck_triangulate_deindexer.dae");
+    //remove o mesh do pato
+    fplist_rmback(cena->meshList);
+    md5mesh = initMesh();
 
-    Mesh *md5mesh = ReadMD5Model("data/models/boblampclean.md5mesh");
-    addMesh(cena, md5mesh);
+    mdl = ReadMD5Model("data/models/boblampclean.md5mesh");
+    int animoutput = ReadMD5Anim("data/models/boblampclean.md5anim", &anim);
+    //Inicializar animinfo
+    animinfo.curr_frame = 0;
+    animinfo.next_frame = 1;
+
+    animinfo.last_time = 0;
+    animinfo.max_time = 1.0/anim.frameRate;
+
+    skeleton = malloc(sizeof(md5_joint_t)*anim.num_joints);
+
     //FIXME pra testar, faz os meshes do md5 terem o mesmo material do pato
-    for(int j = 0; j < md5mesh->tris->size; j++) {
+/*    for(int j = 0; j < md5mesh->tris->size; j++) {
         Triangles *tri = fplist_getdata(j, md5mesh->tris);
         tri->material = cena->materialList->first->data;
-    }
+    }*/
     char *vertshader = readTextFile("data/shaders/vertshader.vert");
     char *fragshader = readTextFile("data/shaders/fragshader.frag");
     shdr = initializeShader(vertshader, fragshader); 
@@ -41,14 +101,17 @@ void initializeGame(){
     memset(cena->b.pmax, 0, 3*sizeof(float));
     
     //Calcula bounding box da cena
-    for(int i = 0; i < cena->meshList->size; i++) {
+/*    for(int i = 0; i < cena->meshList->size; i++) {
 	    Mesh *m = fplist_getdata(i, cena->meshList);
         for(int j = 0; j < m->tris->size; j++) {
             Triangles *t = fplist_getdata(j, m->tris); 
             bbunion(&m->b, m->b, t->b);
         }
         bbunion(&cena->b, cena->b, m->b);
-    }
+    }*/
+    
+    cena->b.pmin[0] = -43.0;  cena->b.pmin[1] = -12.0; cena->b.pmin[2] = 0.0;
+    cena->b.pmax[0] = 42.0;  cena->b.pmax[1] = 13.0; cena->b.pmax[2] = 67;
 
     camerafit(&c, cena->b, 45.0, 800/600, 0.1, 1000.0);
 }
@@ -77,6 +140,13 @@ int render(float ifps, event *e, Scene *cena){
     setShaderConstant3f(shdr, "lightpos", l->pos);
     setShaderConstant3f(shdr, "lightintensity", l->color);
 
+    //adiciona mesh na lista de meshes da cena:
+    addMesh(cena, md5mesh);
+    for(int j = 0; j < md5mesh->tris->size; j++) {
+        Triangles *tri = fplist_getdata(j, md5mesh->tris);
+        tri->material = cena->materialList->first->data;
+    }
+
     for(int i = 0; i < cena->meshList->size; i++) {
 	    Mesh *m = fplist_getdata(i, cena->meshList);
         for(int j = 0; j < m->tris->size; j++) {
@@ -95,8 +165,10 @@ int render(float ifps, event *e, Scene *cena){
             drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES);
         }
     }
-
+    
+    fplist_rmback(cena->meshList);
     glFlush();
+    swapBuffers();
 }
 
 
