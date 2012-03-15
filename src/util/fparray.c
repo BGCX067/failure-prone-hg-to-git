@@ -95,7 +95,6 @@ void fparray_rmpos(int pos, fparray *a) {
          * nesse caso. */
         a->alloc_size /= 2; 
         realloc(a, a->alloc_size);
-
     }
 }
 

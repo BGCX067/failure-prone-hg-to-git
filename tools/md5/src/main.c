@@ -27,7 +27,6 @@ BoundingBox bbox;
 anim_info_t animinfo;
 Mesh *md5mesh;
 Joint *skeleton;
-int animated = 1;
 
 /**
  * Perform animation related computations.  Calculate the current and
@@ -49,10 +48,22 @@ void Animate(anim_info_t *animInfo, int maxFrames, double dt) {
 }
 
 int idle(float ifps, event* e, Scene* s){
-    Animate(&animinfo, md5mesh->anim->numFrames - 1, ifps);
+    //Usa tecla m pra mudar de animação
+    if(e->keys[KEY_m]) {
+        md5mesh->currAnim = (md5mesh->currAnim + 1)%2;
+        
+        animinfo.curr_frame = 0;
+        animinfo.next_frame = 1;
 
-    interpolateSkeletons(md5mesh->anim->skelFrames[animinfo.curr_frame], md5mesh->anim->skelFrames[animinfo.next_frame],
-                         md5mesh->anim->numJoints, animinfo.last_time*md5mesh->anim->frameRate, skeleton);
+        animinfo.last_time = 0;
+        animinfo.max_time = 1.0/getCurrentAnim(md5mesh)->frameRate;
+    }
+
+    SkeletalAnim *anim = getCurrentAnim(md5mesh);
+    Animate(&animinfo, anim->numFrames - 1, ifps);
+
+    interpolateSkeletons(anim->skelFrames[animinfo.curr_frame], anim->skelFrames[animinfo.next_frame],
+                         anim->numJoints, animinfo.last_time*anim->frameRate, skeleton);
     updateMesh(md5mesh, skeleton);
 	return 1;
 }
@@ -65,18 +76,22 @@ void initializeGame(){
     //remove o mesh do pato
     fplist_rmback(cena->meshList);
 
-    md5mesh = readMD5Mesh("data/models/boblampclean.md5mesh");
-    md5mesh->anim = readMD5Anim("data/models/boblampclean.md5anim");
+    md5mesh = readMD5Mesh("data/models/zfat.md5mesh");
+    SkeletalAnim *anim = readMD5Anim("data/models/walk1.md5anim");
+    SkeletalAnim *anim2 = readMD5Anim("data/models/pipeattack1.md5anim");
+    addAnim(md5mesh, anim);
+    addAnim(md5mesh, anim2);
     addMesh(cena, md5mesh);
+    md5mesh->currAnim = 0;
     
     //Inicializar animinfo
     animinfo.curr_frame = 0;
     animinfo.next_frame = 1;
 
     animinfo.last_time = 0;
-    animinfo.max_time = 1.0/md5mesh->anim->frameRate;
+    animinfo.max_time = 1.0/anim->frameRate;
 
-    skeleton = malloc(sizeof(Joint)*md5mesh->anim->numJoints);
+    skeleton = malloc(sizeof(Joint)*anim->numJoints);
 
     //FIXME pra testar, faz os meshes do md5 terem o mesmo material do pato
     for(int j = 0; j < md5mesh->tris->size; j++) {

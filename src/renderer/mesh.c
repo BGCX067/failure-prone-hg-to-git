@@ -255,6 +255,20 @@ void prepareMesh(Mesh *m) {
 }
 
 
+void addAnim(Mesh *m, SkeletalAnim *anim) {
+    if(m->animated == 0) {
+        m->anims = fplist_init(free);
+        m->animated = 1;
+    }
+
+    m->currAnim = fplist_insback(anim, m->anims);
+}
+
+
+SkeletalAnim* getCurrentAnim(Mesh *m) {
+    return fplist_getdata(m->currAnim, m->anims);
+}
+
 //Função auxiliar pra calcular normais, dados os índices e os vértices
 //baseado
 void setNormals(unsigned int *tIndices, float *tVerts, float *tNormals, 

@@ -83,7 +83,9 @@ typedef struct _mesh{
     char *id;
     
     //TODO Vetor de animações
-    SkeletalAnim *anim;
+    int animated, currAnim;
+//    SkeletalAnim *anim;
+    fplist* anims;
 }Mesh;
 
 void createVBO(Mesh* mesh);
@@ -102,6 +104,9 @@ void addNormals(Triangles* t, int num, int comp, float *normals);
 void addTexCoords(Triangles *t, int num, int comp, int texset, float *texcoords);
 void addIndices(Triangles *t, int count, unsigned int *indices);
 void prepareMesh(Mesh *m);
+
+void addAnim(Mesh *m, SkeletalAnim *anim);
+SkeletalAnim* getCurrentAnim(Mesh *m);
 
 //Calcula normais assumindo que índices e vértices são dados
 void setNormals(unsigned int *tIndices, float *tVerts, float *tNormals, 
