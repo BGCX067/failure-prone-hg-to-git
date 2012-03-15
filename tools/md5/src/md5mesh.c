@@ -38,12 +38,11 @@
 
 #include "md5model.h"
 #include "math/vec3.h"
+#include "math/boundingbox.h"
+#include "math/quaternion.h"
+#include "renderer.h"
 
-
-
-
-typedef struct
-{
+typedef struct {
   char name[64];
   int parent;
   int flags;
@@ -51,59 +50,78 @@ typedef struct
 }joint_info_t;
 
 /* Base frame joint */
-typedef struct
-{
+typedef struct {
   vec3 pos;
   quaternion orient;
 }baseframe_joint_t;
 
+//Joint
+typedef struct {
+  int parent;
+  vec3 pos;
+  quaternion orient;
+  char name[64];
+} md5_joint_t;
 
 
-/**
- * Basic quaternion operations.
- */
+//Animation data 
+typedef struct {
+  int num_frames;
+  int num_joints;
+  int frameRate;
 
-/*
-    void
-Quat_multQuat (const quat4_t qa, const quat4_t qb, quat4_t out)
-{
-    out[W] = (qa[W] * qb[W]) - (qa[X] * qb[X]) - (qa[Y] * qb[Y]) - (qa[Z] * qb[Z]);
-    out[X] = (qa[X] * qb[W]) + (qa[W] * qb[X]) + (qa[Y] * qb[Z]) - (qa[Z] * qb[Y]);
-    out[Y] = (qa[Y] * qb[W]) + (qa[W] * qb[Y]) + (qa[Z] * qb[X]) - (qa[X] * qb[Z]);
-    out[Z] = (qa[Z] * qb[W]) + (qa[W] * qb[Z]) + (qa[X] * qb[Y]) - (qa[Y] * qb[X]);
-}
+  md5_joint_t **skelFrames;
+  BoundingBox *bboxes;
+} md5_anim_t;
 
-    void
-Quat_multVec (const quat4_t q, const vec3_t v, quat4_t out)
-{
-    out[W] = - (q[X] * v[X]) - (q[Y] * v[Y]) - (q[Z] * v[Z]);
-    out[X] =   (q[W] * v[X]) + (q[Y] * v[Z]) - (q[Z] * v[Y]);
-    out[Y] =   (q[W] * v[Y]) + (q[Z] * v[X]) - (q[X] * v[Z]);
-    out[Z] =   (q[W] * v[Z]) + (q[X] * v[Y]) - (q[Y] * v[X]);
-}
+/* Vertex */
+typedef struct  {
+  float s, t;
 
-    void
-Quat_rotatePoint (const quat4_t q, const vec3_t in, vec3_t out)
-{
-    quat4_t tmp, inv, final;
+  int start; /* start weight */
+  int count; /* weight count */
+}md5_vertex_t;
 
-    inv[X] = -q[X]; inv[Y] = -q[Y];
-    inv[Z] = -q[Z]; inv[W] =  q[W];
+/* Triangle */
+typedef struct  {
+  int index[3];
+}md5_triangle_t;
 
-    Quat_normalize (inv);
+/* Weight */
+typedef struct {
+  int joint;
+  float bias;
 
-    Quat_multVec (q, in, tmp);
-    Quat_multQuat (tmp, inv, final);
+  vec3 pos;
+}md5_weight_t;
 
-    out[X] = final[X];
-    out[Y] = final[Y];
-    out[Z] = final[Z];
-}*/
+
+/* MD5 mesh */
+typedef struct {
+    int num_verts;
+    int num_tris;
+    int num_weights;
+
+    char shader[256];
+
+    md5_weight_t *weights;
+    md5_triangle_t *triangles;
+    md5_vertex_t *vertices;
+}md5_mesh_t;
+
+/* MD5 model structure */
+typedef struct {
+  md5_joint_t *baseSkel;
+  md5_mesh_t *meshes;
+
+  int num_joints;
+  int num_meshes;
+} md5_model_t;
 
 /**
  * Load an MD5 model from file.
  */
-md5_model_t* ReadMD5Model(const char *filename) {
+static md5_model_t* ReadMD5Model(const char *filename) {
     md5_model_t *mdl = malloc(sizeof(md5_model_t));
     FILE *fp;
     char buff[512];
@@ -243,10 +261,7 @@ static void BuildFrameSkeleton(const joint_info_t *jointInfos,
 		                       const float *animFrameData, md5_joint_t *skelFrame, 
                                int num_joints)
 {
-    int i;
-
-    for (i = 0; i < num_joints; ++i)
-    {
+    for (int i = 0; i < num_joints; ++i) {
         const baseframe_joint_t *baseJoint = &baseFrame[i];
         vec3 animatedPos;
         quaternion animatedOrient;
@@ -255,38 +270,32 @@ static void BuildFrameSkeleton(const joint_info_t *jointInfos,
         memcpy(animatedPos, baseJoint->pos, sizeof (vec3));
         memcpy(animatedOrient, baseJoint->orient, sizeof (quaternion));
 
-        if (jointInfos[i].flags & 1) /* Tx */
-        {
+        if (jointInfos[i].flags & 1) { /* Tx */
             animatedPos[0] = animFrameData[jointInfos[i].startIndex + j];
             ++j;
         }
 
-        if (jointInfos[i].flags & 2) /* Ty */
-        {
+        if (jointInfos[i].flags & 2) { /* Ty */
             animatedPos[1] = animFrameData[jointInfos[i].startIndex + j];
             ++j;
         }
 
-        if (jointInfos[i].flags & 4) /* Tz */
-        {
+        if (jointInfos[i].flags & 4) { /* Tz */
             animatedPos[2] = animFrameData[jointInfos[i].startIndex + j];
             ++j;
         }
 
-        if (jointInfos[i].flags & 8) /* Qx */
-        {
+        if (jointInfos[i].flags & 8) { /* Qx */
             animatedOrient[0] = animFrameData[jointInfos[i].startIndex + j];
             ++j;
         }
 
-        if (jointInfos[i].flags & 16) /* Qy */
-        {
+        if (jointInfos[i].flags & 16) { /* Qy */
             animatedOrient[1] = animFrameData[jointInfos[i].startIndex + j];
             ++j;
         }
 
-        if (jointInfos[i].flags & 32) /* Qz */
-        {
+        if (jointInfos[i].flags & 32) { /* Qz */
             animatedOrient[2] = animFrameData[jointInfos[i].startIndex + j];
             ++j;
         }
@@ -304,13 +313,10 @@ static void BuildFrameSkeleton(const joint_info_t *jointInfos,
         strcpy (thisJoint->name, jointInfos[i].name);
 
         /* Has parent? */
-        if (thisJoint->parent < 0)
-        {
+        if (thisJoint->parent < 0) {
             memcpy(thisJoint->pos, animatedPos, sizeof (vec3));
             memcpy(thisJoint->orient, animatedOrient, sizeof (quaternion));
-        }
-        else
-        {
+        } else {
             md5_joint_t *parentJoint = &skelFrame[parent];
             vec3 rpos; /* Rotated position */
 
@@ -327,7 +333,7 @@ static void BuildFrameSkeleton(const joint_info_t *jointInfos,
     }
 }
 
-int ReadMD5Anim (const char *filename, md5_anim_t *anim) {
+static int ReadMD5Anim(const char *filename, md5_anim_t *anim) {
     FILE *fp = NULL;
     char buff[512];
     joint_info_t *jointInfos = NULL;
@@ -452,33 +458,22 @@ int ReadMD5Anim (const char *filename, md5_anim_t *anim) {
 }
 
 
-void InterpolateSkeletons(const md5_joint_t *skelA, const md5_joint_t *skelB,
-                          int num_joints, float interp, md5_joint_t *out)
-{
-    for(int i = 0; i < num_joints; i++) {
-        /* Copy parent index */
-        out[i].parent = skelA[i].parent;
-
-        /* Linear interpolation for position */
-        out[i].pos[0] = skelA[i].pos[0] + interp*(skelB[i].pos[0] - skelA[i].pos[0]);
-        out[i].pos[1] = skelA[i].pos[1] + interp*(skelB[i].pos[1] - skelA[i].pos[1]);
-        out[i].pos[2] = skelA[i].pos[2] + interp*(skelB[i].pos[2] - skelA[i].pos[2]);
-
-        /* Spherical linear interpolation for orientation */
-        quatSlerp(skelA[i].orient, skelB[i].orient, interp, out[i].orient);
-    }
-}
-
-
-
-Mesh* prepareMD5Mesh(md5_model_t *mdl, md5_joint_t *skeleton) {
+static Mesh* prepareMD5Mesh(md5_model_t *mdl, md5_joint_t *skeleton) {
     Mesh *m = initMesh();
-
     //Transformar pra mesh da engine
     for(int i = 0; i < mdl->num_meshes; i++) {
         Triangles *t = addTris(m);
-
         md5_mesh_t *md5mesh = &mdl->meshes[i];
+        t->numweights = md5mesh->num_weights;
+        t->weights = malloc(sizeof(Weight)*t->numweights);
+        for(int j = 0; j < t->numweights; j++) {
+            t->weights[j].joint = md5mesh->weights[j].joint;
+            t->weights[j].factor = md5mesh->weights[j].bias;
+            t->weights[j].pos[0] = md5mesh->weights[j].pos[0];
+            t->weights[j].pos[1] = md5mesh->weights[j].pos[1];
+            t->weights[j].pos[2] = md5mesh->weights[j].pos[2];
+        }
+
         //Indices     
         unsigned int *tIndices = malloc(sizeof(unsigned int)*3*md5mesh->num_tris);
         for(int j = 0; j < md5mesh->num_tris; j++) {
@@ -490,22 +485,26 @@ Mesh* prepareMD5Mesh(md5_model_t *mdl, md5_joint_t *skeleton) {
         //Vertices e TexCoords
         float *tVerts = malloc(sizeof(float)*md5mesh->num_verts*3); 
         float *tTexCoords = malloc(sizeof(float)*md5mesh->num_verts*2);
+
+        t->weightInfo = malloc(sizeof(VertexWeightInfo)*md5mesh->num_verts);
         for(int j = 0; j < md5mesh->num_verts; j++) {
             tTexCoords[2*j] = md5mesh->vertices[j].s;
             tTexCoords[2*j + 1] = md5mesh->vertices[j].t;
             tVerts[3*j] = 0.0;
             tVerts[3*j + 1] = 0.0;
             tVerts[3*j + 2] = 0.0;
-            for(int k = 0; k < md5mesh->vertices[j].count; k++) {
-                md5_weight_t *w = &md5mesh->weights[md5mesh->vertices[j].start + k];
-                //md5_joint_t *joint = &mdl->baseSkel[w->joint];
-                md5_joint_t *joint = &skeleton[w->joint];
+
+            t->weightInfo[j].start = md5mesh->vertices[j].start;
+            t->weightInfo[j].count = md5mesh->vertices[j].count;
+            for(int k = 0; k < t->weightInfo[j].count; k++) {
+                Weight *w = &t->weights[t->weightInfo[j].start + k];
+                Joint *joint = &skeleton[w->joint];
 
                 vec3 wv;
-                rotateVec(w->pos, joint->orient, wv);
-                tVerts[3*j] += (joint->pos[0]+ wv[0])*w->bias;
-                tVerts[3*j + 1] += (joint->pos[1]+ wv[1])*w->bias;
-                tVerts[3*j + 2] += (joint->pos[2]+ wv[2])*w->bias;
+                rotateVec(w->pos, joint->orientation, wv);
+                tVerts[3*j] += (joint->pos[0]+ wv[0])*w->factor;
+                tVerts[3*j + 1] += (joint->pos[1]+ wv[1])*w->factor;
+                tVerts[3*j + 2] += (joint->pos[2]+ wv[2])*w->factor;
             }
         }
         setboundingbox(&t->b, tVerts, md5mesh->num_verts);
@@ -513,43 +512,7 @@ Mesh* prepareMD5Mesh(md5_model_t *mdl, md5_joint_t *skeleton) {
         addTexCoords(t, md5mesh->num_verts*2, 2, 0, tTexCoords);
         float *tNormals = malloc(sizeof(float)*md5mesh->num_verts*3); 
         memset(tNormals, 0, sizeof(float)*md5mesh->num_verts*3);
-
-        for(int j = 0; j < md5mesh->num_tris; j++) {
-            const int ia = tIndices[3*j];
-            const int ib = tIndices[3*j + 1];
-            const int ic = tIndices[3*j + 2];
-
-            vec3 iapos = { tVerts[3*ia], tVerts[3*ia + 1], tVerts[3*ia + 2]  };
-            vec3 ibpos = { tVerts[3*ib], tVerts[3*ib + 1], tVerts[3*ib + 2]  };
-            vec3 icpos = { tVerts[3*ic], tVerts[3*ic + 1], tVerts[3*ic + 2]  };
-
-            vec3 e1; //vert[ia].pos - vert[ib].pos;
-            vecSub(iapos, ibpos, e1);
-            vec3 e2; //vert[ic].pos - vert[ib].pos;
-            vecSub(icpos, ibpos, e2);
-            vec3 no; //cross( e1, e2 );
-            cross(e1, e2, no);
-
-            //vert[ia].normal += no;
-            //vert[ib].normal += no;
-            //vert[ic].normal += no;
-            tNormals[3*ia] = no[0];
-            tNormals[3*ia + 1] = no[1];
-            tNormals[3*ia + 2] = no[2];
-            tNormals[3*ib] = no[0];
-            tNormals[3*ib + 1] = no[1];
-            tNormals[3*ib + 2] = no[2];
-            tNormals[3*ic] = no[0];
-            tNormals[3*ic + 1] = no[1];
-            tNormals[3*ic + 2] = no[2];
-        }
-        for(int j = 0; j < md5mesh->num_verts; j++) {
-            vec3 n = { tNormals[3*j], tNormals[3*j + 1], tNormals[3*j + 2] };
-            vecNormalize(n);
-            tNormals[3*j] = n[0];
-            tNormals[3*j + 1] = n[1];
-            tNormals[3*j + 2] = n[2];
-        }
+        setNormals(tIndices, tVerts, tNormals, md5mesh->num_tris, md5mesh->num_verts);
         addNormals(t, md5mesh->num_verts*3, 3, tNormals);
         //TODO material
     }
@@ -557,272 +520,53 @@ Mesh* prepareMD5Mesh(md5_model_t *mdl, md5_joint_t *skeleton) {
     return m;
 }
 
-/**
- * Prepare a mesh for drawing.  Compute mesh's final vertex positions
- * given a skeleton.  Put the vertices in vertex arrays.
- */
-/*void PrepareMesh (const struct md5_mesh_t *mesh,
-        const struct md5_joint_t *skeleton)
-{
-    int i, j, k;
+Mesh* readMD5Mesh(const char *filename) {
+    md5_model_t *mdl = ReadMD5Model(filename);
 
-    //Setup vertex indices
-    for (k = 0, i = 0; i < mesh->num_tris; ++i)
-    {
-        for (j = 0; j < 3; ++j, ++k)
-            vertexIndices[k] = mesh->triangles[i].index[j];
-    }
+    //Inicializar Mesh
+    Mesh *m = prepareMD5Mesh(mdl, mdl->baseSkel);
 
-    //Setup vertices
-    for (i = 0; i < mesh->num_verts; ++i)
-    {
-        vec3 finalVertex = { 0.0f, 0.0f, 0.0f };
-
-        //Calculate final vertex to draw with weights
-        for (j = 0; j < mesh->vertices[i].count; ++j)
-        {
-            const struct md5_weight_t *weight
-                = &mesh->weights[mesh->vertices[i].start + j];
-            const struct md5_joint_t *joint
-                = &skeleton[weight->joint];
-
-            //Calculate transformed vertex for this weight
-            vec3 wv;
-            //Quat_rotatePoint (joint->orient, weight->pos, wv);
-
-            //The sum of all weight->bias should be 1.0
-            finalVertex[0] += (joint->pos[0] + wv[0]) * weight->bias;
-            finalVertex[1] += (joint->pos[1] + wv[1]) * weight->bias;
-            finalVertex[2] += (joint->pos[2] + wv[2]) * weight->bias;
+    //Liberar memória do mdl
+    if(mdl) {
+        if(mdl->meshes) {
+            if(mdl->meshes->weights)
+                free(mdl->meshes->weights);
+            if(mdl->meshes->triangles)
+                free(mdl->meshes->triangles);
+            if(mdl->meshes->vertices)
+                free(mdl->meshes->vertices);
+            free(mdl->meshes);
         }
-
-        vertexArray[i][0] = finalVertex[0];
-        vertexArray[i][1] = finalVertex[1];
-        vertexArray[i][2] = finalVertex[2];
+        if(mdl->baseSkel)
+            free(mdl->baseSkel);
+        free(mdl);
     }
-}*/
-
-
-
-/**
- * Free resources allocated for the model.
- */
-/*void FreeModel (struct md5_model_t *mdl)
-{
-    int i;
-
-    if (mdl->baseSkel)
-    {
-        free (mdl->baseSkel);
-        mdl->baseSkel = NULL;
-    }
-
-    if (mdl->meshes)
-    {
-        //Free mesh data
-        for (i = 0; i < mdl->num_meshes; ++i)
-        {
-            if (mdl->meshes[i].vertices)
-            {
-                free (mdl->meshes[i].vertices);
-                mdl->meshes[i].vertices = NULL;
-            }
-
-            if (mdl->meshes[i].triangles)
-            {
-                free (mdl->meshes[i].triangles);
-                mdl->meshes[i].triangles = NULL;
-            }
-
-            if (mdl->meshes[i].weights)
-            {
-                free (mdl->meshes[i].weights);
-                mdl->meshes[i].weights = NULL;
-            }
-        }
-
-        free (mdl->meshes);
-        mdl->meshes = NULL;
-    }
-}*/
-
-/*void AllocVertexArrays ()
-{
-    vertexArray = (vec3 *)malloc (sizeof (vec3) * max_verts);
-    vertexIndices = (GLuint *)malloc (sizeof (GLuint) * max_tris * 3);
-}*/
-
-
-/*void FreeVertexArrays ()
-{
-    if (vertexArray)
-    {
-        free (vertexArray);
-        vertexArray = NULL;
-    }
-
-    if (vertexIndices)
-    {
-        free (vertexIndices);
-        vertexIndices = NULL;
-    }
-}*/
-
-/**
- * Draw the skeleton as lines and points (for joints).
- */
-/*void DrawSkeleton (const struct md5_joint_t *skeleton, int num_joints)
-{
-    int i;
-
-    glPointSize (5.0f);
-    glColor3f (1.0f, 0.0f, 0.0f);
-    glBegin (GL_POINTS);
-    for (i = 0; i < num_joints; ++i)
-        glVertex3fv (skeleton[i].pos);
-    glEnd ();
-    glPointSize (1.0f);
-
-    glColor3f (0.0f, 1.0f, 0.0f);
-    glBegin (GL_LINES);
-    for (i = 0; i < num_joints; ++i)
-    {
-        if (skeleton[i].parent != -1)
-        {
-            glVertex3fv (skeleton[skeleton[i].parent].pos);
-            glVertex3fv (skeleton[i].pos);
-        }
-    }
-    glEnd();
-}*/
-
-/*void init (const char *filename, const char *animfile)
-{
-    glClearColor (0.5f, 0.5f, 0.5f, 1.0f);
-    glShadeModel (GL_SMOOTH);
-
-    glEnable (GL_DEPTH_TEST);
-
-    if (!ReadMD5Model (filename, &md5file))
-        exit (EXIT_FAILURE);
-
-    AllocVertexArrays ();
-
-    if (animfile)
-    {
-        if (!ReadMD5Anim (animfile, &md5anim))
-        {
-            FreeAnim (&md5anim);
-        }
-        else
-        {
-            animInfo.curr_frame = 0;
-            animInfo.next_frame = 1;
-
-            animInfo.last_time = 0;
-            animInfo.max_time = 1.0 / md5anim.frameRate;
-
-            skeleton = (struct md5_joint_t *)
-                malloc (sizeof (struct md5_joint_t) * md5anim.num_joints);
-
-            animated = 1;
-        }
-    }
-
-    if (!animated)
-        printf ("init: no animation loaded.\n");
-}*/
-
-/*void cleanup ()
-{
-    FreeModel (&md5file);
-    FreeAnim (&md5anim);
-
-    if (animated && skeleton)
-    {
-        free (skeleton);
-        skeleton = NULL;
-    }
-
-    FreeVertexArrays ();
+    return m;
 }
 
-    void
-reshape (int w, int h)
-{
-    if (h == 0)
-        h = 1;
+SkeletalAnim* readMD5Anim(const char *filename) {
+    md5_anim_t md5anim;
+    ReadMD5Anim(filename, &md5anim);
 
-    glViewport (0, 0, (GLsizei)w, (GLsizei)h);
+    SkeletalAnim *anim = malloc(sizeof(SkeletalAnim));
 
-    glMatrixMode (GL_PROJECTION);
-    glLoadIdentity ();
-    gluPerspective (45.0, w/(GLdouble)h, 0.1, 1000.0);
+    //Converter pra anim da engine
+    anim = malloc(sizeof(SkeletalAnim));
+    anim->numFrames = md5anim.num_frames;
+    anim->numJoints = md5anim.num_joints;
+    anim->frameRate = md5anim.frameRate;
 
-    glMatrixMode (GL_MODELVIEW);
-    glLoadIdentity ();
+    anim->skelFrames = malloc(sizeof(Joint*)*anim->numFrames);
+    for(int i = 0; i < anim->numFrames; i++) {
+        anim->skelFrames[i] = malloc(sizeof(Joint)*anim->numJoints);
+        for(int j = 0; j < anim->numJoints; j++) {
+            anim->skelFrames[i][j].parent = md5anim.skelFrames[i][j].parent;
+            //Copia pos
+            memcpy(anim->skelFrames[i][j].pos, md5anim.skelFrames[i][j].pos, sizeof(vec3));
+            //Copia orientação
+            memcpy(anim->skelFrames[i][j].orientation, md5anim.skelFrames[i][j].orient, sizeof(quaternion));
+        }
+    }
+
+    return anim;
 }
-
-    void
-display ()
-{
-    int i;
-    static float angle = 0;
-    static double curent_time = 0;
-    static double last_time = 0;
-
-    last_time = curent_time;
-    curent_time = (double)glutGet (GLUT_ELAPSED_TIME) / 1000.0;
-
-    glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glLoadIdentity ();
-
-    glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
-
-    glTranslatef (0.0f, -35.0f, -150.0f);
-    glRotatef (-90.0f, 1.0, 0.0, 0.0);
-    glRotatef (angle, 0.0, 0.0, 1.0);
-
-    angle += 25 * (curent_time - last_time);
-
-    if (angle > 360.0f)
-        angle -= 360.0f;
-
-    if (animated)
-    {
-        Animate (&md5anim, &animInfo, curent_time - last_time);
-
-        InterpolateSkeletons (md5anim.skelFrames[animInfo.curr_frame],
-                md5anim.skelFrames[animInfo.next_frame],
-                md5anim.num_joints,
-                animInfo.last_time * md5anim.frameRate,
-                skeleton);
-    }
-    else
-    {
-        skeleton = md5file.baseSkel;
-    }
-
-    DrawSkeleton (skeleton, md5file.num_joints);
-
-    glColor3f (1.0f, 1.0f, 1.0f);
-
-    glEnableClientState (GL_VERTEX_ARRAY);
-
-    for (i = 0; i < md5file.num_meshes; ++i)
-    {
-        PrepareMesh (&md5file.meshes[i], skeleton);
-
-        glVertexPointer (3, GL_FLOAT, 0, vertexArray);
-
-        glDrawElements (GL_TRIANGLES, md5file.meshes[i].num_tris * 3,
-                GL_UNSIGNED_INT, vertexIndices);
-    }
-
-    glDisableClientState (GL_VERTEX_ARRAY);
-
-    glutSwapBuffers ();
-    glutPostRedisplay ();
-}
-
-*/

@@ -171,7 +171,6 @@ Triangles* addTris(Mesh *m) {
     Triangles *t = malloc(sizeof(Triangles));
     memset(t, 0, sizeof(Triangles));
     fplist_insback(t, m->tris);
-
     return t;
 }
 
@@ -252,6 +251,91 @@ void prepareMesh(Mesh *m) {
         tri->vaoId = initEmptyVAO();
         configureIndexedVAO(tri->vaoId, tri->indicesId, tri->attrs);
         
+    }
+}
+
+
+//Função auxiliar pra calcular normais, dados os índices e os vértices
+//baseado
+void setNormals(unsigned int *tIndices, float *tVerts, float *tNormals, 
+                int indicesCount, int verticesCount) 
+{
+    for(int j = 0; j < indicesCount; j++) {
+        const int ia = tIndices[3*j];
+        const int ib = tIndices[3*j + 1];
+        const int ic = tIndices[3*j + 2];
+
+        vec3 iapos = { tVerts[3*ia], tVerts[3*ia + 1], tVerts[3*ia + 2]  };
+        vec3 ibpos = { tVerts[3*ib], tVerts[3*ib + 1], tVerts[3*ib + 2]  };
+        vec3 icpos = { tVerts[3*ic], tVerts[3*ic + 1], tVerts[3*ic + 2]  };
+
+        vec3 e1;
+        vecSub(iapos, ibpos, e1);
+        vec3 e2;
+        vecSub(icpos, ibpos, e2);
+        vec3 no;
+        cross(e1, e2, no);
+
+        tNormals[3*ia] = no[0];
+        tNormals[3*ia + 1] = no[1];
+        tNormals[3*ia + 2] = no[2];
+        tNormals[3*ib] = no[0];
+        tNormals[3*ib + 1] = no[1];
+        tNormals[3*ib + 2] = no[2];
+        tNormals[3*ic] = no[0];
+        tNormals[3*ic + 1] = no[1];
+        tNormals[3*ic + 2] = no[2];
+    }
+    for(int j = 0; j < verticesCount; j++) {
+        vec3 n = { tNormals[3*j], tNormals[3*j + 1], tNormals[3*j + 2] };
+        vecNormalize(n);
+        tNormals[3*j] = n[0];
+        tNormals[3*j + 1] = n[1];
+        tNormals[3*j + 2] = n[2];
+    }
+}
+
+
+void updateMesh(Mesh* m, Joint *skeleton) {
+    for(int i = 0; i < m->tris->size; i++) {
+        Triangles *t = fplist_getdata(i, m->tris); 
+        float *tVerts = mapVBO(t->verticesVBO, GL_WRITE_ONLY);
+        for(int j = 0; j < t->verticesCount/3; j++) {
+            tVerts[3*j] = 0.0;
+            tVerts[3*j + 1] = 0.0;
+            tVerts[3*j + 2] = 0.0;
+            for(int k = 0; k < t->weightInfo[j].count; k++) {
+                Weight *w = &t->weights[t->weightInfo[j].start + k];
+                Joint *joint = &skeleton[w->joint];
+                vec3 wv;
+                rotateVec(w->pos, joint->orientation, wv);
+                tVerts[3*j] += (joint->pos[0]+ wv[0])*w->factor;
+                tVerts[3*j + 1] += (joint->pos[1]+ wv[1])*w->factor;
+                tVerts[3*j + 2] += (joint->pos[2]+ wv[2])*w->factor;
+            }
+        }
+        unmapVBO(t->verticesVBO);
+
+        float *tNormals = mapVBO(t->normalsVBO, GL_WRITE_ONLY);
+        setNormals(t->indices, t->vertices, tNormals, t->indicesCount/3, t->verticesCount/3);
+        unmapVBO(t->normalsVBO);
+    }
+}
+
+void interpolateSkeletons(const Joint *skelA, const Joint *skelB,
+                          int numJoints, float interp, Joint *out)
+{
+    for(int i = 0; i < numJoints; i++) {
+        /* Copy parent index */
+        out[i].parent = skelA[i].parent;
+
+        /* Linear interpolation for position */
+        out[i].pos[0] = skelA[i].pos[0] + interp*(skelB[i].pos[0] - skelA[i].pos[0]);
+        out[i].pos[1] = skelA[i].pos[1] + interp*(skelB[i].pos[1] - skelA[i].pos[1]);
+        out[i].pos[2] = skelA[i].pos[2] + interp*(skelB[i].pos[2] - skelA[i].pos[2]);
+
+        /* Spherical linear interpolation for orientation */
+        quatSlerp(skelA[i].orientation, skelB[i].orientation, interp, out[i].orientation);
     }
 }
 

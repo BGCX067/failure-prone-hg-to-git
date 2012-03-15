@@ -24,23 +24,17 @@ Shader *shdr;
 renderer *mainrenderer;
 Camera c;
 BoundingBox bbox;
-md5_anim_t anim;
 anim_info_t animinfo;
-md5_joint_t *skeleton = NULL;
-md5_model_t *mdl;
 Mesh *md5mesh;
-
+Joint *skeleton;
 int animated = 1;
 
 /**
  * Perform animation related computations.  Calculate the current and
  * next frames, given a delta time.
  */
-void Animate(const md5_anim_t *anim, anim_info_t *animInfo, double dt) {
-    int maxFrames = anim->num_frames - 1;
-
+void Animate(anim_info_t *animInfo, int maxFrames, double dt) {
     animInfo->last_time += dt;
-
     /* move to next frame */
     if (animInfo->last_time >= animInfo->max_time){
         animInfo->curr_frame++;
@@ -49,49 +43,46 @@ void Animate(const md5_anim_t *anim, anim_info_t *animInfo, double dt) {
 
         if (animInfo->curr_frame > maxFrames)
             animInfo->curr_frame = 0;
-
         if (animInfo->next_frame > maxFrames)
             animInfo->next_frame = 0;
     }
 }
 
 int idle(float ifps, event* e, Scene* s){
-    Animate(&anim, &animinfo, ifps);
+    Animate(&animinfo, md5mesh->anim->numFrames - 1, ifps);
 
-    if(animated)
-        InterpolateSkeletons(anim.skelFrames[animinfo.curr_frame], anim.skelFrames[animinfo.next_frame],
-                         anim.num_joints, animinfo.last_time*anim.frameRate, skeleton);
-    else
-        skeleton = mdl->baseSkel;
-    md5mesh = prepareMD5Mesh(mdl, skeleton);
+    interpolateSkeletons(md5mesh->anim->skelFrames[animinfo.curr_frame], md5mesh->anim->skelFrames[animinfo.next_frame],
+                         md5mesh->anim->numJoints, animinfo.last_time*md5mesh->anim->frameRate, skeleton);
+    updateMesh(md5mesh, skeleton);
 	return 1;
 }
 
 void initializeGame(){
     initCamera(&c, TRACKBALL);
-    
+
     //Carrega a cena do collada temporariamente, apenas para ter luz e material na cena
     cena = readColladaFile("../../data/models/duck_triangulate_deindexer.dae");
     //remove o mesh do pato
     fplist_rmback(cena->meshList);
-    md5mesh = initMesh();
 
-    mdl = ReadMD5Model("data/models/boblampclean.md5mesh");
-    int animoutput = ReadMD5Anim("data/models/boblampclean.md5anim", &anim);
+    md5mesh = readMD5Mesh("data/models/boblampclean.md5mesh");
+    md5mesh->anim = readMD5Anim("data/models/boblampclean.md5anim");
+    addMesh(cena, md5mesh);
+    
     //Inicializar animinfo
     animinfo.curr_frame = 0;
     animinfo.next_frame = 1;
 
     animinfo.last_time = 0;
-    animinfo.max_time = 1.0/anim.frameRate;
+    animinfo.max_time = 1.0/md5mesh->anim->frameRate;
 
-    skeleton = malloc(sizeof(md5_joint_t)*anim.num_joints);
+    skeleton = malloc(sizeof(Joint)*md5mesh->anim->numJoints);
 
     //FIXME pra testar, faz os meshes do md5 terem o mesmo material do pato
-/*    for(int j = 0; j < md5mesh->tris->size; j++) {
+    for(int j = 0; j < md5mesh->tris->size; j++) {
         Triangles *tri = fplist_getdata(j, md5mesh->tris);
         tri->material = cena->materialList->first->data;
-    }*/
+    }
     char *vertshader = readTextFile("data/shaders/vertshader.vert");
     char *fragshader = readTextFile("data/shaders/fragshader.frag");
     shdr = initializeShader(vertshader, fragshader); 
@@ -140,13 +131,6 @@ int render(float ifps, event *e, Scene *cena){
     setShaderConstant3f(shdr, "lightpos", l->pos);
     setShaderConstant3f(shdr, "lightintensity", l->color);
 
-    //adiciona mesh na lista de meshes da cena:
-    addMesh(cena, md5mesh);
-    for(int j = 0; j < md5mesh->tris->size; j++) {
-        Triangles *tri = fplist_getdata(j, md5mesh->tris);
-        tri->material = cena->materialList->first->data;
-    }
-
     for(int i = 0; i < cena->meshList->size; i++) {
 	    Mesh *m = fplist_getdata(i, cena->meshList);
         for(int j = 0; j < m->tris->size; j++) {
@@ -166,7 +150,6 @@ int render(float ifps, event *e, Scene *cena){
         }
     }
     
-    fplist_rmback(cena->meshList);
     glFlush();
     swapBuffers();
 }

@@ -3,6 +3,7 @@
 
 #include "../util/fplist.h"
 #include "../math/boundingbox.h"
+#include "../math/quaternion.h"
 #include "material.h"
 #include "vertexattribute.h"
 
@@ -14,6 +15,31 @@ typedef struct _texcoord{
 	unsigned short int components;
 	float* texCoords;
 }TexCoord;
+
+typedef struct _joint {
+    int parent;
+    vec3 pos;
+    quaternion orientation;
+}Joint;
+
+//TODO armazenar boundingbox
+typedef struct _animationdata {
+    int numFrames, numJoints, frameRate;
+    Joint **skelFrames;
+}SkeletalAnim;
+
+//TODO eliminar pos do weight para que ele fique mais genérico
+typedef struct _md5weight {
+    int joint;
+    float factor;
+    vec3 pos;
+}Weight;
+
+//TODO lista de weights ao inves de start e count
+typedef struct {
+    int start;
+    int count;
+}VertexWeightInfo;
 
 typedef struct _triangles{
     //OpenGL related
@@ -39,6 +65,10 @@ typedef struct _triangles{
     Material *material;
 
     BoundingBox b;
+
+    unsigned int numweights;
+    Weight *weights;
+    VertexWeightInfo *weightInfo;
 }Triangles;
 
 typedef struct _mesh{
@@ -51,6 +81,9 @@ typedef struct _mesh{
 
     //FIXME usando o id só pra montar o scenegraph
     char *id;
+    
+    //TODO Vetor de animações
+    SkeletalAnim *anim;
 }Mesh;
 
 void createVBO(Mesh* mesh);
@@ -70,5 +103,15 @@ void addTexCoords(Triangles *t, int num, int comp, int texset, float *texcoords)
 void addIndices(Triangles *t, int count, unsigned int *indices);
 void prepareMesh(Mesh *m);
 
+//Calcula normais assumindo que índices e vértices são dados
+void setNormals(unsigned int *tIndices, float *tVerts, float *tNormals, 
+                int indicesCount, int verticesCount);
 
+//Calcula as novas posições do vértices e normais do mesh
+//dado o skeleton
+void updateMesh(Mesh* m, Joint *skeleton);
+
+//Interpola de 2 Skeletons
+void interpolateSkeletons(const Joint *skelA, const Joint *skelB,
+                          int numJoints, float interp, Joint *out);
 #endif
