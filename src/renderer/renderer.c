@@ -146,24 +146,12 @@ void begin2d(){
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glMatrixMode( GL_MODELVIEW );
-        glPushMatrix();
-        glLoadIdentity();
 
-	//coloca no modo ortho
-	//glMatrixMode( GL_PROJECTION );
-    	//glPushMatrix();
-        //glLoadIdentity();
-	gluOrtho2D( 0, r->viewPortWidth, 0, r->viewPortHeight);
 }
 
 void end2d(){
 	glPopAttrib();
 	enableDepth();
-	glMatrixMode( GL_PROJECTION);
-	glPopMatrix();
-	glMatrixMode( GL_MODELVIEW);
-	glPopMatrix();
 }
 
 void enableDepth(){
@@ -282,11 +270,12 @@ Texture* initializeTextureFromMemory(void* data, int x, int y, int target, int i
     return t;
 }
 
-
+// TODO pode ser RGBA
 Texture* initialize2DTexture(char *filename) {
     return initializeTexture(filename, TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
 }
 
+//TODO pode ser necessario remover a textura da pipeline
 void bindTexture(Texture* t, unsigned int slot){
 	if (t != NULL){
 		glActiveTexture(GL_TEXTURE0 + slot);

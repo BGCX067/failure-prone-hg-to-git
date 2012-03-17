@@ -1,9 +1,18 @@
 #include "camera.h"
 #include <stdio.h>
+#include <string.h> //memcpy
+#include <math.h> //sqrt
+#include "../math/matrix.h"
 
 int initializedtrackball;
 vec3 lastpos;
 vec3 currpos;
+
+void resettrackball() {
+    initializedtrackball = 0;
+    VEC3_ZERO(lastpos);
+    VEC3_ZERO(currpos);
+}
 
 void initCamera(Camera *c, CameraType t) {
     QUAT_IDENTITY(c->orientation);
@@ -40,12 +49,6 @@ void setupViewMatrix(Camera *c) {
     fpNormalMatrix(c->normalmatrix, c->modelview);
 }
 
-
-void resettrackball() {
-    initializedtrackball = 0;
-    VEC3_ZERO(lastpos);
-    VEC3_ZERO(currpos);
-}
 
 void cameraHandleEvent(Camera *c, event *e) {
     //TODO pegar o tamanho da janela

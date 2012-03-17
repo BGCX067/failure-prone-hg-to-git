@@ -1,5 +1,6 @@
 #include "fplist.h"
 #include <stdio.h>
+#include <stdlib.h> //malloc
 
 void fpnode_destroy(fpnode* n, void (*destroy)(void*)){
     destroy(n->data);

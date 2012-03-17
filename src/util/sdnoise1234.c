@@ -139,6 +139,7 @@ float grad1( int hash, float *gx ) {
     int h = hash & 15;
     *gx = 1.0f + (h & 7);   // Gradient value is one of 1.0, 2.0, ..., 8.0
     if (h&8) *gx = - *gx;   // Make half of the gradients negative
+    return *gx;
 }
 
 void grad2( int hash, float *gx, float *gy ) {
@@ -719,7 +720,7 @@ float fbm1(float x, float alpha, float beta, unsigned int noctaves){
 	float  d, t = 0;
 	float scale = 1;
 	
-	for (int i = 0; i < noctaves; i++){
+	for (unsigned int i = 0; i < noctaves; i++){
 		x *= beta;
 		t += sdnoise1(x, &d)/scale;
 		scale *= alpha;
@@ -732,7 +733,7 @@ float fbm2(float x, float y, float weight, float freq, unsigned int noctaves){
 	float d1, d2, t = 0;
 	float scale = 1;
 
-	for (int i = 0; i < noctaves; i++){
+	for (unsigned int i = 0; i < noctaves; i++){
 		x *= freq;
 		y *= freq;
 		t += sdnoise2(x, y, &d1, &d2)/scale;
@@ -746,13 +747,15 @@ float fbm2(float x, float y, float weight, float freq, unsigned int noctaves){
 
 float fbm3(float x, float y, float z, float alpha, float beta, unsigned int noctaves){
 
+	alpha = alpha;
+
 	float  d1, d2, d3, t = 0;
 	float scale = 1;
 
 	x *= beta;
 	y *= beta;
 	z *= beta;
-	for (int i = 0; i < noctaves; i++){
+	for (unsigned int i = 0; i < noctaves; i++){
 		t += sdnoise3(x, y, z, &d1, &d2, &d3)/scale;
 		x *= beta;
 		y *= beta;
@@ -768,7 +771,7 @@ float turbulence2( float x,  float y, float  freq, float scale, unsigned int noc
         float t = 0.0f;
 	float d1, d2;
 
-        for (int i = 0; i < noctaves; i++){
+        for (unsigned int i = 0; i < noctaves; i++){
                 t += sdnoise2(freq * x, freq * y, &d1, &d2) / scale;
                 freq *= 0.5f;
         }

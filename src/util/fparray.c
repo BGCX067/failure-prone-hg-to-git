@@ -1,5 +1,7 @@
 #include "fparray.h"
-#include "stdlib.h"
+#include <stdlib.h>
+#include <strings.h> //memset
+#include <string.h>
 
 #define INIT_SIZE 8
 
@@ -39,7 +41,7 @@ int fparray_insback(void *data, fparray *a) {
     } else {
         /* Aloca mais espaço pro array */
         a->alloc_size *= 2;
-        realloc(a->data, a->elemsize*a->alloc_size);
+        a->data = realloc(a->data, a->elemsize*a->alloc_size); //16/03/12 
         if(a->create)
             a->data[a->size] = a->create(data);
         else
@@ -56,7 +58,7 @@ void fparray_inspos(void* data, int pos, fparray *a) {
     if(a->size + 1 == a->alloc_size) {
         /* Aloca mais espaço pro array */
         a->alloc_size *= 2;
-        realloc(a->data, a->elemsize*a->alloc_size);
+        a->data = realloc(a->data, a->elemsize*a->alloc_size); //16/03/12
     }
     
     if(a->create)
@@ -79,7 +81,7 @@ void fparray_rmback(fparray *a) {
         /* FIXME testar se o realloc realmente funciona
          * nesse caso. */
         a->alloc_size /= 2; 
-        realloc(a, a->alloc_size);
+        a = realloc(a, a->alloc_size); //16/03/12
     }
 }
 
@@ -94,7 +96,7 @@ void fparray_rmpos(int pos, fparray *a) {
         /* FIXME testar se o realloc realmente funciona
          * nesse caso. */
         a->alloc_size /= 2; 
-        realloc(a, a->alloc_size);
+        a = realloc(a, a->alloc_size);
     }
 }
 

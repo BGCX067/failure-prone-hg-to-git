@@ -213,7 +213,7 @@ void readLibraryGeometries(ezxml_t library_geometries, Scene *s) {
                     t->material = material;
             }
             
-            int numtriangles = atoi(ezxml_attr(trianglestag, "count"));
+            unsigned int numtriangles = atoi(ezxml_attr(trianglestag, "count"));
             int numindices = 3*numtriangles*(maxoffset + 1);
             int indices[numindices];
             char *tok = strtok(ptag->txt, " ");
@@ -224,7 +224,7 @@ void readLibraryGeometries(ezxml_t library_geometries, Scene *s) {
                 k++;
             }
             vertex_t vertices[3*numtriangles];
-            for(int i = 0; i < 3*numtriangles; i++){
+            for(unsigned int i = 0; i < 3*numtriangles; i++){
                 vertex_t *vertex = &vertices[i];//&m->triangles[currtri].vertices[i];
                 for(int j = 0; j < numinputs; j++) {
                     int sourceid = inputs[j].sourceid;

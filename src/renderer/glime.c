@@ -1,5 +1,7 @@
 #include "glime.h"
 #include <stdio.h>
+#include <stdlib.h> //malloc
+#include <string.h> //memset
 #include <GL/gl.h>
 #include "renderer.h"
 //#include "glextensions.h"
@@ -37,7 +39,7 @@ void begin(batch *b, int primitive, int nverts, int texSets){
 		b->texCoordsVBO = malloc(sizeof(unsigned int)*texSets);
 		b->texCoords = malloc(sizeof(float*)*texSets);
 		memset(b->texCoordsVBO, 0, sizeof(unsigned int)*texSets );
-		memset(b->texCoords, NULL, sizeof(float*)*texSets);
+		memset(b->texCoords, 0, sizeof(float*)*texSets);
 	}
 
 	b->vaoid = initEmptyVAO();	
@@ -118,7 +120,7 @@ void color4f(batch* b, float x, float y, float z, float w){
 
 	b->colors[b->verticesCount*4] = x;
 	b->colors[b->verticesCount*4+1] = y;
-	b->colors[b->verticesCount*4+2] = y;
+	b->colors[b->verticesCount*4+2] = z;
 	b->colors[b->verticesCount*4+3] = w;
 
 }

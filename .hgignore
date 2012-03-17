@@ -14,7 +14,8 @@
 ^tools/ms3dloader$
 ^tools/md5/objs_optimized$
 ^tools/md5/deps_optimized$
-
+^tools/fonts/deps_optimized$
+^tools/fonts/objs_optimized$
 
 
 .*.*.swp

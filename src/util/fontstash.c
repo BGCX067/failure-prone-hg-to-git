@@ -16,11 +16,17 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+// fonststash cria uma textura com todos os caracteres de uma fonte
+// para renderizar, um vbo com o tamanho de cada glyph eh criado
+// por isso, foi criado apenas 1 vbo e usa-se os comandos de map/unmap
+// para enviar os vertices a cada drawcall
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "../renderer/renderer.h"
 #include "image.h"
+#include "../math/matrix.h"
 #include <GL/gl.h>
 
 #define STB_TRUETYPE_IMPLEMENTATION
@@ -31,8 +37,35 @@
 #define HASH_LUT_SIZE 256
 #define MAX_ROWS 128
 #define MAX_FONTS 4
+//128 caracteres, cada um usa 6 vertices (2 triangulos)
 #define VERT_COUNT (6*128)
 #define VERT_STRIDE (sizeof(float)*4)
+
+const char* fontvertex = {
+    "#version 330\n\
+    layout(location = 0) in vec2 inpos; \n\
+    layout(location = 8) in vec2 intexcoord; \n\
+    out vec2 texcoord; \n\
+    uniform mat4 ortho; \n\
+    \n\
+    void main()\n\
+    {\n\
+        gl_Position = ortho * vec4( inpos, 0.0, 1.0);\n\
+        texcoord = intexcoord;\n\
+    }\n\
+    "};
+
+const char* fontfrag = {
+"#version 330\n\
+out vec4 outcolor;\n\
+in vec2 texcoord; \n\
+uniform sampler2D tex; \n\ 
+void main(void)\n\
+{\n\
+	vec4 texcol = texture2D(tex, texcoord); \n\
+	outcolor =  texcol.a * vec4(1.0,1.0, 0.0, 1.0);\n\
+}\n\
+"};
 
 static unsigned int hashint(unsigned int a)
 {
@@ -83,14 +116,27 @@ struct sth_stash
 {
 	int tw,th;
 	float itw,ith;
-	GLuint tex;
-	GLuint samplerstate;
 	struct sth_row rows[MAX_ROWS];
 	int nrows;
 	struct sth_font fonts[MAX_FONTS];
-	float verts[4*VERT_COUNT];
+	//float verts[4*VERT_COUNT];
+	float* verts;
 	int nverts;
 	int drawing;
+
+	//rendering stuff
+	float* texcoords;
+	float* positions;
+	unsigned positionsVBO;
+	unsigned texcoordsVBO;
+	unsigned int vaoid;
+	VertexAttribute** attr;
+	
+	mat4 ortho;
+	Shader* fontShader;
+
+	Texture* tex;
+	SamplerState* samplerstate;
 };
 
 
@@ -146,11 +192,34 @@ struct sth_stash* sth_create(int cachew, int cacheh)
 	stash->ith = 1.0f/cacheh;
 	stash->samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
 	stash->tex = initializeTextureFromMemory(NULL, stash->tw, stash->th, TEXTURE_2D, GL_ALPHA, GL_ALPHA, GL_UNSIGNED_BYTE); 
-//	glGenTextures(1, &stash->tex);
-//	if (!stash->tex) goto error;
-//	glBindTexture(GL_TEXTURE_2D, stash->tex);
-//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, stash->tw,stash->th, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	stash->vaoid = initEmptyVAO();
+	stash->positionsVBO = initializeVBO(sizeof(float)*VERT_COUNT*2, GL_DYNAMIC_DRAW, NULL);
+	stash->texcoordsVBO = initializeVBO(sizeof(float)*VERT_COUNT*2, GL_DYNAMIC_DRAW, NULL);
+	//stash->verts = mapVBO(stash->vboid, GL_WRITE_ONLY);
+
+	stash->attr = initializeVertexFormat();
+	stash->attr[ATTR_VERTEX] = malloc(sizeof(VertexAttribute));
+	stash->attr[ATTR_VERTEX]->count = VERT_COUNT*2;
+	stash->attr[ATTR_VERTEX]->size = VERT_COUNT*sizeof(float)*2;
+	stash->attr[ATTR_VERTEX]->type = ATTR_VERTEX;
+	stash->attr[ATTR_VERTEX]->offset =  0;
+	stash->attr[ATTR_VERTEX]->components = 2;
+	stash->attr[ATTR_VERTEX]->vboID = stash->positionsVBO;
+
+	stash->attr[ATTR_TEXCOORD0] = malloc(sizeof(VertexAttribute));
+	stash->attr[ATTR_TEXCOORD0]->count = VERT_COUNT*2;
+	stash->attr[ATTR_TEXCOORD0]->size = VERT_COUNT*sizeof(float)*2;
+	stash->attr[ATTR_TEXCOORD0]->type = ATTR_TEXCOORD0;
+	stash->attr[ATTR_TEXCOORD0]->offset = 0;
+	stash->attr[ATTR_TEXCOORD0]->components = 2;
+	stash->attr[ATTR_TEXCOORD0]->vboID = stash->texcoordsVBO;
+
+
+	configureVAO(stash->vaoid, stash->attr);
+
+	fpOrtho(stash->ortho, 0, 800, 0, 600, -1.0, 1.0);
+	stash->fontShader = initializeShader( fontvertex, fontfrag);
 
 	return stash;
 	
@@ -329,16 +398,16 @@ static struct sth_glyph* get_glyph(struct sth_stash* stash, struct sth_font* fnt
 		// Update texture
 		glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 //		printf("bind texture \n");
-		bindTexture(0, stash->tex);
+		bindTexture( stash->tex, 0);
 //		printf("bind done \n");
-	//	unsigned char* bmp3 = (unsigned char*) malloc(gw*gh*4);
-	//	for(int i = 0,  k = 0; i < gw*gh; i++, k  += 4){
-	//		bmp3[k] = bmp[i];
-	//		bmp3[k+1] = bmp[i];
-	//		bmp3[k+2] = bmp[i];
-	//		bmp3[k+3] = bmp[i];
-	//	}
-	//	stbi_write_bmp("font.bmp", gw, gh, 3, bmp3);
+		unsigned char* bmp3 = (unsigned char*) malloc(gw*gh*4);
+		for(int i = 0,  k = 0; i < gw*gh; i++, k  += 4){
+			bmp3[k] = bmp[i];
+			bmp3[k+1] = bmp[i];
+			bmp3[k+2] = bmp[i];
+			bmp3[k+3] = bmp[i];
+		}
+		stbi_write_bmp("font.bmp", gw, gh, 1, bmp);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, glyph->x0,glyph->y0, gw,gh, GL_ALPHA,GL_UNSIGNED_BYTE, bmp); 
 		free(bmp);
 	}
@@ -370,25 +439,35 @@ static int get_quad(struct sth_stash* stash, struct sth_font* fnt, unsigned int 
 	return 1;
 }
 
-static float* setv(float* v, float x, float y, float s, float t)
+static float* setv(float* v, float x, float y)
 {
 	v[0] = x;
 	v[1] = y;
-	v[2] = s;
-	v[3] = t;
-	return v+4;
+	return v+2;
 }
 
 static void flush_draw(struct sth_stash* stash)
 {
 	if (stash->nverts == 0)
 		return;
-		
+
+	begin2d();
+//	glDisable(GL_STENCIL_TEST);
+//	glStencilMask(0);
+//	glDisable(GL_DEPTH_TEST);
+//	glDepthMask( GL_FALSE);
+//glEnable(GL_BLEND);
+//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//glBindTexture(GL_TEXTURE_2D, stash->tex);
 	//glEnable(GL_TEXTURE_2D);
-	bindSamplerState(0, stash->samplerstate);
-	bindTexture(0, stash->tex);
-	glEnableClientState(GL_VERTEX_ARRAY);
+	bindSamplerState( stash->samplerstate, 0);
+	bindTexture( stash->tex, 0);
+	setShaderConstant4x4f(stash->fontShader, "ortho", stash->ortho);
+	bindShader(stash->fontShader);
+
+	drawArraysVAO(stash->vaoid, GL_TRIANGLES, stash->nverts);
+	end2d();
+/*	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glVertexPointer(2, GL_FLOAT, VERT_STRIDE, stash->verts);
 	glTexCoordPointer(2, GL_FLOAT, VERT_STRIDE, stash->verts+2);
@@ -396,12 +475,15 @@ static void flush_draw(struct sth_stash* stash)
 //	glDisable(GL_TEXTURE_2D);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	stash->nverts = 0;
+*/	stash->nverts = 0;
+
 }
 
 void sth_begin_draw(struct sth_stash* stash)
 {
 	if (stash == NULL) return;
+	stash->positions = mapVBO(stash->positionsVBO, GL_WRITE_ONLY);
+	stash->texcoords = mapVBO(stash->texcoordsVBO, GL_WRITE_ONLY);
 	if (stash->drawing)
 		flush_draw(stash);
 	stash->drawing = 1;
@@ -410,6 +492,8 @@ void sth_begin_draw(struct sth_stash* stash)
 void sth_end_draw(struct sth_stash* stash)
 {
 	if (stash == NULL) return;
+	unmapVBO(stash->positionsVBO);
+	unmapVBO(stash->texcoordsVBO);
 	if (!stash->drawing) return;
 
 /*
@@ -445,6 +529,7 @@ void sth_draw_text(struct sth_stash* stash,
 	struct sth_quad q;
 	short isize = (short)(size*10.0f);
 	float* v;
+	float *t;
 	struct sth_font* fnt;
 	
 	if (stash == NULL) return;
@@ -462,15 +547,22 @@ void sth_draw_text(struct sth_stash* stash,
 		
 		if (!get_quad(stash, fnt, codepoint, isize, &x, &y, &q)) continue;
 		
-		v = &stash->verts[stash->nverts*4];
-		
-		v = setv(v, q.x0, q.y0, q.s0, q.t0);
-		v = setv(v, q.x1, q.y0, q.s1, q.t0);
-		v = setv(v, q.x1, q.y1, q.s1, q.t1);
+		v = &stash->positions[stash->nverts*2];
+		t = &stash->texcoords[stash->nverts*2];
 
-		v = setv(v, q.x0, q.y0, q.s0, q.t0);
-		v = setv(v, q.x1, q.y1, q.s1, q.t1);
-		v = setv(v, q.x0, q.y1, q.s0, q.t1);
+		v = setv(v,  q.x0, q.y0);
+		t = setv(t, q.s0, q.t0);
+		v = setv(v,  q.x1, q.y0);
+		t = setv(t, q.s1, q.t0);
+		v = setv(v,  q.x1, q.y1);
+		t = setv(t, q.s1, q.t1);
+
+		v = setv(v, q.x0, q.y0);
+		t = setv(t, q.s0, q.t0);
+		v = setv(v, q.x1, q.y1);
+		t = setv(t, q.s1, q.t1);
+		v = setv(v, q.x0, q.y1);
+		t = setv(t, q.s0, q.t1);
 		
 		stash->nverts += 6;		
 	}

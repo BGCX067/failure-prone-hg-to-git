@@ -1,9 +1,11 @@
 #include "textfile.h"
 #include <stdio.h>
+#include <stdlib.h> //malloc
 
 char* readTextFile(char* filename){
 
 	FILE *f;
+	long result;
 	f = fopen(filename,"r");
 	if (!f){
 		return NULL;
@@ -14,7 +16,9 @@ char* readTextFile(char* filename){
 	rewind(f);
 
 	char* text = (char*) malloc(sizeof(char)*(fileLength+1));
-	fread(text, fileLength, 1, f);
+	result = fread(text, fileLength, 1, f);
+	if (result < fileLength)
+		printf("Result from fread less than file length: %s \n", filename);
 	text[fileLength] = '\0';
 
 	fclose(f);

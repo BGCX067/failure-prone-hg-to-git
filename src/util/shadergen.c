@@ -1,6 +1,7 @@
 #include "shadergen.h"
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h> //malloc 
 
 char* createVSGlobals(shaderflags m) {
     char* header = "#version 330 core\n\n";
@@ -337,7 +338,7 @@ char* createFSMainBody(shaderflags m) {
 
     if(m.flags & NORMAL_MAP) {
         normalmap = "\tvec3 lightVec = normalize(lightDir);\n"
-                    "\tvec3 N = normalize((texture2D(normalMap, gl_TexCoord[0].xy).xyz*2.0) - 1.0);\n";
+                    "\tvec3 N = normalize((texture2D(normalMap, gl_TexCoord[0].xy).xyz*2.0) - 1.0);\n"
                     "\tvec4 phongColor = phong(N, lightVec);\n";
     }
 
@@ -396,15 +397,15 @@ char* createFSMainFragColor(shaderflags m) {
 
 char* createFSMain(shaderflags m) {
     char* ret;
-    char* main = "";
+    char* mainstr = "";
     char* fragcolor = "";
 
-    main = createFSMainBody(m);
+    mainstr = createFSMainBody(m);
     fragcolor = createFSMainFragColor(m); 
     
-    size_t retlen = strlen(main) + strlen(fragcolor) + 1;
+    size_t retlen = strlen(mainstr) + strlen(fragcolor) + 1;
     ret = malloc(sizeof(char)*retlen);
-    sprintf(ret, "%s%s", main, fragcolor);
+    sprintf(ret, "%s%s", mainstr, fragcolor);
 
     return ret;
 }

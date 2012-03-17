@@ -42,4 +42,6 @@ int addNode(Scene *s, Node *m);
 
 Scene* initializeScene();
 
+void drawScene(Scene* s);
+
 #endif

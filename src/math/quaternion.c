@@ -1,5 +1,6 @@
 #include "quaternion.h"
 #include <math.h>
+#include <string.h> //memcpy
 
 float quatLength(quaternion q) {
     return sqrt(q[0]*q[0]+q[1]*q[1]+q[2]*q[2]+q[3]*q[3]);

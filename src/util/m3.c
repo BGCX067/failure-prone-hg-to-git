@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <stdlib.h> //malloc
 #include <GL/gl.h>
 #include "m3.h"
 
@@ -68,7 +69,7 @@ typedef struct div_{
 
 	unsigned int unknow;
 
-}div;
+}m3div;
 
 typedef struct _region{
 	
@@ -83,8 +84,9 @@ typedef struct _region{
 
 batch * loadm3(char* filename){
 
-	int i, j;
-	unsigned int modlOffset;
+	unsigned int i, j;
+	//unsigned int modlOffset;
+	size_t freadRet;
 
 	FILE* f = fopen(filename, "rb");
 	if (!f){
@@ -93,12 +95,12 @@ batch * loadm3(char* filename){
 	}
 
 	md33 header;
-	fread(&header, sizeof(md33), 1, f);
+	freadRet = fread(&header, sizeof(md33), 1, f);
 	printf("HEADER.id: %c%c%c%c header.nrefs %d header.modl.ref %d model.refOffset %d \n", header.id[0], header.id[1], header.id[2], header.id[3],  header.nrefs, header.modl.ref, header.refOffset);
 
 	referenceEntry *refs = malloc(sizeof(referenceEntry)*header.nrefs);
 	fseek(f, header.refOffset, SEEK_SET);
-	fread(refs, sizeof(referenceEntry), header.nrefs, f);
+	freadRet = fread(refs, sizeof(referenceEntry), header.nrefs, f);
 
 //	for(i = 0; i < header.nrefs; i++)
 //		printf("%c%c%c%c \n", refs[i].id[0],refs[i].id[1], refs[i].id[2],  refs[i].id[3] );
@@ -106,7 +108,7 @@ batch * loadm3(char* filename){
 	
 	modl23 model;
 	vertex* verts = NULL;
-	div* views = NULL;
+	m3div* views = NULL;
 	region* regions = NULL;
 	unsigned short* faces = NULL;
 
@@ -115,7 +117,7 @@ batch * loadm3(char* filename){
 
 	printf("modl offset %d \n",  refs[header.modl.ref].offset);
 	fseek(f, refs[header.modl.ref].offset, SEEK_SET);
-	fread(&model, sizeof(modl23), 1,  f);
+	freadRet = fread(&model, sizeof(modl23), 1,  f);
 
 	if( (model.flags & 0x40000) != 0)
 		printf("vertex size 36 bytes \n");
@@ -131,33 +133,34 @@ batch * loadm3(char* filename){
 
 	fseek(f, refs[model.vertexData.ref].offset, SEEK_SET);
 	verts = malloc(sizeof(vertex)*nVertices);
-	fread(verts, sizeof(vertex), nVertices, f);
+	freadRet = fread(verts, sizeof(vertex), nVertices, f);
 
 	//for(i = 0; i < nVertices; i++){
 	//	printf("%f %f %f \n", verts[i].position[0], verts[i].position[1], verts[i].position[2]);
 	//}
 
 	printf("Numero de views: %d \n", model.views.nEntries);
-	views = malloc(sizeof(div)*1); //sempre so 1?
+	views = malloc(sizeof(m3div)*1); //sempre so 1?
 	fseek(f, refs[model.views.ref].offset, SEEK_SET);
-	fread(views, sizeof(div), 1, f );
+	freadRet = fread(views, sizeof(m3div), 1, f );
 
 	printf("Numero de regions: %d \n", views->regions.nEntries);
 	regions =  malloc(sizeof(region)*views->regions.nEntries);
 	fseek(f, refs[views->regions.ref].offset, SEEK_SET);
-	fread(regions, sizeof(region), views->regions.nEntries, f);
+	freadRet = fread(regions, sizeof(region), views->regions.nEntries, f);
 
 	nFaces = views->faces.nEntries;
 	printf("Numero de faces: %d \n", nFaces);
 	faces = malloc(sizeof(unsigned short)*nFaces);
 	fseek(f, refs[views->faces.ref].offset, SEEK_SET);
-	fread(faces, sizeof(unsigned short), nFaces, f);
+	freadRet = fread(faces, sizeof(unsigned short), nFaces, f);
 
 	//for(i = 0; i < nFaces; i++)
 	//	printf("%d  \n", faces[i]);
 
 
-	batch* b = initializeBatch(b);
+	batch* b = NULL;
+	b = initializeBatch(b);
 
 	begin(b, GL_TRIANGLES, nFaces, 1);
 	for(i = 0; i < views->regions.nEntries; i++){
