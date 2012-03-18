@@ -26,9 +26,12 @@ void createVBO(Mesh* m){
 		attrs[ATTR_VERTEX]->type = ATTR_VERTEX;
 		attrs[ATTR_VERTEX]->offset = 0;
 		attrs[ATTR_VERTEX]->components = tri->verticesComponents;
+	//	setVertexAttribute(attrs, ATTR_VERTEX, tri->verticesCount, tri->verticesCount*sizeof(float), 0, tri->verticesComponents, 0);
+
 		unsigned int offset = attrs[ATTR_VERTEX]->size;
 
 		if (tri->normals){
+			//setVertexAttribute(attrs, ATTR_NORMAL, tri->normalsCount, tri->normalsCount*sizeof(float), offset, 3, 0);
 
 			vboSize += tri->normalsCount;
 			attrs[ATTR_NORMAL] = malloc(sizeof(VertexAttribute));
@@ -42,6 +45,7 @@ void createVBO(Mesh* m){
 
 		if (tri->tangents){
 			vboSize += tri->tangentsCount;
+			//setVertexAttribute(attrs, ATTR_TANGENT, tri->tangentsCount, tri->tangentsCount*sizeof(float), offset, 3, 0);
 			attrs[ATTR_TANGENT] = malloc(sizeof(VertexAttribute));
 			attrs[ATTR_TANGENT]->count = tri->tangentsCount;
 			attrs[ATTR_TANGENT]->size =  tri->tangentsCount*sizeof(float);
@@ -53,6 +57,7 @@ void createVBO(Mesh* m){
 
 		if (tri->binormals){
 			vboSize += tri->binormalsCount;
+			//setVertexAttribute(attrs, ATTR_BINORMAL, tri->binormalsCount, tri->binormalsCount*sizeof(float), offset, 3, 0);
 			attrs[ATTR_BINORMAL] = malloc(sizeof(VertexAttribute));
 			attrs[ATTR_BINORMAL]->count = tri->binormalsCount;
 			attrs[ATTR_BINORMAL]->size =  tri->binormalsCount*sizeof(float);
@@ -71,6 +76,7 @@ void createVBO(Mesh* m){
 			attrs[ATTR_TEXCOORD0+j]->type = ATTR_TEXCOORD0+j;
 			attrs[ATTR_TEXCOORD0+j]->offset = offset;
 			attrs[ATTR_TEXCOORD0+j]->components = tri->texCoords[j]->components;
+			//setVertexAttribute(attrs, ATTR_TEXCOORD0+j, tri->texCoords[j]->count, tri->texCoords[j]->count*sizeof(float), offset, tri->texCoords[j]->components, 0);
 			offset += attrs[ATTR_TEXCOORD0+j]->size;
 
 		}
@@ -186,6 +192,8 @@ void addVertices(Triangles *t, int num, int comp, float *vertices) {
     t->attrs[ATTR_VERTEX]->type = ATTR_VERTEX;
     t->attrs[ATTR_VERTEX]->offset = 0;
     t->attrs[ATTR_VERTEX]->components = comp;
+   // setVertexAttribute(t->attrs, ATTR_VERTEX, t->verticesCount, t->verticesCount*sizeof(float), 0, comp, 0);
+
 }
 
 void addNormals(Triangles* t, int num, int comp, float *normals) {
@@ -198,6 +206,8 @@ void addNormals(Triangles* t, int num, int comp, float *normals) {
     t->attrs[ATTR_NORMAL]->type = ATTR_NORMAL;
     t->attrs[ATTR_NORMAL]->offset = 0;
     t->attrs[ATTR_NORMAL]->components = comp;
+//    setVertexAttribute(t->attrs, ATTR_NORMAL, t->normalsCount, t->normalsCount*sizeof(float), 0, comp, 0);
+
 }
 
 void addTexCoords(Triangles *t, int num, int comp, int texset, float *texcoords) {
@@ -214,6 +224,8 @@ void addTexCoords(Triangles *t, int num, int comp, int texset, float *texcoords)
     t->attrs[ATTR_TEXCOORD0 + texset]->type = ATTR_TEXCOORD0 + texset;
     t->attrs[ATTR_TEXCOORD0 + texset]->offset = 0;
     t->attrs[ATTR_TEXCOORD0 + texset]->components = t->texCoords[texset]->components;
+//    setVertexAttribute(t->attrs, ATTR_TEXCOORD0+texset, t->texCoords[texset]->count, t->texCoords[texset]->count*sizeof(float), 0, comp, 0);
+
 }
 
 void addIndices(Triangles *t, int num, unsigned int *indices) {

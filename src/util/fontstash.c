@@ -41,6 +41,9 @@
 #define VERT_COUNT (6*128)
 #define VERT_STRIDE (sizeof(float)*4)
 
+//variavel global que armazena a cor da fonte que vai passar pro shader
+float color[4];
+
 const char* fontvertex = {
     "#version 330\n\
     layout(location = 0) in vec2 inpos; \n\
@@ -59,11 +62,12 @@ const char* fontfrag = {
 "#version 330\n\
 out vec4 outcolor;\n\
 in vec2 texcoord; \n\
-uniform sampler2D tex; \n\ 
+uniform sampler2D tex; \n\
+uniform vec4 color; \n\ 
 void main(void)\n\
 {\n\
 	vec4 texcol = texture2D(tex, texcoord); \n\
-	outcolor =  texcol.a * vec4(1.0,1.0, 0.0, 1.0);\n\
+	outcolor =  texcol.a * color;\n\
 }\n\
 "};
 
@@ -441,6 +445,7 @@ static void flush_draw(struct sth_stash* stash)
 	bindSamplerState( stash->samplerstate, 0);
 	bindTexture( stash->tex, 0);
 	setShaderConstant4x4f(stash->fontShader, "ortho", stash->ortho);
+	setShaderConstant4f(stash->fontShader, "color", color );
 	bindShader(stash->fontShader);
 
 	drawArraysVAO(stash->vaoid, GL_TRIANGLES, stash->nverts);
@@ -491,7 +496,7 @@ void sth_end_draw(struct sth_stash* stash)
 void sth_draw_text(struct sth_stash* stash,
 				   int idx, float size,
 				   float x, float y,
-				   const char* s, float* dx)
+				   const char* s, float* dx, float* incolor)
 {
 	unsigned int codepoint;
 	unsigned int state = 0;
@@ -500,6 +505,10 @@ void sth_draw_text(struct sth_stash* stash,
 	float* v;
 	float *t;
 	struct sth_font* fnt;
+	color[0] = incolor[0];
+	color[1] = incolor[1];
+	color[2] = incolor[2];
+	color[3] = incolor[3];
 	
 	if (stash == NULL) return;
 	if (!stash->tex) return;
@@ -596,7 +605,7 @@ void sth_delete(struct sth_stash* stash)
 {
 	int i;
 	if (!stash) return;
-	if (stash->tex) glDeleteTextures(1,&stash->tex);
+	if (stash->tex) destroyTexture(stash->tex);
 	for (i = 0; i < MAX_FONTS; ++i)
 	{
 		if (stash->fonts[i].glyphs)

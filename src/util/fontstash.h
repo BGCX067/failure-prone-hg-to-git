@@ -25,7 +25,7 @@ int sth_add_font(struct sth_stash*, int idx, const char* path);
 
 void sth_draw_text(struct sth_stash* stash,
 				   int idx, float size,
-				   float x, float y, const char* string, float* dx);
+				   float x, float y, const char* string, float* dx, float* color);
 
 void sth_dim_text(struct sth_stash* stash, int idx, float size, const char* string,
 				  float* minx, float* miny, float* maxx, float* maxy, float* totalwidth);

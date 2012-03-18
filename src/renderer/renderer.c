@@ -206,6 +206,11 @@ void bindSamplerState(SamplerState* s, unsigned int unit){
 	}
 }
 
+void destroyTexture(Texture* t){
+	if (t != NULL)
+		glDeleteTextures(1, &t->texid);
+}
+
 Texture* initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type){
     Texture *t = malloc(sizeof(Texture));
     t->state = initializeSamplerState(CLAMP, GL_LINEAR, GL_LINEAR, 0);
@@ -307,7 +312,7 @@ Shader* initializeShader(const char* vertexSource, const char* fragmentSource){
 	if (!shaderProgram)
 		return 0;
 
-	int vertexShader;
+	int vertexShader = 0;
 	if (vertexSource){
 
 		vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -326,7 +331,7 @@ Shader* initializeShader(const char* vertexSource, const char* fragmentSource){
 		glAttachShader(shaderProgram, vertexShader);
 	}
 
-	int fragmentShader;
+	int fragmentShader = 0;
 	if (fragmentSource){
 		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
@@ -451,14 +456,14 @@ void bindShader(Shader* shdr){
             } else if (shdr->uniforms[i]->type == CONSTANT_MAT3){
                 glUniformMatrix3fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) shdr->uniforms[i]->data);
             } else if (shdr->uniforms[i]->type == CONSTANT_VEC2){
-                glUniform2fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
+                glUniform2fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, (float*)shdr->uniforms[i]->data);
             } else if (shdr->uniforms[i]->type == CONSTANT_VEC3){
-                glUniform3fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
+                glUniform3fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, (float*)shdr->uniforms[i]->data);
                 //((UNIFORM_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
                 //((UNIFORM_FUNC) uniformFuncs[2])(0, 1, color);
                 //glUniform4fv(shaders[program]->uniforms[i]->location, shaders[program]->uniforms[i]->size, (GLfloat*) shaders[program]->uniforms[i]->data);
             } else if (shdr->uniforms[i]->type == CONSTANT_VEC4){
-                glUniform4fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
+                glUniform4fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, (float*)shdr->uniforms[i]->data);
             } else if (shdr->uniforms[i]->type == CONSTANT_FLOAT){
                 glUniform1f(shdr->uniforms[i]->location, *(shdr->uniforms[i]->data));
             }
@@ -561,7 +566,7 @@ void setVertexAttribute(VertexAttribute** attr, int type, unsigned int count, un
 
 	attr[type] = malloc(sizeof(VertexAttribute));
 	attr[type]->count = count;
-	attr[type]->size = count*sizeof(float);
+	attr[type]->size = size;
 	attr[type]->type = type;
 	attr[type]->offset =  offset;
 	attr[type]->components = comp;
@@ -684,11 +689,11 @@ int checkFramebufferStatus( int silent)
 unsigned int initializeFramebuffer(void* data, int width, int height, int format, int internalFormat, int type){
 
 	
-	unsigned int texid = initializeTextureFromMemory(data, width,  height, TEXTURE_2D, format, internalFormat, type);
+	Texture *t = initializeTextureFromMemory(data, width,  height, TEXTURE_2D, format, internalFormat, type);
 	unsigned int id;
 	glGenFramebuffers(1, &id);
 	glBindFramebuffer(GL_FRAMEBUFFER, id);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texid, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, t->texid, 0);
 
 	//printf("fbo id criado: %d \n", id);
 
@@ -697,7 +702,7 @@ unsigned int initializeFramebuffer(void* data, int width, int height, int format
     fb->id = id;
     fb->width = width;
     fb->height = height;
-    fb->texid = texid;
+    fb->texid = t->texid;
 
 //    fparray_inspos(fb, id, r->framebuffers);
 

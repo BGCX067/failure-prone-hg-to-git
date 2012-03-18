@@ -103,7 +103,7 @@ typedef struct _sampler{
 
 typedef struct _shader{
 	Uniform** uniforms;
-	int numUniforms;
+	unsigned int numUniforms;
 	Sampler** samplers;
 	int numSamplers;
 
@@ -164,6 +164,7 @@ Texture* initialize2DTexture(char *filename);
 Texture* initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type);
 Texture* initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type);
 void bindTexture(Texture* t, unsigned int slot);
+void destroyTexture(Texture* t);
 
 //framebuffers
 void bindMainFramebuffer();

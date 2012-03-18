@@ -9,6 +9,7 @@
 	#include <GL/gl.h>
 #endif
 #include <stdio.h>
+#include <string.h>
 #include "util/fontstash.h"
 #include "../glapp.h"
 #include "glime.h"
@@ -20,35 +21,50 @@ mat4 ortho;
 #define BORDER_SIZE 4
 
 const char* WidgetVSSource = {
-    "#version 120\n\
+    "#version 330\n\
+    layout (location = 0) in vec3 inpos;\n\
+    layout (location = 8) in vec3 intexcoords; \n\
     uniform mat4 ortho; \n\
+    out vec3 texcoords; \n\
     \n\
     void main()\n\
     {\n\
-        gl_Position = ortho * gl_Vertex;\n\
-        gl_TexCoord[0] = gl_MultiTexCoord0; \n\
+        gl_Position = ortho * vec4(inpos, 1.0);\n\
+	texcoords = intexcoords; \n\
     }\n\
     "};
 
+//fragshader que so imprime uma cor
+const char* FSColorSource = {
+    "#version 330 \n\
+    uniform vec4 color; \n\
+    out vec4 outcolor; \n\
+    void main() \n\
+    { \n\
+        outcolor = color; \n\
+    } \n\
+"};
     
 const char* WidgetFSSource = {
-    "#version 120\n\
+    "#version 330\n\
     uniform vec4 fillColor;\n\
     uniform vec4 borderColor /*= vec4( 1.0, 1.0,1.0,1.0)*/;\n\
     uniform vec2 zones;\n\
+    out vec4 outcolor;\n\
+    in vec3 texcoords;\n\
     \n\
     void main()\n\
     {\n\
-        float doTurn = float(gl_TexCoord[0].y > 0);\n\
-        float radiusOffset = doTurn * abs( gl_TexCoord[0].z );\n\
-        float turnDir = sign( gl_TexCoord[0].z );\n\
-        vec2 uv = vec2(gl_TexCoord[0].x + turnDir*radiusOffset, gl_TexCoord[0].y);\n\
+        float doTurn = float(texcoords.y > 0);\n\
+        float radiusOffset = doTurn * abs( texcoords.z );\n\
+        float turnDir = sign(texcoords.z );\n\
+        vec2 uv = vec2(texcoords.x + turnDir*radiusOffset, texcoords.y);\n\
         float l = abs( length(uv) - radiusOffset );\n\
         float a = clamp( l - zones.x, 0.0, 2.0);\n\
         float b = clamp( l - zones.y, 0.0, 2.0);\n\
         b = exp2(-2.0*b*b);\n\
-        gl_FragColor = ( fillColor * b + (1.0-b)*borderColor );\n\
-        gl_FragColor.a *= exp2(-2.0*a*a);\n\
+        outcolor = ( fillColor * b + (1.0-b)*borderColor );\n\
+        outcolor *= exp2(-2.0*a*a);\n\
     }\n\
     "};
 
@@ -84,6 +100,7 @@ int initializeGUI(int w, int h){
 
 	gui = malloc( sizeof(GUI));
 	gui->widgetShader  = initializeShader( WidgetVSSource, WidgetFSSource );
+	gui->colorShader = initializeShader( WidgetVSSource, FSColorSource);
 	gui->textureViewShader = initializeShader( WidgetVSSource, TexViewWidgetFSSource  );
 
 	gui->w = w;
@@ -449,8 +466,7 @@ void doLabel( rect* textRect, char* text ){
 		textRect->y += gui->menuoffsety;
 	}
 	sth_begin_draw(gui->stash);
-	glColor4fv(gui->fontColor[0]);
-	sth_draw_text(gui->stash, 0, 20.0, textRect->x, textRect->y, text, &textRect->x);
+	sth_draw_text(gui->stash, 0, 20.0, textRect->x, textRect->y, text, &textRect->x, gui->fontColor[0]);
 	sth_end_draw(gui->stash);
 }
 
@@ -862,10 +878,9 @@ void drawComboBox(rect* r, int numOptions, char* options[], rect* rt, rect* ra, 
 	drawFrame(r, p, isHover, 0);
 
 	sth_begin_draw(gui->stash);
-	glColor4fv(gui->fontColor[0]);
 	rt->x += r->x;
 	rt->y += r->y;
-	sth_draw_text(gui->stash, 0, 20.0, rt->x, rt->y, options[selected], &rt->x);
+	sth_draw_text(gui->stash, 0, 20.0, rt->x, rt->y, options[selected], &rt->x, gui->fontColor[0]);
 	sth_end_draw(gui->stash);
 
 	ra->x += r->x;
@@ -900,12 +915,11 @@ void drawListBox(rect* r, int numOptions, char* options[], rect* ri, rect* rt, i
 		rect rtext;
 
 		sth_begin_draw(gui->stash);
-		glColor4fv(gui->fontColor[0]);
 		rtext.x = ir.x + rt->x;
 		rtext.y = ir.y + rt->y;
 		rtext.h = rt->h;
 		rtext.w = rt->w;
-		sth_draw_text(gui->stash, 0, 20.0, rtext.x, rtext.y, options[i], &rtext.x);
+		sth_draw_text(gui->stash, 0, 20.0, rtext.x, rtext.y, options[i], &rtext.x, gui->fontColor[0]);
 		sth_end_draw(gui->stash);
 
 		ir.y -= ir.h;
@@ -1041,8 +1055,7 @@ void drawLineEdit(rect* r, char* text, rect* rt, int hover ){
 	rt->x = r->x + rt->x;
 	rt->y = r->y + rt->y + 3;
 	sth_begin_draw(gui->stash);
-	glColor4fv(gui->fontColor[0]);
-	sth_draw_text(gui->stash, 0, 20.0, rt->x, rt->y, text, &rt->x);
+	sth_draw_text(gui->stash, 0, 20.0, rt->x, rt->y, text, &rt->x, gui->fontColor[0]);
 	sth_end_draw(gui->stash);
 }
 
