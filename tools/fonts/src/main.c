@@ -7,9 +7,9 @@
 #include "renderer/mesh.h"
 #include "renderer/glime.h"
 #include "renderer/camera.h"
+#include "renderer/gui.h"
 #include "util/colladaloader.h"
 #include "util/textfile.h"
-#include "util/fontstash.h"
 
 int idle(float ifps, event* e, Scene* s){
 	return 1;
@@ -20,7 +20,6 @@ Shader *shdr;
 renderer *mainrenderer;
 Camera c;
 BoundingBox bbox;
-struct sth_stash* font;
 
 void initializeGame(){
     initCamera(&c, TRACKBALL);
@@ -49,9 +48,6 @@ void initializeGame(){
     char *fragshader = readTextFile("data/shaders/fragshader.frag");
     shdr = initializeShader(vertshader, fragshader); 
 
-//    printf("vertex shader:\n%s\n", vertshader);
-//    printf("fragment shader:\n%s\n", fragshader);
-
     bbox.pmin[0] = -1.0;
     bbox.pmin[1] = -1.0;
     bbox.pmin[2] = -1.0;
@@ -60,10 +56,7 @@ void initializeGame(){
     bbox.pmax[2] = -1.0;
     camerafit(&c, bbox, 45.0, 800/600, 0.1, 1000.0);
 
-    font = sth_create(512, 512);
-    if (!sth_add_font(font, 0, "data/fonts/DroidSerif-Regular.ttf")){
-	printf("Font not found\n");
-    }
+    initializeGUI(800, 600);
 
 }
 
@@ -85,14 +78,14 @@ int render(float ifps, event *e, Scene *cena){
     setShaderConstant4x4f(shdr, "mvp", c.mvp);
 
     bindShader(shdr);
-   // drawScene(cena);
+    drawScene(cena);
 
-    	sth_begin_draw(font);
-	//printf("draw text \n");
-	
-	sth_draw_text(font, 0, 20.0, 10, 10, "Testando a Fonte Z", NULL);
-	sth_end_draw(font);
-
+	beginGUI(e);
+		rect r;
+		r.x = 50;
+		r.y = 50;
+		doButton(1, &r, "Button");
+	endGUI();
 
     glFlush();
 

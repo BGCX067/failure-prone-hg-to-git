@@ -147,7 +147,7 @@ void disableDepth();
 void enableDepth();
 
 VertexAttribute** initializeVertexFormat();
-
+void setVertexAttribute(VertexAttribute** attr, int type, unsigned int count, unsigned int size, unsigned int offset, unsigned int comp, unsigned int vboid);
 
 //////////
 //TEXTURE SAMPLERS

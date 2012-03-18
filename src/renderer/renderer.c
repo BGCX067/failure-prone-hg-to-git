@@ -107,7 +107,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, 
     printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
 
-	float ratio = (float) w / (float) h;
+//	float ratio = (float) w / (float) h;
 	glEnable(GL_DEPTH_TEST);
 	glViewport(0, 0, w, h);
 
@@ -136,9 +136,6 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, 
 }
 
 void begin2d(){
-
-	glPushAttrib( GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
-//	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	
 	glDisable(GL_STENCIL_TEST);
 	glStencilMask( 0 );
@@ -150,8 +147,8 @@ void begin2d(){
 }
 
 void end2d(){
-	glPopAttrib();
 	enableDepth();
+	glDisable(GL_BLEND);
 }
 
 void enableDepth(){
@@ -224,7 +221,7 @@ Texture* initializeTexture(char* filename, int target, int imageFormat, int inte
             data = stbi_load(filename, &x, &y, &n, 0);
             if (!data){
                 printf("Error loading: %s texture. \n", filename );
-                return 0;
+                return NULL;
             }
             glTexImage2D(t->target, 0, internalFormat, x, y, 0, imageFormat, type, data);
             stbi_image_free(data);
@@ -242,7 +239,7 @@ Texture* initializeTexture(char* filename, int target, int imageFormat, int inte
                 data = stbi_load(buff, &x, &y, &n, 0);
                 if (!data){
                     printf("Error loading: %s texture. \n", buff);
-                    return 0;
+                    return NULL;
                 }
                 glTexImage2D(facetargets[i], 0, internalFormat, x, y, 0, imageFormat, type, data);
                 if (data){
@@ -266,17 +263,33 @@ Texture* initializeTextureFromMemory(void* data, int x, int y, int target, int i
     t->target = target;
     if ((target == TEXTURE_2D) || (target == TEXTURE_RECTANGLE) ){
 		glTexImage2D(target, 0, internalFormat, x, y, 0, imageFormat, type, data);
-	}
+    }
     return t;
 }
 
-// TODO pode ser RGBA
 Texture* initialize2DTexture(char *filename) {
-    return initializeTexture(filename, TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
+
+    int x, y, n;
+    unsigned char* data = stbi_load(filename, &x, &y, &n, 0);
+    if (!data){
+        printf("Error loading: %s texture. \n", filename );
+        return NULL;
+    }
+
+    Texture* t;
+    if ( n == 3 )
+    	t = initializeTextureFromMemory(data, x, y, TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
+    else if (n == 4)
+	t = initializeTextureFromMemory(data, x, y, TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE);
+    else
+	t = NULL;
+
+    free(data);
+    return t;
 }
 
-//TODO pode ser necessario remover a textura da pipeline
 void bindTexture(Texture* t, unsigned int slot){
+
 	if (t != NULL){
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(t->target, t->texid );
@@ -353,7 +366,7 @@ Shader* initializeShader(const char* vertexSource, const char* fragmentSource){
 	newShader->numUniforms = newShader->numSamplers = 0;
 	//conta quantas uniforms sao samplers ou variaveis uniforms
 	char* name = (char*) malloc (sizeof(char)*maxLength);
-	char* attrName = (char*) malloc(sizeof(char)*maxAttrLength);
+	//char* attrName = (char*) malloc(sizeof(char)*maxAttrLength);
 	for (int  i = 0; i < uniformCount; i++){
 		GLenum type;
 		GLint length, size;
@@ -437,7 +450,8 @@ void bindShader(Shader* shdr){
                 glUniformMatrix4fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) shdr->uniforms[i]->data);
             } else if (shdr->uniforms[i]->type == CONSTANT_MAT3){
                 glUniformMatrix3fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) shdr->uniforms[i]->data);
-
+            } else if (shdr->uniforms[i]->type == CONSTANT_VEC2){
+                glUniform2fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
             } else if (shdr->uniforms[i]->type == CONSTANT_VEC3){
                 glUniform3fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
                 //((UNIFORM_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
@@ -542,6 +556,19 @@ VertexAttribute** initializeVertexFormat(){
 		attr[i] = NULL;
 	return attr;
 }
+
+void setVertexAttribute(VertexAttribute** attr, int type, unsigned int count, unsigned int size, unsigned int offset, unsigned int comp, unsigned int vboid){
+
+	attr[type] = malloc(sizeof(VertexAttribute));
+	attr[type]->count = count;
+	attr[type]->size = count*sizeof(float);
+	attr[type]->type = type;
+	attr[type]->offset =  offset;
+	attr[type]->components = comp;
+	attr[type]->vboID = vboid;
+
+
+}  
 
 ///////////////////////////////
 //      VAO Related
