@@ -28,39 +28,26 @@ anim_info_t animinfo;
 Mesh *md5mesh;
 Joint *skeleton;
 
-/**
- * Perform animation related computations.  Calculate the current and
- * next frames, given a delta time.
- */
-void Animate(anim_info_t *animInfo, int maxFrames, double dt) {
-    animInfo->last_time += dt;
-    /* move to next frame */
-    if (animInfo->last_time >= animInfo->max_time){
-        animInfo->curr_frame++;
-        animInfo->next_frame++;
-        animInfo->last_time = 0.0;
-
-        if (animInfo->curr_frame > maxFrames)
-            animInfo->curr_frame = 0;
-        if (animInfo->next_frame > maxFrames)
-            animInfo->next_frame = 0;
-    }
-}
-
 int idle(float ifps, event* e, Scene* s){
-    //Usa tecla m pra mudar de animação
-    if(e->keys[KEY_m]) {
-        md5mesh->currAnim = (md5mesh->currAnim + 1)%2;
-        
-        animinfo.curr_frame = 0;
-        animinfo.next_frame = 1;
+    //Animate(&animinfo, anim->numFrames - 1, ifps);
+    SkeletalAnim *anim = getCurrentAnim(md5mesh);
+    animinfo.last_time += ifps;
+    /* move to next frame */
+    if (animinfo.last_time >= animinfo.max_time){
+        animinfo.curr_frame++;
+        animinfo.next_frame++;
+        animinfo.last_time = 0.0;
 
-        animinfo.last_time = 0;
-        animinfo.max_time = 1.0/getCurrentAnim(md5mesh)->frameRate;
+        if (animinfo.curr_frame > anim->numFrames - 1) {
+            md5mesh->currAnim = (md5mesh->currAnim + 1)%4;
+            animinfo.curr_frame = 0;
+            animinfo.max_time = 1.0/anim->frameRate;
+        }
+        if (animinfo.next_frame > anim->numFrames - 1)
+            animinfo.next_frame = 0;
     }
 
-    SkeletalAnim *anim = getCurrentAnim(md5mesh);
-    Animate(&animinfo, anim->numFrames - 1, ifps);
+    anim = getCurrentAnim(md5mesh);
 
     interpolateSkeletons(anim->skelFrames[animinfo.curr_frame], anim->skelFrames[animinfo.next_frame],
                          anim->numJoints, animinfo.last_time*anim->frameRate, skeleton);
@@ -77,10 +64,15 @@ void initializeGame(){
     fplist_rmback(cena->meshList);
 
     md5mesh = readMD5Mesh("data/models/zfat.md5mesh");
-    SkeletalAnim *anim = readMD5Anim("data/models/walk1.md5anim");
-    SkeletalAnim *anim2 = readMD5Anim("data/models/pipeattack1.md5anim");
-    addAnim(md5mesh, anim);
+    SkeletalAnim *anim1 = readMD5Anim("data/models/walk1.md5anim");
+    SkeletalAnim *anim2 = readMD5Anim("data/models/walk2.md5anim");
+    SkeletalAnim *anim3 = readMD5Anim("data/models/walk3.md5anim");
+    SkeletalAnim *anim4 = readMD5Anim("data/models/walk4.md5anim");
+    //SkeletalAnim *anim2 = readMD5Anim("data/models/pipeattack1.md5anim");
+    addAnim(md5mesh, anim1);
     addAnim(md5mesh, anim2);
+    addAnim(md5mesh, anim3);
+    addAnim(md5mesh, anim4);
     addMesh(cena, md5mesh);
     md5mesh->currAnim = 0;
     
@@ -89,9 +81,9 @@ void initializeGame(){
     animinfo.next_frame = 1;
 
     animinfo.last_time = 0;
-    animinfo.max_time = 1.0/anim->frameRate;
+    animinfo.max_time = 1.0/anim1->frameRate;
 
-    skeleton = malloc(sizeof(Joint)*anim->numJoints);
+    skeleton = malloc(sizeof(Joint)*anim1->numJoints);
 
     //FIXME pra testar, faz os meshes do md5 terem o mesmo material do pato
     for(int j = 0; j < md5mesh->tris->size; j++) {
@@ -133,7 +125,7 @@ int render(float ifps, event *e, Scene *cena){
     bbcenter(cena->b, bboxcenter);
 
     //translada para o centro
-    fptranslatef(c.modelview, -bboxcenter[0], -bboxcenter[1], -bboxcenter[2]);
+//    fptranslatef(c.modelview, -bboxcenter[0], -bboxcenter[1], -bboxcenter[2]);
     fpMultMatrix(c.mvp, c.projection, c.modelview);
     setShaderConstant4x4f(shdr, "mvp", c.mvp);
     setShaderConstant4x4f(shdr, "modelview", c.modelview);

@@ -200,7 +200,6 @@ SamplerState* initializeSamplerState(int wrapmode, int minfilter, int magfilter,
 
 //TODO sampler state é uma coisa que nao muda muito e se beneficiaria de testar se o prev mudou
 void bindSamplerState(SamplerState* s, unsigned int unit){
-
 	if (s!= NULL){
 		glBindSampler(unit, s->id);
 	}
@@ -262,6 +261,7 @@ Texture* initializeTexture(char* filename, int target, int imageFormat, int inte
 //TODO fazer 1d, 3d e cubemap
 Texture* initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type){
     Texture *t = malloc(sizeof(Texture));
+    t->state = initializeSamplerState(CLAMP, GL_LINEAR, GL_LINEAR, 0);
     glGenTextures(1, &t->texid);
     glBindTexture(target, t->texid);
 
@@ -273,7 +273,7 @@ Texture* initializeTextureFromMemory(void* data, int x, int y, int target, int i
 }
 
 Texture* initialize2DTexture(char *filename) {
-
+    //return initializeTexture(filename, TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
     int x, y, n;
     unsigned char* data = stbi_load(filename, &x, &y, &n, 0);
     if (!data){
@@ -282,19 +282,18 @@ Texture* initialize2DTexture(char *filename) {
     }
 
     Texture* t;
-    if ( n == 3 )
+    if (n == 3)
     	t = initializeTextureFromMemory(data, x, y, TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
     else if (n == 4)
-	t = initializeTextureFromMemory(data, x, y, TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE);
+	    t = initializeTextureFromMemory(data, x, y, TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE);
     else
-	t = NULL;
+	    t = NULL;
 
     free(data);
     return t;
 }
 
 void bindTexture(Texture* t, unsigned int slot){
-
 	if (t != NULL){
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(t->target, t->texid );
@@ -686,7 +685,54 @@ int checkFramebufferStatus( int silent)
     return 1;
 }
 
-unsigned int initializeFramebuffer(void* data, int width, int height, int format, int internalFormat, int type){
+
+Framebuffer* initializeFramebuffer(int width, int height) {
+    //Inicializa o FBO
+    Framebuffer *fb = malloc(sizeof(Framebuffer));
+    fb->width = width;
+    fb->height = height;
+    glGenFramebuffers(1, &fb->id);
+    glBindFramebuffer(GL_FRAMEBUFFER, fb->id);
+    
+    //fb->tex = initializeTextureFromMemory(0, width, height, TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE);
+
+    fb->tex = malloc(sizeof(Texture));
+    fb->tex->state = initializeSamplerState(CLAMP, GL_LINEAR, GL_LINEAR, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glGenTextures(1, &fb->tex->texid);
+    glBindTexture(TEXTURE_2D, fb->tex->texid);
+
+    fb->tex->target = TEXTURE_2D;
+    glTexImage2D(TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb->tex->texid, 0);
+
+    //Cria o depth buffer
+    glGenRenderbuffers(1, &fb->depthid);
+    glBindRenderbuffer(GL_RENDERBUFFER, fb->depthid);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb->depthid);
+
+    GLenum drawBufs[] = {GL_COLOR_ATTACHMENT0};
+    glDrawBuffers(1, drawBufs);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+    return fb;
+}
+
+
+void bindFramebuffer(Framebuffer *fb) {
+    if(!fb) { //Volta pro framebuffer default
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, r->viewPortWidth, r->viewPortHeight);
+    } else {
+        glBindFramebuffer(GL_FRAMEBUFFER, fb->id);
+        glViewport(0, 0, fb->width, fb->height);
+    }
+}
+
+/*unsigned int initializeFramebuffer(void* data, int width, int height, int format, int internalFormat, int type){
 
 	
 	Texture *t = initializeTextureFromMemory(data, width,  height, TEXTURE_2D, format, internalFormat, type);
@@ -712,10 +758,10 @@ unsigned int initializeFramebuffer(void* data, int width, int height, int format
 
 	return id;
 
-}
+}*/
 
-void bindFramebuffer(int id){
-	/*if (r->prevFramebuffer != id){
+/*void bindFramebuffer(int id){
+	if (r->prevFramebuffer != id){
 		r->prevFramebuffer = id;
 		glBindFramebuffer(GL_FRAMEBUFFER, id);
 		//printf("vai pegar o array\n");
@@ -723,14 +769,14 @@ void bindFramebuffer(int id){
 		//printf("fb array done\n");
 		glViewport(0, 0, fb->width,  fb->height); 
 		//printf("viewport configurado \n");
-	}*/
-}
+	}
+}*/
 
-void bindMainFramebuffer(){
-	/*r->prevFramebuffer = 0;
+/*void bindMainFramebuffer(){
+	r->prevFramebuffer = 0;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, r->viewPortWidth, r->viewPortHeight);*/
-}
+	glViewport(0, 0, r->viewPortWidth, r->viewPortHeight);
+}*/
 
 void printGPUMemoryInfo(){
 

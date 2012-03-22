@@ -71,9 +71,11 @@ enum Type{
 
 typedef struct _framebuffer{
 	int width, height;
-	int id;
-	int texid;
-} framebuffer;
+	unsigned int id;
+	//unsigned int texid;
+    Texture *tex;
+    unsigned int depthid;
+} Framebuffer;
 
 enum Semantic{
 	TIME,
@@ -167,9 +169,11 @@ void bindTexture(Texture* t, unsigned int slot);
 void destroyTexture(Texture* t);
 
 //framebuffers
-void bindMainFramebuffer();
+Framebuffer* initializeFramebuffer(int width, int height);
+void bindFramebuffer(Framebuffer *fb);
+/*void bindMainFramebuffer();
 void bindFramebuffer(int id);
-unsigned int initializeFramebuffer(void* data, int width, int height, int format, int internalFormat, int type );
+unsigned int initializeFramebuffer(void* data, int width, int height, int format, int internalFormat, int type );*/
 
 
 /////////////////////

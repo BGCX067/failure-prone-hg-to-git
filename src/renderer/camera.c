@@ -41,7 +41,7 @@ void setupViewMatrix(Camera *c) {
 		mat4 m, mvcpy;
 		quatToMatrix(c->orientation, m);
 		m[15] = 1.0;
-		fptranslatef(c->modelview, 0.0 /*-c->pos[0]*/, 0.0/*-c->pos[1]*/, -c->pos[2]);
+		fptranslatef(c->modelview, 0.0 /*-c->pos[0]*/, 0.0 /*-c->pos[1]*/, -c->pos[2]);
 		memcpy(mvcpy, c->modelview, 16*sizeof(float));
 		fpMultMatrix(c->modelview, mvcpy, m);
 		c->modelview[15] = 1.0;
