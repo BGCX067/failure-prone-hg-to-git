@@ -84,74 +84,57 @@ void initializeGame(){
     shdr = initializeShader(vertshader, fragshader); 
     
     fb = initializeFramebuffer(512, 512);
-    
-    Mesh *m = initMesh();
-    Triangles *t = addTris(m);
-
-    float *vertices = malloc(sizeof(float)*9);
-    vertices[0] = -0.8; vertices[1] = -0.8; vertices[2] = -1.0;
-    vertices[3] = 0.8; vertices[4] = -0.8; vertices[5] = -1.0;
-    vertices[6] = 0.0; vertices[7] = 0.8; vertices[8] = -1.0;
-
-    float *texcoords = malloc(sizeof(float)*6);
-    texcoords[0] = 0.0; texcoords[1] = 0.0;
-    texcoords[2] = 1.0; texcoords[3] = 0.0;
-    texcoords[4] = 0.5; texcoords[5] = 1.0;
-
-    float *normals = malloc(sizeof(float)*9);
-    normals[0] = 0.0; normals[1] = 0.0; normals[2] = 1.0;
-    normals[3] = 0.0; normals[4] = 0.0; normals[5] = 1.0;
-    normals[6] = 0.0; normals[7] = 0.0; normals[8] = 1.0;
-
-    unsigned int *indices = malloc(sizeof(unsigned int)*3);
-    indices[0] = 0;
-    indices[1] = 1;
-    indices[2] = 2;
-    
-    addVertices(t, 9, 3, vertices);
-    addIndices(t, 3, indices);
-    addTexCoords(t, 6, 2, 0, texcoords);
-    addNormals(t, 9, 3, normals);
-    prepareMesh(m);
-
-    cena = initializeScene();
-    addMesh(cena, m);
-    bbox.pmin[0] = -1.0;
-    bbox.pmin[1] = -1.0;
-    bbox.pmin[2] = -1.0;
-    bbox.pmax[0] = 1.0;
-    bbox.pmax[1] = 1.0;
-    bbox.pmax[2] = 0.0;
-    camerafit(&c, bbox, 45.0, 800/600, 0.1, 1000.0);
-
     drawSceneOnce();
 
     glClearColor(0.5, 0.5, 0.5, 1.0);
 }
 
+void drawFullscreenQuad(Texture *tex, Shader *shdr) {
+    static Mesh *m = NULL;
+    if(!m) {
+        printf("inicializando quad\n");
+        m = initMesh();
+        Triangles *t = addTris(m);
+
+        float *vertices = malloc(sizeof(float)*12);
+        vertices[0] = -1.0; vertices[1] = -1.0; vertices[2] = 0.0;
+        vertices[3] = 1.0; vertices[4] = -1.0; vertices[5] = 0.0;
+        vertices[6] = 1.0; vertices[7] = 1.0; vertices[8] = 0.0;
+        vertices[9] = -1.0; vertices[10] = 1.0; vertices[11] = 0.0;
+
+        float *texcoords = malloc(sizeof(float)*8);
+        texcoords[0] = 0.0; texcoords[1] = 0.0;
+        texcoords[2] = 1.0; texcoords[3] = 0.0;
+        texcoords[4] = 1.0; texcoords[5] = 1.0;
+        texcoords[6] = 0.0; texcoords[7] = 1.0;
+
+        unsigned int *indices = malloc(sizeof(unsigned int)*6);
+        indices[0] = 0;
+        indices[1] = 1;
+        indices[2] = 2;
+        indices[3] = 0;
+        indices[4] = 2;
+        indices[5] = 3;
+
+        addVertices(t, 12, 3, vertices);
+        addIndices(t, 6, indices);
+        addTexCoords(t, 8, 2, 0, texcoords);
+        prepareMesh(m);   
+
+    }
+    
+    Triangles *tri = m->tris->first->data;
+
+    bindSamplerState(tex->state, 0);
+    bindTexture(tex, 0);
+    bindShader(shdr);
+    drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES);
+}
+
 int render(float ifps, event *e, Scene *cena){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    cameraHandleEvent(&c, e);
-    setupViewMatrix(&c);
 
-    vec3 bboxcenter;
-    bbcenter(bbox, bboxcenter);
-
-    //translada para o centro
-    fptranslatef(c.modelview, -bboxcenter[0], -bboxcenter[1], -bboxcenter[2]);
-    fpMultMatrix(c.mvp, c.projection, c.modelview);
-    setShaderConstant4x4f(shdr, "mvp", c.mvp);
-    for(int i = 0; i < cena->meshList->size; i++) {
-	    Mesh *m = fplist_getdata(i, cena->meshList);
-        for(int j = 0; j < m->tris->size; j++) {
-            Triangles *tri = fplist_getdata(j, m->tris);
-            bindSamplerState(fb->tex->state, 0);
-            bindTexture(fb->tex, 0);
-
-            bindShader(shdr);
-            drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES);
-        }
-    }
+    drawFullscreenQuad(fb->tex, shdr);
 
     glFlush();
 }
