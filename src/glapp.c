@@ -13,6 +13,7 @@
 #include "GL3/glxext.h"
 #include <sys/time.h>
 #include <time.h>
+#include <string.h> //memset
 
 float keysDelay[512];
 static Display* display = NULL;
@@ -66,7 +67,7 @@ glapp* setVideoMode(int w, int h, int fullscreen){
 	fbc =  glXChooseFBConfig( display, screen, attrib, &fbcCount );
 	if (!fbc){
 		printf("Invalid framebuffer config. \n");
-		return;
+		return NULL;
 	}
 		
 	XVisualInfo* visualInfo  = glXGetVisualFromFBConfig( display, fbc[ 0 ] ); // glXChooseVisual(display, screen, attrib);

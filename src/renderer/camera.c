@@ -52,7 +52,7 @@ void setupViewMatrix(Camera *c) {
 
 void cameraHandleEvent(Camera *c, event *e) {
     //TODO pegar o tamanho da janela
-    static int i = 0;
+//    static int i = 0;
     if(c->type == FIRSTPERSON) {
         if(e->type & MOUSE_MOTION_EVENT) {
             //FIXME tamanho da janela hardcoded

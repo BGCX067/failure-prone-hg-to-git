@@ -3,6 +3,7 @@
 #include "renderer.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h> //memset
 
 void createVBO(Mesh* m){
 	printf("criando vbo a:  %d \n" , m->trianglesCount);
@@ -20,63 +21,32 @@ void createVBO(Mesh* m){
 		tri->indicesId = initializeVBO(tri->indicesCount*sizeof(unsigned int), GL_STATIC_DRAW, tri->indices);
 
 		int vboSize = tri->verticesCount;
-		attrs[ATTR_VERTEX] = malloc(sizeof(VertexAttribute));
-		attrs[ATTR_VERTEX]->count = tri->verticesCount;
-		attrs[ATTR_VERTEX]->size =  tri->verticesCount*sizeof(float);
-		attrs[ATTR_VERTEX]->type = ATTR_VERTEX;
-		attrs[ATTR_VERTEX]->offset = 0;
-		attrs[ATTR_VERTEX]->components = tri->verticesComponents;
-	//	setVertexAttribute(attrs, ATTR_VERTEX, tri->verticesCount, tri->verticesCount*sizeof(float), 0, tri->verticesComponents, 0);
+		setVertexAttribute(attrs, ATTR_VERTEX, tri->verticesCount, tri->verticesCount*sizeof(float), 0, tri->verticesComponents, 0);
 
 		unsigned int offset = attrs[ATTR_VERTEX]->size;
 
 		if (tri->normals){
-			//setVertexAttribute(attrs, ATTR_NORMAL, tri->normalsCount, tri->normalsCount*sizeof(float), offset, 3, 0);
-
+			setVertexAttribute(attrs, ATTR_NORMAL, tri->normalsCount, tri->normalsCount*sizeof(float), offset, 3, 0);
 			vboSize += tri->normalsCount;
-			attrs[ATTR_NORMAL] = malloc(sizeof(VertexAttribute));
-			attrs[ATTR_NORMAL]->count = tri->normalsCount;
-			attrs[ATTR_NORMAL]->size =  tri->normalsCount*sizeof(float);
-			attrs[ATTR_NORMAL]->type = ATTR_NORMAL;
-			attrs[ATTR_NORMAL]->offset = offset;
-			attrs[ATTR_NORMAL]->components = 3;
 			offset += attrs[ATTR_NORMAL]->size;
 		}
 
 		if (tri->tangents){
 			vboSize += tri->tangentsCount;
-			//setVertexAttribute(attrs, ATTR_TANGENT, tri->tangentsCount, tri->tangentsCount*sizeof(float), offset, 3, 0);
-			attrs[ATTR_TANGENT] = malloc(sizeof(VertexAttribute));
-			attrs[ATTR_TANGENT]->count = tri->tangentsCount;
-			attrs[ATTR_TANGENT]->size =  tri->tangentsCount*sizeof(float);
-			attrs[ATTR_TANGENT]->type = ATTR_TANGENT;
-			attrs[ATTR_TANGENT]->offset = offset;
-			attrs[ATTR_TANGENT]->components = 3;
+			setVertexAttribute(attrs, ATTR_TANGENT, tri->tangentsCount, tri->tangentsCount*sizeof(float), offset, 3, 0);
 			offset += attrs[ATTR_TANGENT]->size;
 		}
 
 		if (tri->binormals){
 			vboSize += tri->binormalsCount;
-			//setVertexAttribute(attrs, ATTR_BINORMAL, tri->binormalsCount, tri->binormalsCount*sizeof(float), offset, 3, 0);
-			attrs[ATTR_BINORMAL] = malloc(sizeof(VertexAttribute));
-			attrs[ATTR_BINORMAL]->count = tri->binormalsCount;
-			attrs[ATTR_BINORMAL]->size =  tri->binormalsCount*sizeof(float);
-			attrs[ATTR_BINORMAL]->type = ATTR_BINORMAL;
-			attrs[ATTR_BINORMAL]->offset = offset;
-			attrs[ATTR_BINORMAL]->components = 3;
+			setVertexAttribute(attrs, ATTR_BINORMAL, tri->binormalsCount, tri->binormalsCount*sizeof(float), offset, 3, 0);
 			offset += attrs[ATTR_BINORMAL]->size;
 		}
 
-		for( int j = 0; j < tri->numTexSets; j++){
+		for( unsigned int j = 0; j < tri->numTexSets; j++){
 			printf("configurando texset: %d\n", j);
 			vboSize += tri->texCoords[j]->count;
-			attrs[ATTR_TEXCOORD0+j] = malloc(sizeof(VertexAttribute));
-			attrs[ATTR_TEXCOORD0+j]->count = tri->texCoords[j]->count;
-			attrs[ATTR_TEXCOORD0+j]->size =  tri->texCoords[j]->count*sizeof(float);
-			attrs[ATTR_TEXCOORD0+j]->type = ATTR_TEXCOORD0+j;
-			attrs[ATTR_TEXCOORD0+j]->offset = offset;
-			attrs[ATTR_TEXCOORD0+j]->components = tri->texCoords[j]->components;
-			//setVertexAttribute(attrs, ATTR_TEXCOORD0+j, tri->texCoords[j]->count, tri->texCoords[j]->count*sizeof(float), offset, tri->texCoords[j]->components, 0);
+			setVertexAttribute(attrs, ATTR_TEXCOORD0+j, tri->texCoords[j]->count, tri->texCoords[j]->count*sizeof(float), offset, tri->texCoords[j]->components, 0);
 			offset += attrs[ATTR_TEXCOORD0+j]->size;
 
 		}
@@ -146,7 +116,7 @@ void setmeshboundingbox(Mesh *m) {
     for(int i = 0; i < m->tris->size; i++) {
         Triangles *t = fplist_getdata(i, m->tris);
         printf("t->verticesCount: %d\n", t->verticesCount);
-        for(int j = 0; j < t->verticesCount/3; j++) {
+        for(unsigned int j = 0; j < t->verticesCount/3; j++) {
             //X
             if(t->vertices[3*j] < m->b.pmin[0])
                 m->b.pmin[0] = t->vertices[3*j];
@@ -185,14 +155,7 @@ void addVertices(Triangles *t, int num, int comp, float *vertices) {
     
     //só armazena o ponteiro
     t->vertices = vertices;
-
-    t->attrs[ATTR_VERTEX] = malloc(sizeof(VertexAttribute));
-    t->attrs[ATTR_VERTEX]->count = t->verticesCount;
-    t->attrs[ATTR_VERTEX]->size =  t->verticesCount*sizeof(float);
-    t->attrs[ATTR_VERTEX]->type = ATTR_VERTEX;
-    t->attrs[ATTR_VERTEX]->offset = 0;
-    t->attrs[ATTR_VERTEX]->components = comp;
-   // setVertexAttribute(t->attrs, ATTR_VERTEX, t->verticesCount, t->verticesCount*sizeof(float), 0, comp, 0);
+    setVertexAttribute(t->attrs, ATTR_VERTEX, t->verticesCount, t->verticesCount*sizeof(float), 0, comp, 0);
 
 }
 
@@ -200,13 +163,7 @@ void addNormals(Triangles* t, int num, int comp, float *normals) {
     t->normalsCount = num;
     t->normals = normals;
 
-    t->attrs[ATTR_NORMAL] = malloc(sizeof(VertexAttribute));
-    t->attrs[ATTR_NORMAL]->count = t->normalsCount;
-    t->attrs[ATTR_NORMAL]->size =  t->normalsCount*sizeof(float);
-    t->attrs[ATTR_NORMAL]->type = ATTR_NORMAL;
-    t->attrs[ATTR_NORMAL]->offset = 0;
-    t->attrs[ATTR_NORMAL]->components = comp;
-//    setVertexAttribute(t->attrs, ATTR_NORMAL, t->normalsCount, t->normalsCount*sizeof(float), 0, comp, 0);
+    setVertexAttribute(t->attrs, ATTR_NORMAL, t->normalsCount, t->normalsCount*sizeof(float), 0, comp, 0);
 
 }
 
@@ -218,13 +175,7 @@ void addTexCoords(Triangles *t, int num, int comp, int texset, float *texcoords)
     t->texCoords[texset]->texCoords = texcoords;
     t->numTexSets++;
 
-    t->attrs[ATTR_TEXCOORD0 + texset] = malloc(sizeof(VertexAttribute));
-    t->attrs[ATTR_TEXCOORD0 + texset]->count = t->texCoords[texset]->count;
-    t->attrs[ATTR_TEXCOORD0 + texset]->size =  t->texCoords[texset]->count*sizeof(float);
-    t->attrs[ATTR_TEXCOORD0 + texset]->type = ATTR_TEXCOORD0 + texset;
-    t->attrs[ATTR_TEXCOORD0 + texset]->offset = 0;
-    t->attrs[ATTR_TEXCOORD0 + texset]->components = t->texCoords[texset]->components;
-//    setVertexAttribute(t->attrs, ATTR_TEXCOORD0+texset, t->texCoords[texset]->count, t->texCoords[texset]->count*sizeof(float), 0, comp, 0);
+    setVertexAttribute(t->attrs, ATTR_TEXCOORD0+texset, t->texCoords[texset]->count, t->texCoords[texset]->count*sizeof(float), 0, comp, 0);
 
 }
 
@@ -326,7 +277,7 @@ void updateMesh(Mesh* m, Joint *skeleton) {
     for(int i = 0; i < m->tris->size; i++) {
         Triangles *t = fplist_getdata(i, m->tris); 
         float *tVerts = mapVBO(t->verticesVBO, GL_WRITE_ONLY);
-        for(int j = 0; j < t->verticesCount/3; j++) {
+        for(unsigned int j = 0; j < t->verticesCount/3; j++) {
             tVerts[3*j] = 0.0;
             tVerts[3*j + 1] = 0.0;
             tVerts[3*j + 2] = 0.0;

@@ -23,7 +23,8 @@ typedef struct material_{
     //FIXME so precisa pra hora de ler do arquivo também
     char *id;
 
-	unsigned int shaderid;
+    Shader *shdr;
+
 }Material;
 
 void bindMaterial(Material* m, Light* l);

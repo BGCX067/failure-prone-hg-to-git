@@ -16,9 +16,8 @@
 ^tools/md5/deps_optimized$
 ^tools/fonts/deps_optimized$
 ^tools/fonts/objs_optimized$
-^tools/fbotest/deps_optimized$
-^tools/fbotest/objs_optimized$
-
+^tools/glowfalls/objs_optimized$
+^tools/glowfalls/deps_optimized$
 
 .*.*.swp
 .*.*.orig

@@ -650,6 +650,11 @@ void destroyVBO(unsigned int id){
 	glDeleteBuffers(1, &id);
 }
 
+
+//////////////////
+// FRAMEBUFFERS
+////////////////
+
 int checkFramebufferStatus( int silent)
 {
     GLenum status;
