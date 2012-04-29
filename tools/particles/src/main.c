@@ -8,8 +8,9 @@
 #include "renderer/glime.h"
 #include "util/fplist.h"
 #include "renderer/particles.h"
+#include "renderer/camera.h"
 
-int idle(float ifps, event* e, scene* s){
+int idle(float ifps, event* e, Scene* s){
 	return 1;
 }
 
@@ -92,7 +93,7 @@ void initializeGame(){
 
 }
 
-int render(float ifps, event *e, scene *s){
+int render(float ifps, event *e, Scene *s){
 
 	updateparticles(ps, ifps);
 
@@ -111,10 +112,9 @@ int render(float ifps, event *e, scene *s){
 
 //	endGUI();
 
-    	glFinish();
+    glFinish();
 	glFlush();
 }
-
 
 int main(){
 	glapp* app = setVideoMode(800, 600, 0);
@@ -126,8 +126,9 @@ int main(){
 	}
 
 	setWindowTitle("Mathfeel");
-	renderer* renderer  = initializeRenderer(app->width, app->height, 1.0, 1000.0, 75.0 );
-	scene* s = initializeScene();
+	renderer* renderer = initializeRenderer(app->width, app->height, 0.1, 10000.0, 45.0, TRACKBALL);
+
+	Scene* s = initializeScene();
 	initializeGame();
 	mainloop(app, idle, render, s );
 

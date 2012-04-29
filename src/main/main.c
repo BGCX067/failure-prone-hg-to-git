@@ -35,12 +35,15 @@ void initializeGame(){
     printf("%s\n\n", fragShader);*/
 
     minimalShader = initializeShader(vertShader, fragShader);
+    glClearColor(0.5, 0.5, 0.5, 1.0);
 }
 
 int render(float ifps, event *e, Scene *cena){
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 /*
 	beginRender(e);
 	glFlush();*/
+	glFlush();
 }
 
 
@@ -56,7 +59,7 @@ int main(){
 	setWindowTitle("Mathfeel");
 	mainrenderer  = initializeRenderer(app->width, app->height, 0.1, 10000.0, 45.0, TRACKBALL);
 	initializeGame();
-	mainloop(app, idle, 0, cena );
+	mainloop(app, idle, render, cena );
 
 	closeVideo();
 	free(app);

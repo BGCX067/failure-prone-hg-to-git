@@ -12,11 +12,7 @@
 #include "renderer/camera.h"
 #include "util/shadergen.h"
 
-int idle(float ifps, event* e, scene* s){
-	
-
-	//printf("x:  %f y: %f \n ",playerBody->p.x, playerBody->p.y );
-	
+int idle(float ifps, event* e, Scene* s){
 	return 1;
 }
 
@@ -33,20 +29,21 @@ unsigned int tex;
 
 float elapsedTime;
 
-scene* cena;
-
+Scene* cena;
+Camera c;
 renderer *mainrenderer;
 
 void initializeGame(){
-
+    initCamera(&c, TRACKBALL);
 	samplerstate = initializeSamplerState(CLAMP, LINEAR, LINEAR, 0);
     tex = initializeTexture("../../data/textures/duckCM.tga", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
 
-    cena = initializeDae("../../data/models/duck_triangulate_deindexer.dae");
+    //cena = initializeDae("../../data/models/duck_triangulate_deindexer.dae");
+    cena = readColladaFile("../../data/models/duck_triangulate_deindexer.dae");
 	//minimalShader = initializeShader( readTextFile("../../data/shaders/minimal.vert"), readTextFile("../../data/shaders/minimal.frag") );
     
 
-	light* l = malloc(sizeof(light));
+	Light* l = malloc(sizeof(Light));
 	l->pos[0] = 10;
 	l->pos[1] = 100;
 	l->pos[2] = 200;
@@ -58,7 +55,7 @@ void initializeGame(){
 	setupScene(cena);
     
     //FIXME 
-    camerafit(getcamera(), cena->b, 45.0, 800.0/600.0, 1.0, 10000.0);
+    camerafit(&c, cena->b, 45.0, 800.0/600.0, 1.0, 10000.0);
 
     shaderflags f;
     f.flags = PHONG | TEX;
@@ -74,7 +71,7 @@ void initializeGame(){
     minimalShader = initializeShader(vertShader, fragShader);
 }
 
-int render(float ifps, event *e, scene *cena){
+int render(float ifps, event *e, Scene *cena){
 
 	beginRender(e);
 
@@ -82,8 +79,8 @@ int render(float ifps, event *e, scene *cena){
     bbcenter(cena->b, bcenter);
 
     mat4 mvcpy;
-    fptranslatef(getcamera()->modelview, -bcenter[0], -bcenter[1], -bcenter[2]);
-    fpMultMatrix(getcamera()->mvp, getcamera()->projection, getcamera()->modelview);
+    fptranslatef(c.modelview, -bcenter[0], -bcenter[1], -bcenter[2]);
+    fpMultMatrix(c.mvp, c.projection, c.modelview);
 
     float kd[4], ks[4], ka[4], shininess, pos[3], color[4];
     shininess  = 4.0;

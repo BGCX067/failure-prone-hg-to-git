@@ -158,7 +158,7 @@ int render(float ifps, event *e, Scene *cena){
     }
     
     glFlush();
-    swapBuffers();
+    //swapBuffers();
 }
 
 
