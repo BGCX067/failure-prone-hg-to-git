@@ -83,7 +83,7 @@ void initializeGame(){
     char *fragshader = readTextFile("data/shaders/fragshader.frag");
     shdr = initializeShader(vertshader, fragshader); 
     
-    fb = initializeFramebuffer(512, 512);
+    fb = initializeFramebuffer(800, 600);
     drawSceneOnce();
 
     glClearColor(0.5, 0.5, 0.5, 1.0);
