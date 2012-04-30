@@ -86,7 +86,7 @@ int main(){
 	}else{
 		printf("Video mode: w:  %d h: %d depth: %d \n", app->width, app->height, app->depth);
 	}
-	warpmouse( app, 0);
+	//warpmouse( app, 0);
 	setWindowTitle("Mathfeel");
 	mainrenderer  = initializeRenderer(app->width, app->height, 0.1, 10000.0, 45.0, TRACKBALL);
 	initializeGame();

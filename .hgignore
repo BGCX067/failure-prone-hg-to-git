@@ -18,6 +18,13 @@
 ^tools/fonts/objs_optimized$
 ^tools/glowfalls/objs_optimized$
 ^tools/glowfalls/deps_optimized$
+^tools/fbotest/deps_optimized$
+^tools/fbotest/objs_optimized$
+^tools/2dstuff/deps_optimized
+^tools/2dstuff/objs_optimized
+
+
+
 
 .*.*.swp
 .*.*.orig

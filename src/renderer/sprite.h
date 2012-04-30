@@ -2,6 +2,7 @@
 #define _SPRITE_H_
 
 #include "fparray.h"
+#include "renderer.h"
 
 enum {
 	FLIP_X = 1 << 1,
@@ -11,7 +12,9 @@ enum {
 
 typedef struct frames_{
 
-	int* images;
+//	int* images;
+    Texture **images;
+    Texture *normal;
 	float delay;
 	int numImages;
 

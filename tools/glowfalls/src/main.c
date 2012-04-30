@@ -369,9 +369,9 @@ int Render(event *e, float* dt){
 int main(){
 
 	setVideoMode(800, 600, 0);
-	warpMouse(0);
+	//warpMouse(0);
 	mainrenderer  = initializeRenderer(800,  600, 0.1, 10000.0, 45.0, TRACKBALL);
-	setTextureSamplerState(CLAMP, LINEAR, LINEAR);
+	//setTextureSamplerState(CLAMP, LINEAR, LINEAR);
 	initializeGUI(800, 600);
 	InitializeGame();
 	MainLoop( );

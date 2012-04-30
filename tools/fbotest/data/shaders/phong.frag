@@ -24,5 +24,6 @@ void main() {
     vec3 kd = vec3(texture(tex, texcoord));
     vec3 outcolor3 = lightintensity*(ka + kd*max(dot(s, n), 0.0) + ks*pow(max(dot(r, v), 0.0), shininess));
 
-    outcolor = vec4(outcolor3, 1.0);
+    float gamma = 2.2;
+    outcolor = vec4(pow(outcolor3, vec3(1.0/gamma)), 1.0);
 }
