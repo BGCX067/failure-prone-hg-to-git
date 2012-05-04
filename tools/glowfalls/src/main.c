@@ -253,57 +253,6 @@ drawSegmentShape(cpBody *body, cpSegmentShape *seg, cpSpace *space)
 }
 
 
-static const GLfloat circleVAR[] = {
-	 0.0000f,  1.0000f,
-	 0.2588f,  0.9659f,
-	 0.5000f,  0.8660f,
-	 0.7071f,  0.7071f,
-	 0.8660f,  0.5000f,
-	 0.9659f,  0.2588f,
-	 1.0000f,  0.0000f,
-	 0.9659f, -0.2588f,
-	 0.8660f, -0.5000f,
-	 0.7071f, -0.7071f,
-	 0.5000f, -0.8660f,
-	 0.2588f, -0.9659f,
-	 0.0000f, -1.0000f,
-	-0.2588f, -0.9659f,
-	-0.5000f, -0.8660f,
-	-0.7071f, -0.7071f,
-	-0.8660f, -0.5000f,
-	-0.9659f, -0.2588f,
-	-1.0000f, -0.0000f,
-	-0.9659f,  0.2588f,
-	-0.8660f,  0.5000f,
-	-0.7071f,  0.7071f,
-	-0.5000f,  0.8660f,
-	-0.2588f,  0.9659f,
-	 0.0000f,  1.0000f,
-	 0.0f, 0.0f, // For an extra line to see the rotation.
-};
-static const int circleVAR_count = sizeof(circleVAR)/sizeof(GLfloat)/2;
-
-static void
-drawCircleShape(cpBody *body, cpCircleShape *circle, cpSpace *space)
-{
-	glVertexPointer(2, GL_FLOAT, 0, circleVAR);
-
-	glPushMatrix(); {
-		cpVect center = circle->tc;
-		glTranslatef(center.x, center.y, 0.0f);
-		glRotatef(body->a*180.0f/M_PI, 0.0f, 0.0f, 1.0f);
-		glScalef(circle->r, circle->r, 1.0f);
-		
-		if(!circle->shape.sensor){
-			glDrawArrays(GL_TRIANGLE_FAN, 0, circleVAR_count - 1);
-		}
-		
-		glColor3f(1.0, 1.0, 1.0);
-		glDrawArrays(GL_LINE_STRIP, 0, circleVAR_count);
-	} glPopMatrix();
-}
-
-
 static void
 drawObject(cpShape *shape, cpSpace *space)
 {
@@ -311,8 +260,7 @@ drawObject(cpShape *shape, cpSpace *space)
 	
 	switch(shape->klass->type){
 		case CP_CIRCLE_SHAPE:
-			drawCircleShape(body, (cpCircleShape *)shape, space);
-			int frame = 0;
+		{	int frame = 0;
 			if (arrowDirection.x == 0 && arrowDirection.y == 0)
 				frame = 2; //parado
 			else
@@ -327,6 +275,7 @@ drawObject(cpShape *shape, cpSpace *space)
 		//	printf(" %f %f \n ", body->v.x, body->v.y);
 			drawSprite(s, body->p.x-45.0, body->p.y-63.0, ElapsedTime, frame, spriteOrientation );
 			break;
+		}
 		case CP_SEGMENT_SHAPE:
 			drawSegmentShape(body, (cpSegmentShape *)shape, space);
 			break;
