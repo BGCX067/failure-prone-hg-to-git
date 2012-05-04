@@ -232,8 +232,6 @@ int sth_add_font(struct sth_stash* stash, int idx, const char* path)
 		return 0;
 	}
 
-	printf("1");
-
 	fnt = &stash->fonts[idx];
 	if (fnt->data)
 		free(fnt->data);
@@ -241,8 +239,6 @@ int sth_add_font(struct sth_stash* stash, int idx, const char* path)
 		free(fnt->glyphs);
 	memset(fnt,0,sizeof(struct sth_font));
 	
-	printf("2");
-
 	// Init hash lookup.
 	for (i = 0; i < HASH_LUT_SIZE; ++i) fnt->lut[i] = -1;
 	
@@ -253,8 +249,6 @@ int sth_add_font(struct sth_stash* stash, int idx, const char* path)
 		return 0;
 	}
 	
-	printf("3");
-
 	fseek(fp,0,SEEK_END);
 	fnt->datasize = (int)ftell(fp);
 	fseek(fp,0,SEEK_SET);
@@ -263,18 +257,15 @@ int sth_add_font(struct sth_stash* stash, int idx, const char* path)
 		printf("Malloc failed \n");
 		return 0;
 	}
-	printf("4");
 	fread(fnt->data, 1, fnt->datasize, fp);
 	fclose(fp);
 	fp = 0;
 	
-	printf("5");
 	// Init stb_truetype
 	if (!stbtt_InitFont(&fnt->font, fnt->data, 0)){
 		printf("Stbtt cant init font.\n");
 		return 0;
 	}
-	printf("6");
 	
 	// Store normalized line height. The real line height is got
 	// by multiplying the lineh by font size.
@@ -284,7 +275,6 @@ int sth_add_font(struct sth_stash* stash, int idx, const char* path)
 	fnt->descender = (float)descent / (float)fh;
 	fnt->lineh = (float)(fh + lineGap) / (float)fh;
 
-	printf("7");
 
 	return 1;
 	
@@ -389,7 +379,7 @@ static struct sth_glyph* get_glyph(struct sth_stash* stash, struct sth_font* fnt
 		// Update texture
 		glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 //		printf("bind texture \n");
-//		bindTexture( stash->tex, 0);
+		bindTexture( stash->tex, 0);
 //		printf("bind done \n");
 /*		unsigned char* bmp3 = (unsigned char*) malloc(gw*gh*4);
 		for(int i = 0,  k = 0; i < gw*gh; i++, k  += 4){

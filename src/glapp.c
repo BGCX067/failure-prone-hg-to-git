@@ -11,7 +11,7 @@
 #include <GL/glx.h>
 //#include <GL/glxext.h>
 #include "GL3/glxext.h"
-#include <sys/time.h>
+//#include <sys/time.h>
 #include <time.h>
 #include <string.h> //memset
 
@@ -22,6 +22,8 @@ static int screen;
 static GLXContext context;
 static XF86VidModeModeInfo** modes;
 static Atom WM_DELETE_WINDOW;
+int warpmouse_ = 0;
+glapp* app;
 
 static int modescmp(const void* pa, const void* pb){
 	XF86VidModeModeInfo* a = *(XF86VidModeModeInfo**) pa;
@@ -31,7 +33,7 @@ static int modescmp(const void* pa, const void* pb){
 	return b->vdisplay - a->vdisplay;
 }
 
-glapp* setVideoMode(int w, int h, int fullscreen){
+void setVideoMode(int w, int h, int fullscreen){
 
 	if (window){
 		XDestroyWindow(display, window);
@@ -176,8 +178,9 @@ glapp* setVideoMode(int w, int h, int fullscreen){
 	}
 
 	glXMakeCurrent(display, window, context);
-	
-	return appwin;	
+
+	app = appwin;
+	return;	
 
 }
 
@@ -204,13 +207,13 @@ void setMouse(int x, int y){
 	XFlush(display);
 }
 
-int getTime(){
-	struct timeval tval;
-//	struct timezone tzone;
+//retorna o tempo em milisegundos
+float getTime(){
+	struct timespec time;
 
-	gettimeofday(&tval, NULL);
+	clock_gettime(CLOCK_REALTIME, &time);
 
-	return tval.tv_sec*1000 + tval.tv_usec/1000;
+	return time.tv_sec + time.tv_nsec*1e-9;
 }
 
 int getKeyCode(int key){
@@ -257,15 +260,17 @@ int getKeyCode(int key){
 }
 
 
-void mainloop(glapp* app, int(idle)(float, event*, Scene *), int(render)(float, event*, Scene*), Scene* s ){
+void MainLoop( ){
 	event evt;
     evt.buttonLeft =  evt.buttonRight = 0;
 	memset(evt.keys, 0, 512*sizeof(int));
 	memset(keysDelay, 0, 512*sizeof(int));
 	KeySym key;
-	int startTime =  getTime();
-	int endTime = 0;
-	int counter = 0;
+	double t = 0.0;
+	double dt = 0.01; //TODO deixar configuravel
+	double currentTime = 0.0;
+	double accumulator = 0.0;
+	float deltaTime;
 	float fps = 60;
 	float ifps = 1/fps;
     
@@ -321,37 +326,39 @@ void mainloop(glapp* app, int(idle)(float, event*, Scene *), int(render)(float, 
 			}
 
 		}
-		if (counter++ == 10){
-			endTime = startTime;
-			startTime = getTime();
-			int elapsedTime = startTime - endTime;
-			fps = counter * 1000.0/ (float) (elapsedTime);
-			counter= 0;
-		}
 		//printf("FPS: %f\n", fps);
-		ifps = 1/fps;
 
+		float newTime = getTime();
+		deltaTime = newTime - currentTime;
+		currentTime = newTime;
 
-		if (idle)
-			(*idle)( ifps, &evt, s );
+		if (deltaTime > 0.25)
+			deltaTime = 0.25;
 
-		if (render)
-			(*render)(ifps, &evt, s);
+		accumulator += deltaTime;
+		while (accumulator >= dt){
+			accumulator -= dt;
+			t += dt;
+			//TODO chamar a fisica aqui (nao sei como)
+		}
+
+		//deveria interpolar o estado aqui
+
+		Update(&evt, &deltaTime);
+		Render(&evt, &deltaTime);
 
 		glXSwapBuffers(display, window);
 		evt.button &= ~(BUTTON_UP | BUTTON_DOWN);
 
-		if (app->warpmouse)
+		if (warpmouse_)
 	        	setMouse(app->width/2, app->height/2);
 	}
 }
 
 
-void warpmouse(glapp* app, int i){
+void warpmouse( int i){
 
-	if (app){
-		app->warpmouse = i;
-	}
+	warpmouse_ = i;
 
 }
 

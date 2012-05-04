@@ -77,17 +77,17 @@ typedef struct _event {
     int x, y;
 }event;
 
-glapp* setVideoMode(int w, int h, int fullscreen);
+void setVideoMode(int w, int h, int fullscreen);
 void closeVideo();
 
 void setWindowTitle(char* title);
 void setMouse(int x, int y);
 
-void warpmouse(glapp* app, int yesno);
+void warpmouse( int yesno);
 
-int  getTime();
+float  getTime();
 
-void mainloop(glapp* app, int(idle)(float, event*, Scene* ), int(render)(float, event*, Scene*), Scene* s);
+void MainLoop();
 
 void swapBuffers();
 

@@ -73,8 +73,8 @@ SRCS		+= $(wildcard *.c)
 SRCS		+= $(foreach DIR,$(SRCDIRS),$(subst $(DIR)/,,$(wildcard $(DIR)/*.c)))
 
 # get all .m source files
-#SRCS		+= $(wildcard *.m)
-#SRCS		+= $(foreach DIR,$(SRCDIRS),$(subst $(DIR)/,,$(wildcard $(DIR)/*.m)))
+SRCS		+= $(wildcard *.m)
+SRCS		+= $(foreach DIR,$(SRCDIRS),$(subst $(DIR)/,,$(wildcard $(DIR)/*.m)))
 
 
 # .. or add them manually
@@ -87,17 +87,17 @@ SRCS		+= $(foreach DIR,$(SRCDIRS),$(subst $(DIR)/,,$(wildcard $(DIR)/*.c)))
 OBJS		= 
 
 # Additional libs to link with.
-LIBS		+= GL GLU X11 Xxf86vm
+	LIBS		+= GL GLU X11 Xxf86vm
 
 
 # Additional locations for header files
-INCDIRS		+= ../../src ../../src/math ../../src/GL3 ../../src/renderer ../../src/util src/ src/chipmunk
+INCDIRS		+= ../../src ../../src/GL3 ../../src/math ../../src/renderer ../../src/util src/ src/chipmunk
 
 # Additional locations for library files
 LIBDIRS		+= 
 
 # Additional locations for source files
-SRCDIRS		= ../../src ../../src/math ../../src/GL3 ../../src/renderer ../../src/util src/ src/chipmunk
+SRCDIRS		= ../../src ../../src/GL3 ../../src/math ../../src/renderer ../../src/util src/ src/chipmunk
 
 # Object files and the target will be placed in this directory with an
 # underscore and the buildname appended (e.g., for the "debug" build: objs_debug/)
@@ -129,7 +129,7 @@ LIBDIRS		+= /usr/lib /usr/X11R6/lib
 DEFINES		= 
 
 # Compiler optimization options
-OPTFLAGS	=-std=c99 -Wall -pedantic -W
+OPTFLAGS	=-std=c99 -Wall -pedantic -W -D_POSIX_C_SOURCE=199309 
 
 # Compiler debug options
 

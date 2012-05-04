@@ -60,7 +60,12 @@ void initializeGame(){
 
 }
 
-int render(float ifps, event *e, Scene *cena){
+int Update(event* e, float* dt){
+	
+	return 1;
+}
+
+int Render(event* e, float* dt){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     //handle camera events
     cameraHandleEvent(&c, e);
@@ -94,21 +99,14 @@ int render(float ifps, event *e, Scene *cena){
 
 
 int main(){
-	glapp* app = setVideoMode(800, 600, 0);
-	if (!app){
-		printf("Invalid Video Mode\n");
-		return 1;
-	}else{
-		printf("Video mode: w:  %d h: %d depth: %d \n", app->width, app->height, app->depth);
-	}
-	warpmouse( app, 0);
+	setVideoMode(800, 600, 0);
+	warpmouse( 0);
 	setWindowTitle("Font Test");
-	mainrenderer  = initializeRenderer(app->width, app->height, 0.1, 10000.0, 45.0, TRACKBALL);
+	mainrenderer  = initializeRenderer(800, 600, 0.1, 10000.0, 45.0, TRACKBALL);
 	initializeGame();
-	mainloop(app, idle, render, cena );
+	MainLoop( );
 
 	closeVideo();
-	free(app);
 	return 0;
 }
 

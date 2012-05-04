@@ -2,9 +2,10 @@
 #include "../renderer/renderer.h"
 #include <stdlib.h>
 #include "scene.h"
+#include "../math/matrix.h"
 
 static Shader* spriteShader = NULL;
-
+mat4 ortho;
 
 void initializeSpriteShaders(){
 
@@ -35,11 +36,11 @@ void initializeSpriteShaders(){
     layout(location = 0) in vec3 inpos;\n\
     layout(location = 8) in vec2 intexcoord;\n\
     out vec2 texcoord;\n\
-    uniform mat4 mvp;\n\
+    uniform mat4 ortho;\n\
     void main(void)\n\
     {\n\
         texcoord = intexcoord;\n\
-        gl_Position = vec4(inpos, 1.0);\n\
+        gl_Position = ortho * vec4(inpos, 1.0);\n\
     }\n\
     "};
 
@@ -54,13 +55,14 @@ void initializeSpriteShaders(){
     "};
 
 
-    //spriteShader = initializeShader( SpriteVSSource, SpriteFSSource );
-    spriteShader = initializeShader(readTextFile("data/shaders/phong.vert"), 
-                                    readTextFile("data/shaders/phong.frag"));
+    spriteShader = initializeShader( SpriteVSSource, SpriteFSSource );
+    //spriteShader = initializeShader(readTextFile("data/shaders/phong.vert"), 
+        //                            readTextFile("data/shaders/phong.frag"));
 
 }
 
 sprite* initializeSprite(){
+	fpOrtho(ortho, 0, 800, 0, 600, -1.0, 1.0);
 	if (spriteShader == NULL){
 		initializeSpriteShaders();
 	}
@@ -77,7 +79,6 @@ int addSprites(sprite* s, char* path, int numframes, float delay){
 
 	frames* frame = malloc(sizeof(frames));
 	frame->delay = delay;
-	//frame->images = malloc(sizeof(int)*numframes);
     frame->images = malloc(sizeof(Texture*)*numframes);
 	frame->numImages = numframes;
 	frame->timeCounter = 0;
@@ -94,7 +95,7 @@ int addSprites(sprite* s, char* path, int numframes, float delay){
 		printf(" %s %d %d \n ", filename, i, frame->images[i-1]->texid);
 	}
 
-    frame->normal = initializeTexture("data/sprites/normalmap.png", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
+//    frame->normal = initializeTexture("data/sprites/normalmap.png", TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
 
 	//check antes
 	return fparray_insback(frame, s->frames);
@@ -133,7 +134,10 @@ void drawSprite(sprite* s, int x, int y, float elapsedtime, int framenum, int fl
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	/*bindTexture(0, f->images[f->currentImage]);
+	bindSamplerState(f->images[f->currentImage]->state, 0);
+	bindTexture( f->images[f->currentImage], 0);
+	setShaderConstant4x4f(spriteShader, "ortho", ortho);
+	
 	bindShader(spriteShader);
 
 	float texcoords[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 };	
@@ -179,9 +183,9 @@ void drawSprite(sprite* s, int x, int y, float elapsedtime, int framenum, int fl
 		glTexCoord2f( (float) texcoords[6], (float) texcoords[7]);
         	glVertex2f( r.x + r.w, r.y );
     	glEnd();
-	bindShader(0);*/
+	//bindShader(0);
 
-    static Mesh *m = NULL;
+/*    static Mesh *m = NULL;
     if(!m) {
         printf("inicializando quad\n");
         m = initMesh();
@@ -212,17 +216,18 @@ void drawSprite(sprite* s, int x, int y, float elapsedtime, int framenum, int fl
         addTexCoords(t, 8, 2, 0, texcoords);
         prepareMesh(m);   
 
+
     }
     
     Triangles *tri = m->tris->first->data;
     
-    bindSamplerState(f->normal->state, 0);
-    bindTexture(f->normal, 0);
+//    bindSamplerState(f->normal->state, 0);
+//    bindTexture(f->normal, 0);
     bindSamplerState(f->images[f->currentImage]->state, 1);
     bindTexture(f->images[f->currentImage], 1);
     bindShader(spriteShader);
-    drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES);
-
+    //drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES);
+*/
 	glDisable(GL_BLEND);
 	s->lastFrame = framenum;
 }

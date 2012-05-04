@@ -154,6 +154,8 @@ void InitializeGame(){
 	addSprites(s, "dude/jumpprep%d.png", 5, 0.1);
 	addSprites(s, "dude/idle%d.png", 22, 0.1);
 
+	printf("Game Initialization Done. \n");
+
 }
 
 static void
@@ -230,7 +232,7 @@ int Update( event* e, float* dt ){
 
 	updatephysics(*dt);
 
-	printf("delta time %f \n", *dt);	
+//	printf("delta time %f \n", *dt);	
 	
 }
 
@@ -358,7 +360,11 @@ int Render(event *e, float* dt){
 
 	endGUI();
 
+
+
 	begin2d();
+		//drawSprite(s, 100, 100, 0.1, 1, spriteOrientation );
+
 		cpSpaceHashEach(space->activeShapes, (cpSpaceHashIterator)drawObject, space);
 		cpSpaceHashEach(space->staticShapes, (cpSpaceHashIterator)drawObject, space);
 	end2d();
@@ -369,9 +375,8 @@ int Render(event *e, float* dt){
 int main(){
 
 	setVideoMode(800, 600, 0);
-	//warpMouse(0);
+	warpmouse(0);
 	mainrenderer  = initializeRenderer(800,  600, 0.1, 10000.0, 45.0, TRACKBALL);
-	//setTextureSamplerState(CLAMP, LINEAR, LINEAR);
 	initializeGUI(800, 600);
 	InitializeGame();
 	MainLoop( );

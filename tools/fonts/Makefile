@@ -124,7 +124,7 @@ LIBDIRS		+= /usr/lib /usr/X11R6/lib
 DEFINES		= 
 
 # Compiler optimization options
-OPTFLAGS	=-std=c99 -Wall -pedantic -W
+OPTFLAGS	=-std=c99 -Wall -pedantic -W -D_POSIX_C_SOURCE=199309 
 
 # Compiler debug options
 

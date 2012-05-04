@@ -150,12 +150,13 @@ void beginGUI(event* e){
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+//	begin2d();
 	fpOrtho(ortho, 0, gui->w, 0, gui->h, -1.0, 1.0);
 
 }
 
 void endGUI(){
-
+//	end2d();
 	glDisable(GL_BLEND);
 }
 
