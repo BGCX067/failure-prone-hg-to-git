@@ -232,7 +232,7 @@ int Update( event* e, float* dt ){
 
 	updatephysics(*dt);
 
-//	printf("delta time %f \n", *dt);	
+	printf("delta time %f \n", *dt);	
 	
 }
 

@@ -142,22 +142,22 @@ void beginGUI(event* e){
 
 	guiEv = e;
 
-	glDisable(GL_STENCIL_TEST);
+/*	glDisable(GL_STENCIL_TEST);
 	glStencilMask( 0 );
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask( GL_FALSE );
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-//	begin2d();
+*/
+	begin2d();
 	fpOrtho(ortho, 0, gui->w, 0, gui->h, -1.0, 1.0);
 
 }
 
 void endGUI(){
-//	end2d();
-	glDisable(GL_BLEND);
+	end2d();
+//	glDisable(GL_BLEND);
 }
 
 //testa se um ponto ta dentro de um rect

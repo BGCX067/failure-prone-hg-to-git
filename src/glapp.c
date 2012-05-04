@@ -11,7 +11,7 @@
 #include <GL/glx.h>
 //#include <GL/glxext.h>
 #include "GL3/glxext.h"
-//#include <sys/time.h>
+#include <sys/time.h>
 #include <time.h>
 #include <string.h> //memset
 
@@ -209,11 +209,15 @@ void setMouse(int x, int y){
 
 //retorna o tempo em milisegundos
 float getTime(){
-	struct timespec time;
 
+/*	struct timespec time;
 	clock_gettime(CLOCK_REALTIME, &time);
-
 	return time.tv_sec + time.tv_nsec*1e-9;
+*/
+	struct timeval time;
+	gettimeofday(&time, NULL);
+	return time.tv_sec + time.tv_usec*1e-6;
+
 }
 
 int getKeyCode(int key){
