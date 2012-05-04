@@ -204,7 +204,7 @@ updatephysics(float ticks)
 }
 
 
-int Update( event* e, float* dt ){
+int Update( event* e, double* dt ){
 
 	int x = 0, y = 0;
 
@@ -232,7 +232,7 @@ int Update( event* e, float* dt ){
 
 	updatephysics(*dt);
 
-	printf("delta time %f \n", *dt);	
+//	printf("delta time %f \n", *dt);	
 	
 }
 
@@ -339,7 +339,7 @@ drawObject(cpShape *shape, cpSpace *space)
 }
 
 
-int Render(event *e, float* dt){
+int Render(event *e, double* dt){
 
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);

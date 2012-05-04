@@ -85,10 +85,13 @@ void setMouse(int x, int y);
 
 void warpmouse( int yesno);
 
-float  getTime();
+double getTime();
 
 void MainLoop();
 
 void swapBuffers();
 
+
+//int Update( event* e, float* dt );
+//int Render(event *e, float* dt);
 #endif

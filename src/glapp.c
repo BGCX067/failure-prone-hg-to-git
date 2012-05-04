@@ -208,16 +208,10 @@ void setMouse(int x, int y){
 }
 
 //retorna o tempo em milisegundos
-float getTime(){
-
-/*	struct timespec time;
+double getTime(){
+	struct timespec time;
 	clock_gettime(CLOCK_REALTIME, &time);
 	return time.tv_sec + time.tv_nsec*1e-9;
-*/
-	struct timeval time;
-	gettimeofday(&time, NULL);
-	return time.tv_sec + time.tv_usec*1e-6;
-
 }
 
 int getKeyCode(int key){
@@ -274,7 +268,7 @@ void MainLoop( ){
 	double dt = 0.01; //TODO deixar configuravel
 	double currentTime = 0.0;
 	double accumulator = 0.0;
-	float deltaTime;
+	double deltaTime;
 	float fps = 60;
 	float ifps = 1/fps;
     
@@ -332,7 +326,7 @@ void MainLoop( ){
 		}
 		//printf("FPS: %f\n", fps);
 
-		float newTime = getTime();
+		double newTime = getTime();
 		deltaTime = newTime - currentTime;
 		currentTime = newTime;
 
