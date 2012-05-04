@@ -343,6 +343,14 @@ int Render(event *e, float* dt){
 
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
+	ElapsedTime = *dt;
+
+
+	begin2d();
+
+		cpSpaceHashEach(space->activeShapes, (cpSpaceHashIterator)drawObject, space);
+		cpSpaceHashEach(space->staticShapes, (cpSpaceHashIterator)drawObject, space);
+	end2d();
 
 
 	beginGUI(e);
@@ -352,22 +360,7 @@ int Render(event *e, float* dt){
 		if (doButton(1, &r, "Mob de Braid"))
 			printf("Clicou, mazela \n");
 
-//		bindSamplerState(0, 0);
-//		drawSprite(s, 200, 100, *dt, 0, spriteOrientation );
-		ElapsedTime = *dt;
-//		cpSpaceHashEach(space->activeShapes, (cpSpaceHashIterator)drawObject, space);
-//		cpSpaceHashEach(space->staticShapes, (cpSpaceHashIterator)drawObject, space);
-
 	endGUI();
-
-
-
-	begin2d();
-		//drawSprite(s, 100, 100, 0.1, 1, spriteOrientation );
-
-		cpSpaceHashEach(space->activeShapes, (cpSpaceHashIterator)drawObject, space);
-		cpSpaceHashEach(space->staticShapes, (cpSpaceHashIterator)drawObject, space);
-	end2d();
 
 
 }
