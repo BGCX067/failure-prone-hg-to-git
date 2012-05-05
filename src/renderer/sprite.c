@@ -74,6 +74,29 @@ sprite* initializeSprite(){
 	return anim;
 }
 
+int addSprite(sprite* s, char* filename, float delay){
+
+	if (s == NULL || filename == NULL)
+		return 0;
+
+	frames* frame = malloc(sizeof(frames));
+	frame->delay = delay;
+	frame->images = malloc(sizeof(Texture*)*1);
+	frame->numImages = 1;
+	frame->timeCounter = 0;
+	frame->currentImage = 0;
+
+
+	frame->images[0] = initialize2DTexture(filename);
+	if (frame->images[0] == NULL){
+		free(frame);
+		printf("File not found: %s \n", filename);
+		return 0;
+	}
+
+	return fparray_insback(frame, s->frames);	
+
+}
 
 int addSprites(sprite* s, char* path, int numframes, float delay){
 
@@ -92,6 +115,10 @@ int addSprites(sprite* s, char* path, int numframes, float delay){
 		//printf("filename: %s \n", filename);
 		//checar o initialize
 		frame->images[i-1] = initializeTexture(filename, TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE );
+		if (frame->images[i-1] == NULL){
+			free(frame);
+			return 0;
+		}
 		printf(" %s %d %d \n ", filename, i, frame->images[i-1]->texid);
 	}
 
@@ -103,15 +130,19 @@ int addSprites(sprite* s, char* path, int numframes, float delay){
 }
 
 //enum pode ser negativo ou maior que o numero de frames
-void drawSprite(sprite* s, int x, int y, float elapsedtime, int framenum, int flags){
+void drawSprite(sprite* s, float x,float y, float sizex, float sizey, float elapsedtime, int framenum, int flags){
 	rect r;
 	r.x = x;
 	r.y = y;
-	r.w = 100;
-	r.h = 100;
+	r.w = sizex;
+	r.h = sizey;
     
 	frames* f = fparray_getdata(framenum, s->frames);
-    f->timeCounter += elapsedtime;
+	if (f == NULL){
+	//	printf("Frame not found: %d \n", s->frames->size);
+		return;
+	}
+   	f->timeCounter += elapsedtime;
 
 	if (framenum == 1)
 	    printf("currrent frame: %d previous frame: %d current image %d \n",  framenum, s->lastFrame, f->currentImage);

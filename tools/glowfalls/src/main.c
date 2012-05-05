@@ -1,11 +1,12 @@
 #include <stdio.h>
-
+#include <stdlib.h>
 #include "glapp.h"
 //#include "math/algebra.h"
 #include "renderer/renderer.h"
 #include "renderer/sprite.h"
 #include "renderer/camera.h"
 #include "chipmunk/chipmunk.h"
+#include "util/fparray.h"
 
 #define GRABABLE_MASK_BIT (1<<31)
 #define NOT_GRABABLE_MASK (~GRABABLE_MASK_BIT)
@@ -13,6 +14,7 @@
 renderer *mainrenderer;
 int spriteOrientation = 0;
 sprite *s;
+sprite* grass;
 
 static cpSpace *space;
 
@@ -25,6 +27,16 @@ typedef struct PlayerStruct {
 	float fair;
 	float vair;
 } PlayerStruct;
+
+typedef struct gameObject {
+
+	cpShape* shape;	
+	sprite* gfx;
+	int layer;
+
+} GameObject;
+
+fplist *gameobjects;
 
 PlayerStruct playerInstance;
 cpVect arrowDirection;
@@ -86,8 +98,27 @@ playerUpdateVelocity(cpBody *body, cpVect gravity, cpFloat damping, cpFloat dt)
 	body->v.x = cpfclamp(body->v.x, -400, 400);
 }
 
-static cpSpace* initSpace(void)
-{
+
+void InitializeGame(){
+
+	gameobjects = fplist_init( free);
+
+	s = initializeSprite();
+	addSprites(s, "dude/run%d.png", 27, 0.03);
+	addSprites(s, "dude/jumpprep%d.png", 5, 0.1);
+	addSprites(s, "dude/idle%d.png", 22, 0.1);
+
+	GameObject* g1 = malloc(sizeof(GameObject));
+	grass = initializeSprite();
+	if (addSprite(grass, "data/sprites/longgrass_1.png", 0) == 0)
+		printf("grass sprite not found \n");
+
+	g1->gfx = grass;
+	g1->layer = 0;
+	fplist_insback(g1, gameobjects);
+
+
+	cpInitChipmunk();
 	cpResetShapeIdCounter();
 	
 	space = cpSpaceNew();
@@ -109,8 +140,9 @@ static cpSpace* initSpace(void)
 	shape->e = 1.0f; shape->u = 1.0f;
 	shape->layers = NOT_GRABABLE_MASK;
 	shape->collision_type = 2;
+	g1->shape = shape;
 
-	shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(0,220), cpv(500,220), 0.0f));
+	/*shape = cpSpaceAddShape(space, cpSegmentShapeNew(staticBody, cpv(0,220), cpv(500,220), 0.0f));
 	shape->e = 1.0f; shape->u = 1.0f;
 	shape->layers = NOT_GRABABLE_MASK;
 	shape->collision_type = 2;
@@ -119,7 +151,7 @@ static cpSpace* initSpace(void)
 	shape->e = 1.0f; shape->u = 1.0f;
 	shape->layers = NOT_GRABABLE_MASK;
 	shape->collision_type = 2;
-
+*/
 	
 	// Set up the player
 	cpFloat radius = 45.0f;
@@ -141,18 +173,6 @@ static cpSpace* initSpace(void)
 	
 	cpSpaceAddCollisionHandler(space, 1, 2, begin, preSolve, NULL, separate, NULL);
 	
-	return space;
-}
-
-
-void InitializeGame(){
-
-	cpInitChipmunk();
-	space = initSpace();
-	s = initializeSprite();
-	addSprites(s, "dude/run%d.png", 27, 0.03);
-	addSprites(s, "dude/jumpprep%d.png", 5, 0.1);
-	addSprites(s, "dude/idle%d.png", 22, 0.1);
 
 	printf("Game Initialization Done. \n");
 
@@ -273,15 +293,9 @@ drawObject(cpShape *shape, cpSpace *space)
 //			else if (boby->v.y < 0)
 
 		//	printf(" %f %f \n ", body->v.x, body->v.y);
-			drawSprite(s, body->p.x-45.0, body->p.y-63.0, ElapsedTime, frame, spriteOrientation );
+			drawSprite(s, body->p.x-45.0, body->p.y-63.0, 100, 100, ElapsedTime, frame, spriteOrientation );
 			break;
 		}
-		case CP_SEGMENT_SHAPE:
-			drawSegmentShape(body, (cpSegmentShape *)shape, space);
-			break;
-		case CP_POLY_SHAPE:
-//			drawPolyShape(body, (cpPolyShape *)shape, space);
-			break;
 		default:
 			printf("Bad enumeration in drawObject().\n");
 	}
@@ -297,8 +311,15 @@ int Render(event *e, double* dt){
 
 	begin2d();
 
+		for( int i = 0; i < gameobjects->size; i++){
+			GameObject* obj = fplist_getdata(i, gameobjects);
+			drawSprite(obj->gfx, 0, 10, 800, 100, 0, 0, REPEAT_LAST);
+		}
+
+//		drawSprite(grassObject.gfx, 0, 10, 800, 100, 0, 0, REPEAT_LAST);
+
 		cpSpaceHashEach(space->activeShapes, (cpSpaceHashIterator)drawObject, space);
-		cpSpaceHashEach(space->staticShapes, (cpSpaceHashIterator)drawObject, space);
+		//cpSpaceHashEach(space->staticShapes, (cpSpaceHashIterator)drawObject, space);
 	end2d();
 
 

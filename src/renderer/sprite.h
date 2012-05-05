@@ -12,7 +12,6 @@ enum {
 
 typedef struct frames_{
 
-//	int* images;
     Texture **images;
     Texture *normal;
 	float delay;
@@ -32,8 +31,11 @@ typedef struct sprite_{
 } sprite;
 
 sprite* initializeSprite();
+//adiciona varios sprites de uma vez
 int addSprites(sprite* s, char* path, int numframes, float delay);
-void drawSprite(sprite* s, int x, int y, float elapsedtime, int framenum, int flags);
+//adiciona 1 frame composto por 1 imagem
+int addSprite(sprite* s, char* filename, float delay);
+void drawSprite(sprite* s, float x, float y, float sizex, float sizey,  float elapsedtime, int framenum, int flags);
 
 #endif
 
