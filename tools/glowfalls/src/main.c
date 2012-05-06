@@ -129,11 +129,7 @@ int loadStage(char* filename){
 			float y = atof(ezxml_attr(drect, "y"));
 			float sizex = atof(ezxml_attr(drect, "sizex"));
 			float sizey = atof(ezxml_attr(drect, "sizey"));
-		    g1->gfx = initializeSprite(x, y, sizex, sizey);
-			//g1->drawrect.x = x;
-			//g1->drawrect.y = y;
-			//g1->drawrect.w = sizex;
-			//g1->drawrect.h = sizey;
+		    g1->gfx = initializeSprite(x, y, sizex, sizey, shdr);
 		}
 		g1->layer = atoi(ezxml_attr(object, "layer"));
 		ezxml_t frame;
@@ -222,7 +218,7 @@ void InitializeGame(){
 
 	
 
-	s = initializeSprite(0.0, 0.0, 100, 100);
+	s = initializeSprite(0.0, 0.0, 100, 100, shdr);
 	addSprites(s, "dude/run%d.png", 27, 0.03);
 	addSprites(s, "dude/jumpprep%d.png", 5, 0.1);
 	addSprites(s, "dude/idle%d.png", 22, 0.1);
@@ -424,7 +420,7 @@ int Render(event *e, double* dt){
     c.pos[1] = s->pos[1] + s->h*0.5;
     setupViewMatrix(&c);
     fpMultMatrix(c.mvp, c.projection, c.modelview);
-    setShaderConstant4x4f(shdr, "mvp", c.mvp);
+    //setShaderConstant4x4f(shdr, "mvp", c.mvp);
     //setShaderConstant4x4f(shdr, "modelview", c.modelview);
 
 	begin2d();

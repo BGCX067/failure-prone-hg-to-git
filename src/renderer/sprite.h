@@ -37,9 +37,11 @@ typedef struct sprite_{
     mat4 transform;
     Mesh *m;
 
+    Shader *shdr;
+
 } sprite;
 
-sprite* initializeSprite(float x, float y, float sizex, float sizey);
+sprite* initializeSprite(float x, float y, float sizex, float sizey, Shader *s);
 //adiciona varios sprites de uma vez
 int addSprites(sprite* s, char* path, int numframes, float delay);
 //adiciona 1 frame composto por 1 imagem

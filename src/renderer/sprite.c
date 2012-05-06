@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "scene.h"
 #include "../math/matrix.h"
+#include "camera.h"
 
 static Shader* spriteShader = NULL;
 mat4 ortho;
@@ -61,12 +62,7 @@ void initializeSpriteShaders(){
 
 }
 
-sprite* initializeSprite(float x, float y, float sizex, float sizey){
-//	fpOrtho(ortho, 0, 800, 0, 600, -1.0, 1.0);
-//	if (spriteShader == NULL){
-//		initializeSpriteShaders();
-//	}
-
+sprite* initializeSprite(float x, float y, float sizex, float sizey, Shader *s){
 	sprite* anim = malloc(sizeof(sprite));
 	anim->frames = fparray_init(NULL, free, sizeof(frames*));
 	anim->lastFrame = -1;
@@ -81,9 +77,9 @@ sprite* initializeSprite(float x, float y, float sizex, float sizey){
     Triangles *t = addTris(anim->m);
 
     float vertices[] = {x, y, 0.0f,
-                          x, y + sizey, 0.0,
-                          x + sizex, y + sizey, 0.0,
-                          x + sizex, y, 0.0};
+                        x, y + sizey, 0.0,
+                        x + sizex, y + sizey, 0.0,
+                        x + sizex, y, 0.0};
 
     float texcoords[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 };
     unsigned int indices[] = {0, 1, 2, 0, 2, 3};
@@ -94,6 +90,8 @@ sprite* initializeSprite(float x, float y, float sizex, float sizey){
     prepareMesh(anim->m);
 
     fpIdentity(anim->transform);
+
+    anim->shdr = s;
 	
     return anim;
 }
@@ -155,12 +153,6 @@ int addSprites(sprite* s, char* path, int numframes, float delay){
 
 //enum pode ser negativo ou maior que o numero de frames
 void drawSprite(sprite* s, float elapsedtime, int framenum, int flags){
-/*	rect r;
-	r.x = s->pos[0];
-	r.y = s->pos[1];
-	r.w = s->w;
-	r.h = s->h;*/
-    
 	frames* f = fparray_getdata(framenum, s->frames);
 	if (f == NULL){
 	//	printf("Frame not found: %d \n", s->frames->size);
@@ -185,9 +177,6 @@ void drawSprite(sprite* s, float elapsedtime, int framenum, int flags){
 		else
 			f->currentImage = 0;
 	}
-    
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     Triangles *tri = s->m->tris->first->data;
     float *texcoords = mapVBO(tri->texVBO[0], GL_WRITE_ONLY);
@@ -226,100 +215,11 @@ void drawSprite(sprite* s, float elapsedtime, int framenum, int flags){
 	bindSamplerState(f->images[f->currentImage]->state, 0);
 	bindTexture( f->images[f->currentImage], 0);
 	
-    extern Shader *shdr;
-	setShaderConstant4x4f(shdr, "modelTransform", s->transform);
-	bindShader(shdr);
+    extern Camera c;
+	setShaderConstant4x4f(s->shdr, "mvp", c.mvp);
+	setShaderConstant4x4f(s->shdr, "modelTransform", s->transform);
+	bindShader(s->shdr);
     drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES);
-
-/*	float texcoords[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 };	
-	if ( (flags & FLIP_Y) && (flags & FLIP_X) ){
-		texcoords[0] = 0.0;
-		texcoords[1] = 0.0;
-		texcoords[2] = 0.0;
-		texcoords[3] = 1.0;
-		texcoords[4] = 1.0;
-		texcoords[5] = 1.0;
-		texcoords[6] = 1.0;
-		texcoords[7] = 0.0;
-	}else if (flags & FLIP_Y){
-		texcoords[0] = 0.0;
-		texcoords[1] = 1.0;
-		texcoords[2] = 0.0;
-		texcoords[3] = 0.0;
-		texcoords[4] = 1.0;
-		texcoords[5] = 0.0;
-		texcoords[6] = 1.0;
-		texcoords[7] = 1.0;
-	}else if (flags & FLIP_X){
-		texcoords[0] = 1.0;
-		texcoords[1] = 0.0;
-		texcoords[2] = 1.0;
-		texcoords[3] = 1.0;
-		texcoords[4] = 0.0;
-		texcoords[5] = 1.0;
-		texcoords[6] = 0.0;
-		texcoords[7] = 0.0;
-	}
-
-   	glBegin(GL_QUADS);
-		glTexCoord2f(  (float) texcoords[0], (float) texcoords[1]);
-        	glVertex2f(r.x, r.y );
-
-		glTexCoord2f( (float) texcoords[2], (float) texcoords[3]);
-        	glVertex2f(r.x , r.y + r.h);
-
-		glTexCoord2f( (float) texcoords[4], (float) texcoords[5]);
-        	glVertex2f(r.x + r.w, r.y + r.h);
-
-		glTexCoord2f( (float) texcoords[6], (float) texcoords[7]);
-        	glVertex2f( r.x + r.w, r.y );
-    	glEnd();
-	//bindShader(0);*/
-
-/*    static Mesh *m = NULL;
-    if(!m) {
-        printf("inicializando quad\n");
-        m = initMesh();
-        Triangles *t = addTris(m);
-
-        float *vertices = malloc(sizeof(float)*12);
-        vertices[0] = -1.0; vertices[1] = -1.0; vertices[2] = 0.0;
-        vertices[3] = 1.0; vertices[4] = -1.0; vertices[5] = 0.0;
-        vertices[6] = 1.0; vertices[7] = 1.0; vertices[8] = 0.0;
-        vertices[9] = -1.0; vertices[10] = 1.0; vertices[11] = 0.0;
-
-        float *texcoords = malloc(sizeof(float)*8);
-        texcoords[0] = 0.0; texcoords[1] = 1.0;
-        texcoords[2] = 1.0; texcoords[3] = 1.0;
-        texcoords[4] = 1.0; texcoords[5] = 0.0;
-        texcoords[6] = 0.0; texcoords[7] = 0.0;
-
-        unsigned int *indices = malloc(sizeof(unsigned int)*6);
-        indices[0] = 0;
-        indices[1] = 1;
-        indices[2] = 2;
-        indices[3] = 0;
-        indices[4] = 2;
-        indices[5] = 3;
-
-        addVertices(t, 12, 3, vertices);
-        addIndices(t, 6, indices);
-        addTexCoords(t, 8, 2, 0, texcoords);
-        prepareMesh(m);   
-
-
-    }
-    
-    Triangles *tri = m->tris->first->data;
-    
-//    bindSamplerState(f->normal->state, 0);
-//    bindTexture(f->normal, 0);
-    bindSamplerState(f->images[f->currentImage]->state, 1);
-    bindTexture(f->images[f->currentImage], 1);
-    bindShader(spriteShader);
-    //drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES);
-*/
-	//glDisable(GL_BLEND);
 	s->lastFrame = framenum;
 }
 
