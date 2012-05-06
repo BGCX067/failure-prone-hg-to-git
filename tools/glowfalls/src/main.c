@@ -202,7 +202,8 @@ void InitializeGame(){
     "};
 
 
-    shdr = initializeShader(SpriteVSSource, SpriteFSSource);
+    shdr = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag"));
+    //shdr = initializeShader(SpriteVSSource, SpriteFSSource);
 
 
 	cpInitChipmunk();
