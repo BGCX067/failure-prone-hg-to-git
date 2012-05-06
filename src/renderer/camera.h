@@ -13,7 +13,7 @@
  * trackball
  */
 
-typedef enum _cameratype { FIRSTPERSON, TRACKBALL } CameraType;
+typedef enum _cameratype { FIRSTPERSON, TRACKBALL, CAMERA_2D } CameraType;
 
 typedef struct {
     vec3 pos, up, viewDir;

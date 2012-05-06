@@ -3,6 +3,9 @@
 
 #include "fparray.h"
 #include "renderer.h"
+#include "vec3.h"
+#include "matrix.h"
+#include "mesh.h"
 
 enum {
 	FLIP_X = 1 << 1,
@@ -28,14 +31,22 @@ typedef struct sprite_{
 	fparray* frames;
 	int lastFrame;
 
+    vec3 pos;
+    float h, w;
+
+    mat4 transform;
+    Mesh *m;
+
 } sprite;
 
-sprite* initializeSprite();
+sprite* initializeSprite(float x, float y, float sizex, float sizey);
 //adiciona varios sprites de uma vez
 int addSprites(sprite* s, char* path, int numframes, float delay);
 //adiciona 1 frame composto por 1 imagem
 int addSprite(sprite* s, char* filename, float delay);
-void drawSprite(sprite* s, float x, float y, float sizex, float sizey,  float elapsedtime, int framenum, int flags);
+void drawSprite(sprite* s, float elapsedtime, int framenum, int flags);
+
+void translateSprite(sprite *s, float tx, float ty);
 
 #endif
 

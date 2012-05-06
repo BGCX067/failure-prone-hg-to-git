@@ -13,6 +13,8 @@
 #define NOT_GRABABLE_MASK (~GRABABLE_MASK_BIT)
 
 renderer *mainrenderer;
+Camera c;
+Shader *shdr;
 int spriteOrientation = 0;
 sprite *s;
 sprite* grass;
@@ -36,7 +38,7 @@ typedef struct gameObject {
 	int layer;
 
 	//a geometria de colisao dica em shape, mas as vezes o drawrect eh maior ou menor que a geometria
-	rect drawrect;
+	//rect drawrect;
 	cpVect colisionrect[4];
 
 } GameObject;
@@ -120,7 +122,19 @@ int loadStage(char* filename){
 	for (object = ezxml_child(stage, "object" ); object; object = object->next ){
 		//cria o objeto
 		GameObject* g1 = malloc(sizeof(GameObject));
-		g1->gfx = initializeSprite();
+
+        ezxml_t drect = ezxml_child(object, "drawrect");
+		if (drect){
+			float x = atof(ezxml_attr(drect, "x"));
+			float y = atof(ezxml_attr(drect, "y"));
+			float sizex = atof(ezxml_attr(drect, "sizex"));
+			float sizey = atof(ezxml_attr(drect, "sizey"));
+		    g1->gfx = initializeSprite(x, y, sizex, sizey);
+			//g1->drawrect.x = x;
+			//g1->drawrect.y = y;
+			//g1->drawrect.w = sizex;
+			//g1->drawrect.h = sizey;
+		}
 		g1->layer = atoi(ezxml_attr(object, "layer"));
 		ezxml_t frame;
 		//primeiro adiciona todos os sprites dele
@@ -154,17 +168,7 @@ int loadStage(char* filename){
 			g1->shape = shape;
 		}
 
-		ezxml_t drect = ezxml_child(object, "drawrect");
-		if (drect){
-			float x = atof(ezxml_attr(drect, "x"));
-			float y = atof(ezxml_attr(drect, "y"));
-			float sizex = atof(ezxml_attr(drect, "sizex"));
-			float sizey = atof(ezxml_attr(drect, "sizey"));
-			g1->drawrect.x = x;
-			g1->drawrect.y = y;
-			g1->drawrect.w = sizex;
-			g1->drawrect.h = sizey;
-		}
+		
 
 		fplist_insback(g1, gameobjects);
 		
@@ -174,6 +178,36 @@ int loadStage(char* filename){
 }
 
 void InitializeGame(){
+    initCamera(&c, CAMERA_2D);
+    fpOrtho(c.projection, -400, 400, -300, 300, -1.0, 1.0);
+
+    const char* SpriteVSSource = {
+    "#version 330\n\
+    layout(location = 0) in vec3 inpos;\n\
+    layout(location = 8) in vec2 intexcoord;\n\
+    out vec2 texcoord;\n\
+    uniform mat4 mvp;\n\
+    uniform mat4 modelTransform;\n\
+    void main(void)\n\
+    {\n\
+        texcoord = intexcoord;\n\
+        gl_Position = mvp*modelTransform*vec4(inpos, 1.0);\n\
+    }\n\
+    "};
+
+    const char* SpriteFSSource = {
+    "#version 330\n\
+    in vec2 texcoord;\n\
+    out vec4 outcolor;\n\
+    uniform sampler2D tex;\n\
+    void main() {\n\
+        outcolor = texture(tex, texcoord);\n\
+    }\n\
+    "};
+
+
+    shdr = initializeShader(SpriteVSSource, SpriteFSSource);
+
 
 	cpInitChipmunk();
 	cpResetShapeIdCounter();
@@ -188,7 +222,7 @@ void InitializeGame(){
 
 	
 
-	s = initializeSprite();
+	s = initializeSprite(0.0, 0.0, 100, 100);
 	addSprites(s, "dude/run%d.png", 27, 0.03);
 	addSprites(s, "dude/jumpprep%d.png", 5, 0.1);
 	addSprites(s, "dude/idle%d.png", 22, 0.1);
@@ -324,6 +358,8 @@ int Update( event* e, double* dt ){
 	arrowDirection = cpv(x, y);
 
 	updatephysics(*dt);
+    //atualizar posição de todos os sprites dinâmicos
+    translateSprite(s, playerInstance.shape->body->p.x - 45.0, playerInstance.shape->body->p.y - 63.0);
 
 //	printf("delta time %f \n", *dt);	
 	
@@ -366,7 +402,8 @@ drawObject(cpShape *shape, cpSpace *space)
 //			else if (boby->v.y < 0)
 
 		//	printf(" %f %f \n ", body->v.x, body->v.y);
-			drawSprite(s, body->p.x-45.0, body->p.y-63.0, 100, 100, ElapsedTime, frame, spriteOrientation );
+			//drawSprite(s, body->p.x-45.0, body->p.y-63.0, 100, 100, ElapsedTime, frame, spriteOrientation );
+			drawSprite(s, ElapsedTime, frame, spriteOrientation );
 			break;
 		}
 		default:
@@ -381,19 +418,27 @@ int Render(event *e, double* dt){
 	glClear(GL_COLOR_BUFFER_BIT);
 	ElapsedTime = *dt;
 
+    //No sistema de coordenadas da camera, o centro da tela é o (0, 0), ao invés de (W/2, H/2)
+    //Faz a camera seguir o player, no centro dele
+    c.pos[0] = s->pos[0] + s->w*0.5;
+    c.pos[1] = s->pos[1] + s->h*0.5;
+    setupViewMatrix(&c);
+    fpMultMatrix(c.mvp, c.projection, c.modelview);
+    setShaderConstant4x4f(shdr, "mvp", c.mvp);
+    //setShaderConstant4x4f(shdr, "modelview", c.modelview);
 
 	begin2d();
 
 		for( int i = 0; i < gameobjects->size; i++){
 			GameObject* obj = fplist_getdata(i, gameobjects);
 			if (obj->layer == -1)
-				drawSprite(obj->gfx, obj->drawrect.x, obj->drawrect.y, obj->drawrect.w, obj->drawrect.h, 0, 0, REPEAT_LAST);
+				drawSprite(obj->gfx, 0, 0, REPEAT_LAST);
 		}
 
 		for( int i = 0; i < gameobjects->size; i++){
 			GameObject* obj = fplist_getdata(i, gameobjects);
 			if (obj->layer == 0)
-				drawSprite(obj->gfx, obj->drawrect.x, obj->drawrect.y, obj->drawrect.w, obj->drawrect.h, 0, 0, REPEAT_LAST);
+				drawSprite(obj->gfx, 0, 0, REPEAT_LAST);
 		}
 
 		cpSpaceHashEach(space->activeShapes, (cpSpaceHashIterator)drawObject, space);
@@ -402,7 +447,7 @@ int Render(event *e, double* dt){
 		for( int i = 0; i < gameobjects->size; i++){
 			GameObject* obj = fplist_getdata(i, gameobjects);
 			if (obj->layer == 1)
-				drawSprite(obj->gfx, obj->drawrect.x, obj->drawrect.y, obj->drawrect.w, obj->drawrect.h, 0, 0, REPEAT_LAST);
+				drawSprite(obj->gfx, 0, 0, REPEAT_LAST);
 		}
 
 

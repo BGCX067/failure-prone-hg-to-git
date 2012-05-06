@@ -55,23 +55,47 @@ void initializeSpriteShaders(){
     "};
 
 
-    spriteShader = initializeShader( SpriteVSSource, SpriteFSSource );
+    //spriteShader = initializeShader( SpriteVSSource, SpriteFSSource );
     //spriteShader = initializeShader(readTextFile("data/shaders/phong.vert"), 
         //                            readTextFile("data/shaders/phong.frag"));
 
 }
 
-sprite* initializeSprite(){
-	fpOrtho(ortho, 0, 800, 0, 600, -1.0, 1.0);
-	if (spriteShader == NULL){
-		initializeSpriteShaders();
-	}
+sprite* initializeSprite(float x, float y, float sizex, float sizey){
+//	fpOrtho(ortho, 0, 800, 0, 600, -1.0, 1.0);
+//	if (spriteShader == NULL){
+//		initializeSpriteShaders();
+//	}
 
 	sprite* anim = malloc(sizeof(sprite));
 	anim->frames = fparray_init(NULL, free, sizeof(frames*));
 	anim->lastFrame = -1;
+
+    anim->pos[0] = x;
+    anim->pos[1] = y;
+    anim->pos[2] = 0.0f;
+    anim->h = sizey;
+    anim->w = sizex;
+
+    anim->m = initMesh();
+    Triangles *t = addTris(anim->m);
+
+    float vertices[] = {x, y, 0.0f,
+                          x, y + sizey, 0.0,
+                          x + sizex, y + sizey, 0.0,
+                          x + sizex, y, 0.0};
+
+    float texcoords[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 };
+    unsigned int indices[] = {0, 1, 2, 0, 2, 3};
+
+    addVertices(t, 12, 3, vertices);
+    addIndices(t, 6, indices);
+    addTexCoords(t, 8, 2, 0, texcoords);
+    prepareMesh(anim->m);
+
+    fpIdentity(anim->transform);
 	
-	return anim;
+    return anim;
 }
 
 int addSprite(sprite* s, char* filename, float delay){
@@ -130,12 +154,12 @@ int addSprites(sprite* s, char* path, int numframes, float delay){
 }
 
 //enum pode ser negativo ou maior que o numero de frames
-void drawSprite(sprite* s, float x,float y, float sizex, float sizey, float elapsedtime, int framenum, int flags){
-	rect r;
-	r.x = x;
-	r.y = y;
-	r.w = sizex;
-	r.h = sizey;
+void drawSprite(sprite* s, float elapsedtime, int framenum, int flags){
+/*	rect r;
+	r.x = s->pos[0];
+	r.y = s->pos[1];
+	r.w = s->w;
+	r.h = s->h;*/
     
 	frames* f = fparray_getdata(framenum, s->frames);
 	if (f == NULL){
@@ -161,17 +185,53 @@ void drawSprite(sprite* s, float x,float y, float sizex, float sizey, float elap
 		else
 			f->currentImage = 0;
 	}
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    Triangles *tri = s->m->tris->first->data;
+    float *texcoords = mapVBO(tri->texVBO[0], GL_WRITE_ONLY);
+    texcoords[0] = 1.0; texcoords[1] = 1.0; texcoords[2] = 1.0; texcoords[3] = 0.0;
+    texcoords[4] = 0.0; texcoords[5] = 0.0; texcoords[6] = 0.0; texcoords[7] = 1.0;  
+    if ( (flags & FLIP_Y) && (flags & FLIP_X) ){
+		texcoords[0] = 0.0;
+		texcoords[1] = 0.0;
+		texcoords[2] = 0.0;
+		texcoords[3] = 1.0;
+		texcoords[4] = 1.0;
+		texcoords[5] = 1.0;
+		texcoords[6] = 1.0;
+		texcoords[7] = 0.0;
+	}else if (flags & FLIP_Y){
+		texcoords[0] = 0.0;
+		texcoords[1] = 1.0;
+		texcoords[2] = 0.0;
+		texcoords[3] = 0.0;
+		texcoords[4] = 1.0;
+		texcoords[5] = 0.0;
+		texcoords[6] = 1.0;
+		texcoords[7] = 1.0;
+	}else if (flags & FLIP_X){
+		texcoords[0] = 1.0;
+		texcoords[1] = 0.0;
+		texcoords[2] = 1.0;
+		texcoords[3] = 1.0;
+		texcoords[4] = 0.0;
+		texcoords[5] = 1.0;
+		texcoords[6] = 0.0;
+		texcoords[7] = 0.0;
+	}
+    unmapVBO(tri->texVBO[0]);
 
 	bindSamplerState(f->images[f->currentImage]->state, 0);
 	bindTexture( f->images[f->currentImage], 0);
-	setShaderConstant4x4f(spriteShader, "ortho", ortho);
 	
-	bindShader(spriteShader);
+    extern Shader *shdr;
+	setShaderConstant4x4f(shdr, "modelTransform", s->transform);
+	bindShader(shdr);
+    drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES);
 
-	float texcoords[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 };	
+/*	float texcoords[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 };	
 	if ( (flags & FLIP_Y) && (flags & FLIP_X) ){
 		texcoords[0] = 0.0;
 		texcoords[1] = 0.0;
@@ -214,7 +274,7 @@ void drawSprite(sprite* s, float x,float y, float sizex, float sizey, float elap
 		glTexCoord2f( (float) texcoords[6], (float) texcoords[7]);
         	glVertex2f( r.x + r.w, r.y );
     	glEnd();
-	//bindShader(0);
+	//bindShader(0);*/
 
 /*    static Mesh *m = NULL;
     if(!m) {
@@ -259,6 +319,14 @@ void drawSprite(sprite* s, float x,float y, float sizex, float sizey, float elap
     bindShader(spriteShader);
     //drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES);
 */
-	glDisable(GL_BLEND);
+	//glDisable(GL_BLEND);
 	s->lastFrame = framenum;
+}
+
+
+void translateSprite(sprite *s, float tx, float ty) {
+    fpIdentity(s->transform);
+    fptranslatef(s->transform, tx, ty, 0.0f);
+    s->pos[0] = tx;
+    s->pos[1] = ty;
 }

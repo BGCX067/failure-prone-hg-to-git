@@ -22,7 +22,7 @@ void initCamera(Camera *c, CameraType t) {
     c->up[0] = 0.0;
 
     VEC3_ZERO(c->viewDir);
-    c->viewDir[2] = -1;
+    c->viewDir[2] = -1.0;
 
     fpIdentity(c->modelview);
     fpIdentity(c->projection);
@@ -45,7 +45,10 @@ void setupViewMatrix(Camera *c) {
 		memcpy(mvcpy, c->modelview, 16*sizeof(float));
 		fpMultMatrix(c->modelview, mvcpy, m);
 		c->modelview[15] = 1.0;
-	}
+	} else if (c->type == CAMERA_2D) {
+		fpIdentity(c->modelview);
+        fptranslatef(c->modelview, -c->pos[0], -c->pos[1], -c->pos[2] );
+    }
     fpNormalMatrix(c->normalmatrix, c->modelview);
 }
 
@@ -154,17 +157,18 @@ void cameraHandleEvent(Camera *c, event *e) {
         }
     }
     if(e->type & KEYBOARD_EVENT) {
-        if(e->keys[KEY_UP]) {
+        if(e->keys[KEY_w]) {
             vec3 dir; 
             vecMult(c->viewDir, 1, dir);
             vecAdd(c->pos, dir, c->pos);
         }
-        if(e->keys[KEY_DOWN]) {
+        if(e->keys[KEY_s]) {
             vec3 dir; 
             vecMult(c->viewDir, -1, dir);
             vecAdd(c->pos, dir, c->pos);
         }
-        if(e->keys[KEY_RIGHT]) {
+        if(e->keys[KEY_d]) {
+            printf("key d processed\n");
             vec3 dir;
             cross(c->viewDir, c->up, dir);
             vecNormalize(dir);
@@ -181,12 +185,14 @@ void cameraHandleEvent(Camera *c, event *e) {
             //vecSub(viewPoint, c->pos, c->viewDir);
             //vecNormalize(c->viewDir);
         }
-        if(e->keys[KEY_LEFT]) {
+        if(e->keys[KEY_a]) {
+            printf("key left processed\n");
             vec3 dir;
             cross(c->viewDir, c->up, dir);
             vecNormalize(dir);
             vecMult(dir, -1, dir);
             vecAdd(c->pos, dir, c->pos);
+            printf("c->pos: %f %f %f\n", c->pos[0], c->pos[1], c->pos[2]);
         }
     }
 }
