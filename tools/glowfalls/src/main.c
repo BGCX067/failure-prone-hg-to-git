@@ -122,6 +122,7 @@ int loadStage(char* filename){
 	for (object = ezxml_child(stage, "object" ); object; object = object->next ){
 		//cria o objeto
 		GameObject* g1 = malloc(sizeof(GameObject));
+		g1->layer = atoi(ezxml_attr(object, "layer"));
 
         ezxml_t drect = ezxml_child(object, "drawrect");
 		if (drect){
@@ -130,8 +131,8 @@ int loadStage(char* filename){
 			float sizex = atof(ezxml_attr(drect, "sizex"));
 			float sizey = atof(ezxml_attr(drect, "sizey"));
 		    g1->gfx = initializeSprite(x, y, sizex, sizey, shdr);
+            g1->gfx->pos[2] = g1->layer;
 		}
-		g1->layer = atoi(ezxml_attr(object, "layer"));
 		ezxml_t frame;
 		//primeiro adiciona todos os sprites dele
 		for ( frame = ezxml_child(object, "frame"); frame; frame = frame->next){
