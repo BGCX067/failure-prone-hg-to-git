@@ -112,7 +112,7 @@ void fplist_rmback(fplist *l) {
     l->size--;
 }
 
-
+//TODO  precisa passar um ponteiro pra funcao com uma comparefunc?
 fpnode* fplist_rmnode(fpnode *n, fplist *l) {
     fpnode *it = l->first;
 
@@ -133,4 +133,35 @@ fpnode* fplist_rmnode(fpnode *n, fplist *l) {
     fpnode_destroy(it, l->destroy);
 
     return next;
+}
+
+void fplist_rm(int index, fplist* l){
+
+	if (l == NULL)
+		return;
+
+	if (index < 0 || index > l->size)
+		return;
+
+	if (index == 0){ 
+		fplist_rmfront(l);
+		return;
+	}
+
+	if (index == l->size - 1){
+		fplist_rmback(l);
+		return;
+	}
+
+
+	fpnode* it = l->first;
+	for (int i = 0; i <= index; i++){
+		if (it->next)
+			it = it->next;
+	}
+	if (it){
+		it->prev->next = it->next;
+		fpnode_destroy(it, l->destroy);
+	}	
+
 }

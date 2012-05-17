@@ -10,6 +10,15 @@
 #include <string.h>
 #include <stdlib.h>
 
+typedef struct TextureInfo_ {
+
+	char* filename;
+	Texture* tex;
+	int refs;
+
+} TextureInfo;
+
+fplist* textures;
 
 enum ConstantType {
 	CONSTANT_FLOAT,
@@ -89,6 +98,7 @@ void beginRender(event *e) {
 
 renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, int cameratype){
 	r = (renderer*) malloc(sizeof(renderer));
+	textures = fplist_init(free);
 //    r->framebuffers = fparray_init(NULL, free, sizeof(framebuffer));
 	r->fovy = fovy;
 	r->zfar = zfar;
@@ -165,6 +175,40 @@ void disableDepth(){
 //TEXTURAS E SAMPLERS
 //////
 
+//funcao private do renderer, verifica se uma textura ja foi carregada antes:
+Texture* texIsLoaded(char* filename){
+    for (int i = 0; i < textures->size; i++){
+	TextureInfo *tinfo = fplist_getdata(i, textures);
+	if ( (strcmp(filename, tinfo->filename ) == 0) ){
+		tinfo->refs++;
+		return tinfo->tex;
+	}
+    }
+    return NULL;
+}
+
+//adiciona uma texinfo nova
+void addTexInfo(Texture* t, char* filename){
+    TextureInfo* newinfo = malloc(sizeof(TextureInfo));
+    newinfo->filename = malloc(sizeof(char)*(strlen(filename)+1));
+    strcpy(newinfo->filename, filename);
+    newinfo->tex = t;
+    newinfo->refs = 1;
+    fplist_insback(newinfo, textures);
+
+}
+
+//gettexinfo
+TextureInfo* getTexInfo(int id){
+    for (int i = 0; i < textures->size; i++){
+	TextureInfo *tinfo = fplist_getdata(i, textures);
+	if ( tinfo->tex->id  == id ){
+		return tinfo;
+	}
+    }
+    return -1;
+}
+
 SamplerState* initializeSamplerState(int wrapmode, int minfilter, int magfilter, int anisotropy){
 
 	unsigned int samplerID;
@@ -206,11 +250,29 @@ void bindSamplerState(SamplerState* s, unsigned int unit){
 }
 
 void destroyTexture(Texture* t){
-	if (t != NULL)
-		glDeleteTextures(1, &t->texid);
+	if (t != NULL){
+		TextureInfo* tinfo = getTexInfo(t->id);
+		if (tinfo){
+			tinfo->refs--;
+			if (tinfo->refs <= 0){
+				glDeleteTextures(1,  tinfo->tex->texid);
+				for ( int i = 0; i < textures->size; i++){ //TODO nao tem funcao legal pra remover de uma fplist
+					TextureInfo* toRemove = fplist_getdata(i, textures);
+					if (toRemove->tex->id == t->id)
+						fplist_rm(i, textures);
+				} 	
+			}
+		} else { //se  nao tem tinfo eh textura gerada procedural, entao deleta 
+			glDeleteTextures(1, &t->texid);
+		}
+	}
 }
 
 Texture* initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type){
+
+    Texture* isloaded = texIsLoaded(filename);
+    if (isloaded) return isloaded;
+
     Texture *t = malloc(sizeof(Texture));
     t->state = initializeSamplerState(CLAMP, GL_LINEAR, GL_LINEAR, 0);
     glGenTextures(1, &t->texid);
@@ -255,6 +317,9 @@ Texture* initializeTexture(char* filename, int target, int imageFormat, int inte
         }
     }
 
+    t->internalFormat = internalFormat;
+    addTexInfo(t, filename);
+
     return t;
 }
 
@@ -266,6 +331,7 @@ Texture* initializeTextureFromMemory(void* data, int x, int y, int target, int i
     glBindTexture(target, t->texid);
 
     t->target = target;
+    t->internalFormat = internalFormat;
     if ((target == TEXTURE_2D) || (target == TEXTURE_RECTANGLE) ){
 		glTexImage2D(target, 0, internalFormat, x, y, 0, imageFormat, type, data);
     }
@@ -273,7 +339,12 @@ Texture* initializeTextureFromMemory(void* data, int x, int y, int target, int i
 }
 
 Texture* initialize2DTexture(char *filename) {
-    //return initializeTexture(filename, TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
+
+    Texture* isloaded = texIsLoaded(filename);
+    if (isloaded){
+	 return isloaded;
+    }
+
     int x, y, n;
     unsigned char* data = stbi_load(filename, &x, &y, &n, 0);
     if (!data){
@@ -282,14 +353,25 @@ Texture* initialize2DTexture(char *filename) {
     }
 
     Texture* t;
-    if (n == 3)
-    	t = initializeTextureFromMemory(data, x, y, TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
-    else if (n == 4)
-	    t = initializeTextureFromMemory(data, x, y, TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE);
-    else
-	    t = NULL;
+    int internalFormat;
+    int format;
+    if (n == 3){
+	internalFormat = RGB8;
+	format = RGB;
+    }else if (n == 4){
+	    internalFormat = RGBA8;
+	    format = RGBA;
+    }else{
+	    free(data);
+	    return NULL;
+    }
+
+
+    t = initializeTextureFromMemory(data, x, y, TEXTURE_2D, format, internalFormat, UNSIGNED_BYTE);
 
     free(data);
+    if (t != NULL)
+    	addTexInfo(t, filename);
     return t;
 }
 

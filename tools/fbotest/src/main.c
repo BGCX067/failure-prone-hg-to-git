@@ -8,10 +8,6 @@
 #include "renderer/camera.h"
 #include "util/colladaloader.h"
 
-int idle(float ifps, event* e, Scene* s){
-	return 1;
-}
-
 Shader *shdr;
 Camera c;
 BoundingBox bbox;
@@ -131,7 +127,7 @@ void drawFullscreenQuad(Texture *tex, Shader *shdr) {
     drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES);
 }
 
-int render(float ifps, event *e, Scene *cena){
+int Render(event *e, double *dt){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     drawFullscreenQuad(fb->tex, shdr);
@@ -139,23 +135,19 @@ int render(float ifps, event *e, Scene *cena){
     glFlush();
 }
 
+int Update(event* e, double *dt){
+
+}
 
 int main(){
-	glapp* app = setVideoMode(800, 600, 0);
-	if (!app){
-		printf("Invalid Video Mode\n");
-		return 1;
-	}else{
-		printf("Video mode: w:  %d h: %d depth: %d \n", app->width, app->height, app->depth);
-	}
-	warpmouse( app, 0);
-	setWindowTitle("Mathfeel");
-	renderer *mainrenderer  = initializeRenderer(app->width, app->height, 0.1, 10000.0, 45.0, TRACKBALL);
+	setVideoMode(800, 600, 0);
+	warpmouse(  0);
+	setWindowTitle("Post Processing");
+	initializeRenderer(800, 600, 0.1, 10000.0, 45.0, TRACKBALL);
 	initializeGame();
-	mainloop(app, idle, render, cena );
+	MainLoop();
 
 	closeVideo();
-	free(app);
 	return 0;
 }
 

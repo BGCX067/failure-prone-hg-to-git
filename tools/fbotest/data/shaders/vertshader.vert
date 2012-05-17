@@ -9,5 +9,5 @@ uniform mat4 mvp;
 void main(void)
 {
     texcoord = intexcoord;
-	gl_Position = vec4(inpos, 1.0);
+    gl_Position = vec4(inpos, 1.0);
 }

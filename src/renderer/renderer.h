@@ -54,6 +54,7 @@ typedef struct _samplerState{
 typedef struct _texture{
 	unsigned int texid;
 	SamplerState* state;
+	int internalFormat;
 	int target;
 
     char *id;

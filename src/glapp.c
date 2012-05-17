@@ -338,6 +338,7 @@ void MainLoop( ){
 			accumulator -= dt;
 			t += dt;
 			//TODO chamar a fisica aqui (nao sei como)
+//			Update(&evt, &dt);
 		}
 
 		//deveria interpolar o estado aqui

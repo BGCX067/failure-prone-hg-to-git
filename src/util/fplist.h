@@ -26,5 +26,6 @@ void fplist_insfront(void *data, fplist *l);
 int fplist_insback(void *data, fplist *l);
 void fplist_rmfront(fplist *l);
 void fplist_rmback(fplist *l);
+void fplist_rm(int index, fplist* l);
 fpnode* fplist_rmnode(fpnode *n, fplist *l);
 #endif

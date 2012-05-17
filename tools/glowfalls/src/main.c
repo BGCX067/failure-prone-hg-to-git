@@ -359,7 +359,7 @@ int Update( event* e, double* dt ){
     //atualizar posição de todos os sprites dinâmicos
     translateSprite(s, playerInstance.shape->body->p.x - 45.0, playerInstance.shape->body->p.y - 63.0);
 
-//	printf("delta time %f \n", *dt);	
+	printf("delta time %f \n", *dt);	
 	
 }
 
