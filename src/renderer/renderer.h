@@ -4,11 +4,9 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 //#include "../glapp.h"
-//#include "../util/fplist.h"
+#include "../math/matrix.h"
 //#include "../util/fparray.h"
-//#include "camera.h"
 #include "vertexattribute.h"
-//#include "scene.h"
 
 enum TextureTarget{
 	TEXTURE_1D = GL_TEXTURE_1D,
@@ -82,6 +80,9 @@ enum Semantic{
 	TIME,
 	EYEPOS,
 	MVP,
+	MODEL,
+	PROJECTION,
+	VIEW,
 	MODELVIEW,
 	LIGHTPOS
 };
@@ -140,7 +141,7 @@ typedef struct _rect{
 	int x, y, w, h;
 }rect;
 
-renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, int cameratype);
+renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy);
 
 //int render(float ifps, event *e, Scene* s);
 void begin2d();
@@ -151,6 +152,17 @@ void enableDepth();
 
 VertexAttribute** initializeVertexFormat();
 void setVertexAttribute(VertexAttribute** attr, int type, unsigned int count, unsigned int size, unsigned int offset, unsigned int comp, unsigned int vboid);
+
+/////////////////////////
+// MATRICES
+//////////////////
+void setModel(mat4 m );
+void setView(mat4 m);
+void setProjection(mat4 m);
+
+void getModel(mat4 m);
+void getView(mat4 m);
+void getProjection(mat4 m);
 
 //////////
 //TEXTURE SAMPLERS

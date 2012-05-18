@@ -38,32 +38,22 @@ void drawSceneOnce() {
 
     //translada para o centro
     fptranslatef(c2.modelview, -bboxcenter[0], -bboxcenter[1], -bboxcenter[2]);
-    fpMultMatrix(c2.mvp, c2.projection, c2.modelview);
-    setShaderConstant4x4f(shdr2, "mvp", c2.mvp);
-    setShaderConstant4x4f(shdr2, "modelview", c2.modelview);
-    setShaderConstant3x3f(shdr2, "normalmatrix", c2.normalmatrix);
-    setShaderConstant3f(shdr2, "eyepos", c2.pos);
-
+    setView(c2.modelview);
+    setProjection(c2.projection); //TODO isso so precisaria ser calculado/setado 1x
+    setShaderConstant3x3f(shdr2, "normalmatrix", c2.normalmatrix); //TODO normal matrix nao devia ficar na camera
+    setShaderConstant3f(shdr2, "eyepos", c2.pos); //TODO isso devia ser global
 
     //Passa informações da luz pro shader
     Light *l = fplist_getdata(0, cena2->lightList);
-    setShaderConstant3f(shdr2, "lightpos", l->pos);
-    setShaderConstant3f(shdr2, "lightintensity", l->color);
     
     for(int i = 0; i < cena2->meshList->size; i++) {
 	    Mesh *m = fplist_getdata(i, cena2->meshList);
         for(int j = 0; j < m->tris->size; j++) {
             Triangles *tri = fplist_getdata(j, m->tris);
             Material *mat = tri->material;
-            //Passsa material pro shader
-            setShaderConstant3f(shdr2, "ka", mat->ka);
-            setShaderConstant3f(shdr2, "ks", mat->ks);
-            setShaderConstant1f(shdr2, "shininess", mat->shininess);
+	    mat->shdr = shdr2; //TODO isso devia ser setaod em outro lugar
+	    bindMaterial(mat, l);
             
-            if(mat->diffsource == TEXTURE) {
-                bindSamplerState(mat->diffmap->state, 0);
-                bindTexture(mat->diffmap, 0);
-            }
             bindShader(shdr2);
             drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES);
         }
@@ -143,7 +133,7 @@ int main(){
 	setVideoMode(800, 600, 0);
 	warpmouse(  0);
 	setWindowTitle("Post Processing");
-	initializeRenderer(800, 600, 0.1, 10000.0, 45.0, TRACKBALL);
+	initializeRenderer(800, 600, 0.1, 10000.0, 45.0);
 	initializeGame();
 	MainLoop();
 

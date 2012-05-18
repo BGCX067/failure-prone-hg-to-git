@@ -22,4 +22,10 @@ void bindMaterial(Material* m, Light* l ){
 	ambient[3] = 0.1;
 	setShaderConstant4f(m->shdr, "globalAmbient", ambient);
 
+        if(m->diffsource == TEXTURE) {
+            bindSamplerState(m->diffmap->state, 0);
+            bindTexture(m->diffmap, 0);
+        }
+
+
 }

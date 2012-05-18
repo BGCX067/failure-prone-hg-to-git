@@ -1,7 +1,6 @@
 #include "GL3/glew.h"
 #include "GL3/glext.h"
 #include "renderer.h"
-#include "camera.h"
 #include "math/matrix.h"
 #include "../glapp.h"
 #include "../util/image.h"
@@ -83,21 +82,43 @@ int constantTypeSizes[CONSTANT_TYPE_COUNT] = {
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
 renderer* r;
-Camera c;
+mat4 view;
+mat4 projection;
+mat4 model;
 
-float elapsedTime;
+mat4 mvp;
+mat4 modelview;
 
-void beginRender(event *e) { 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-	cameraHandleEvent(&c, e);
-	setupViewMatrix(&c);
-
-	fpMultMatrix(c.mvp, c.projection, c.modelview);
+void setView(mat4 m){
+	memcpy(view, m, sizeof(float)*16);
 }
 
-renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, int cameratype){
+void setModel(mat4 m){
+	memcpy(model, m, sizeof(float)*16);
+}
+
+void setProjection(mat4 m){
+	memcpy(projection, m, sizeof(float)*16);
+}
+
+void getView(mat4 m){
+	memcpy(m, view, sizeof(float)*16);
+}
+
+void getModel(mat4 m){
+	memcpy(m, model, sizeof(float)*16);
+}
+
+void getProjection(mat4 m){
+	memcpy( m, projection, sizeof(float)*16);
+}
+
+renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	r = (renderer*) malloc(sizeof(renderer));
+	fpIdentity(model);
+	fpIdentity(view);
+	fpIdentity(projection);
+	fpIdentity(mvp);
 	textures = fplist_init(free);
 //    r->framebuffers = fparray_init(NULL, free, sizeof(framebuffer));
 	r->fovy = fovy;
@@ -133,11 +154,6 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy, 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
- 	//initCamera(&c, cameratype);
-
-	//fpperspective(c.projection, fovy, ratio, znear, zfar);
-	//fpOrtho(projection, 0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);	
-	//fpIdentity(modelview);
    
 	printf("Renderer inicializado.\n");
 	printGPUMemoryInfo();
@@ -510,9 +526,15 @@ Shader* initializeShader(const char* vertexSource, const char* fragmentSource){
 					uni->semantic = EYEPOS;
 				if (strcmp(uni->name, "time") == 0)
 					uni->semantic = TIME;
-				if (strcmp(uni->name, "mvp") == 0)
+				if (strcmp(uni->name, "model") == 0)
+					uni->semantic = MODEL;
+		        	if (strcmp(uni->name, "view") == 0)
+					uni->semantic = VIEW;
+				if ( strcmp(uni->name, "projection") == 0 )
+					uni->semantic = PROJECTION;
+				if (strcmp(uni->name,"mvp") == 0)
 					uni->semantic = MVP;
-		        if (strcmp(uni->name, "modelview") == 0)
+				if (strcmp(uni->name,"modelview") == 0)
 					uni->semantic = MODELVIEW;
 				newShader->uniforms[numUniforms] = uni;
 				numUniforms++;
@@ -540,30 +562,24 @@ void bindShader(Shader* shdr){
                 glUniform2fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, (float*)shdr->uniforms[i]->data);
             } else if (shdr->uniforms[i]->type == CONSTANT_VEC3){
                 glUniform3fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, (float*)shdr->uniforms[i]->data);
-                //((UNIFORM_FUNC) uniformFuncs[shdr->uniforms[i]->type])(shdr->uniforms[i]->location, shdr->uniforms[i]->size, shdr->uniforms[i]->data);
-                //((UNIFORM_FUNC) uniformFuncs[2])(0, 1, color);
-                //glUniform4fv(shaders[program]->uniforms[i]->location, shaders[program]->uniforms[i]->size, (GLfloat*) shaders[program]->uniforms[i]->data);
             } else if (shdr->uniforms[i]->type == CONSTANT_VEC4){
                 glUniform4fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, (float*)shdr->uniforms[i]->data);
             } else if (shdr->uniforms[i]->type == CONSTANT_FLOAT){
                 glUniform1f(shdr->uniforms[i]->location, *(shdr->uniforms[i]->data));
-            }
-        }else if ( shdr->uniforms[i]->semantic == EYEPOS){
-            setShaderConstant3f(shdr, "eyePosition",  c.pos);
-        }else if (shdr->uniforms[i]->semantic == TIME){
-            //	setShaderConstant1f(program, "Time", ifps);
-            setShaderConstant1f(shdr, "time", elapsedTime);
-        }/*else if  (shdr->uniforms[i]->semantic == MVP){
-           setShaderConstant4x4f(shdr, "mvp", c.mvp);
-           }else if  (shdr->uniforms[i]->semantic == MODELVIEW){
-               setShaderConstant4x4f(shdr, "modelview", c.modelview);*/
-
-               //		else if (r->shaders[program]->uniforms[i]->semantic == LIGHTPOS){
-               //	float lightp[3] = {10.0, 10.0, 10.0 };
-               //			setShaderConstant3f(program, "LightPosition",  lightp);
-           //}
            }
-    }
+        }
+        if  (shdr->uniforms[i]->semantic == MVP){
+		fpMultMatrix(modelview, model, view);
+		fpMultMatrix(mvp, projection, modelview);
+		glUniformMatrix4fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) mvp);
+
+        } else if  (shdr->uniforms[i]->semantic == MODELVIEW){
+		fpMultMatrix(modelview, model, view);
+		glUniformMatrix4fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) modelview);
+	}
+
+   }
+}
 
 int printShaderCompilerLog(unsigned int shader){
 	int compiled;
