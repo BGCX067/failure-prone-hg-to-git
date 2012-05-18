@@ -39,9 +39,7 @@ int Render(event *e, double* dt){
     fptranslatef(c.modelview, -bboxcenter[0], -bboxcenter[1], -bboxcenter[2]);
     setView(c.modelview);
     setProjection(c.projection); //TODO isso so precisaria ser calculado/setado 1x
-    setShaderConstant3x3f(shdr, "normalmatrix", c.normalmatrix);
     setShaderConstant3f(shdr, "eyepos", c.pos);
-
 
     //Passa informações da luz pro shader
     Light *l = fplist_getdata(0, cena->lightList);
@@ -74,10 +72,7 @@ int main(){
 	initializeRenderer(800, 600, 0.1, 10000.0, 45.0);
 	initializeGame();
 	MainLoop();
-
 	closeVideo();
 	return 0;
 }
-
-
 

@@ -88,9 +88,11 @@ mat4 model;
 
 mat4 mvp;
 mat4 modelview;
+mat3 normalmatrix;
 
 void setView(mat4 m){
 	memcpy(view, m, sizeof(float)*16);
+	fpNormalMatrix(normalmatrix, view);
 }
 
 void setModel(mat4 m){
@@ -536,6 +538,8 @@ Shader* initializeShader(const char* vertexSource, const char* fragmentSource){
 					uni->semantic = MVP;
 				if (strcmp(uni->name,"modelview") == 0)
 					uni->semantic = MODELVIEW;
+				if (strcmp(uni->name,"normalmatrix") == 0)
+					uni->semantic = NORMALMATRIX;
 				newShader->uniforms[numUniforms] = uni;
 				numUniforms++;
 			}
@@ -572,10 +576,11 @@ void bindShader(Shader* shdr){
 		fpMultMatrix(modelview, model, view);
 		fpMultMatrix(mvp, projection, modelview);
 		glUniformMatrix4fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) mvp);
-
         } else if  (shdr->uniforms[i]->semantic == MODELVIEW){
 		fpMultMatrix(modelview, model, view);
 		glUniformMatrix4fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) modelview);
+	} else if  (shdr->uniforms[i]->semantic == NORMALMATRIX){
+		glUniformMatrix3fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) normalmatrix);
 	}
 
    }

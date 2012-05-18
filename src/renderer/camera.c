@@ -49,7 +49,7 @@ void setupViewMatrix(Camera *c) {
 		fpIdentity(c->modelview);
         fptranslatef(c->modelview, -c->pos[0], -c->pos[1], -c->pos[2] );
     }
-    fpNormalMatrix(c->normalmatrix, c->modelview);
+    //fpNormalMatrix(c->normalmatrix, c->modelview);
 }
 
 

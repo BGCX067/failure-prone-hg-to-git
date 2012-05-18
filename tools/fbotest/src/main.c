@@ -40,7 +40,6 @@ void drawSceneOnce() {
     fptranslatef(c2.modelview, -bboxcenter[0], -bboxcenter[1], -bboxcenter[2]);
     setView(c2.modelview);
     setProjection(c2.projection); //TODO isso so precisaria ser calculado/setado 1x
-    setShaderConstant3x3f(shdr2, "normalmatrix", c2.normalmatrix); //TODO normal matrix nao devia ficar na camera
     setShaderConstant3f(shdr2, "eyepos", c2.pos); //TODO isso devia ser global
 
     //Passa informações da luz pro shader

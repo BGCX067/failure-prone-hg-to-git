@@ -84,6 +84,7 @@ enum Semantic{
 	PROJECTION,
 	VIEW,
 	MODELVIEW,
+	NORMALMATRIX,
 	LIGHTPOS
 };
 
