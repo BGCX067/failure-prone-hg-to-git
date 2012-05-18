@@ -82,7 +82,7 @@ SRCS		+= $(foreach DIR,$(SRCDIRS),$(subst $(DIR)/,,$(wildcard $(DIR)/*.c)))
 OBJS		= 
 
 # Additional libs to link with.
-LIBS		+= GLU GL X11 Xxf86vm
+LIBS		+= GLU GL X11 Xxf86vm rt
 
 
 # Additional locations for header files
@@ -124,7 +124,7 @@ LIBDIRS		+= /usr/lib /usr/X11R6/lib
 DEFINES		= 
 
 # Compiler optimization options
-OPTFLAGS	=-std=c99 -Wall -pedantic -W
+OPTFLAGS	=-std=c99 -Wall -pedantic -W -D_POSIX_C_SOURCE=199309
 
 # Compiler debug options
 

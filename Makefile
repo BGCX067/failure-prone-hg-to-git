@@ -82,17 +82,17 @@ SRCS		+= $(foreach DIR,$(SRCDIRS),$(subst $(DIR)/,,$(wildcard $(DIR)/*.c)))
 OBJS		= 
 
 # Additional libs to link with.
-LIBS		+= GLU GL X11 Xxf86vm
+LIBS		+= GLU GL X11 Xxf86vm rt
 
 
 # Additional locations for header files
-INCDIRS		+= src src/main src/math src/renderer src/renderer/gl src/util  src/util/procedural src/GL3
+INCDIRS		+= ../../src ../../src/GL3 ../../src/math ../../src/renderer ../../src/util src/
 
 # Additional locations for library files
 LIBDIRS		+= 
 
 # Additional locations for source files
-SRCDIRS		= src src/main src/math src/renderer src/renderer/gl src/util src/util/procedural src/GL3
+SRCDIRS		= ../../src ../../src/GL3 ../../src/math ../../src/renderer ../../src/util src/
 
 # Object files and the target will be placed in this directory with an
 # underscore and the buildname appended (e.g., for the "debug" build: objs_debug/)
@@ -124,7 +124,7 @@ LIBDIRS		+= /usr/lib /usr/X11R6/lib
 DEFINES		= 
 
 # Compiler optimization options
-OPTFLAGS	=-std=c99 -Wall -pedantic -W
+OPTFLAGS	=-std=c99 -Wall -pedantic -W -D_POSIX_C_SOURCE=199309
 
 # Compiler debug options
 
