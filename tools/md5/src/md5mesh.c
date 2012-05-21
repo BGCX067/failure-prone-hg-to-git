@@ -514,7 +514,18 @@ static Mesh* prepareMD5Mesh(md5_model_t *mdl, md5_joint_t *skeleton) {
         memset(tNormals, 0, sizeof(float)*md5mesh->num_verts*3);
         setNormals(tIndices, tVerts, tNormals, md5mesh->num_tris, md5mesh->num_verts);
         addNormals(t, md5mesh->num_verts*3, 3, tNormals);
-        //TODO material
+
+        Material *mat = malloc(sizeof(Material));
+        mat->id = "matid";
+        mat->shininess = 1.0;
+        mat->kd[0] = 0.0; mat->kd[1] = 0.0; mat->kd[2] = 0.0;
+        mat->ks[0] = 0.0; mat->ks[1] = 0.0; mat->ks[2] = 0.0;
+        mat->ka[0] = 0.0; mat->ka[1] = 0.0; mat->ka[2] = 0.0;
+        mat->ke[0] = 0.0; mat->ke[1] = 0.0; mat->ke[2] = 0.0;
+        mat->diffsource = TEXTURE;
+        mat->diffmap = initialize2DTexture(md5mesh->shader);
+        t->material = mat;
+        //TODO ler outros tipos de textura do md5 (normalmap, specular, etc)
     }
     prepareMesh(m);
     return m;

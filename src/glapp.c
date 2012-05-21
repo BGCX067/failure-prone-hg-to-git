@@ -342,7 +342,6 @@ void MainLoop( ){
 		}
 
 		//deveria interpolar o estado aqui
-
 		Update(&evt, &deltaTime);
 		Render(&evt, &deltaTime);
 

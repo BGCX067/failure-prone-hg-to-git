@@ -45,10 +45,12 @@ sprite* initializeSprite(float x, float y, float sizex, float sizey, Shader *s);
 //adiciona varios sprites de uma vez
 int addSprites(sprite* s, char* path, int numframes, float delay);
 //adiciona 1 frame composto por 1 imagem
-int addSprite(sprite* s, char* filename, float delay);
+int addSprite(sprite* s, char* filename, int nrm, float delay);
 void drawSprite(sprite* s, float elapsedtime, int framenum, int flags);
 
 void translateSprite(sprite *s, float tx, float ty);
+
+
 
 #endif
 

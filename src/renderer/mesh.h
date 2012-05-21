@@ -61,7 +61,7 @@ typedef struct _triangles{
 	TexCoord* texCoords[MAX_TEXCOORDS];
 	unsigned int numTexSets;
 
-	Material mat;
+	//Material mat;
     Material *material;
 
     BoundingBox b;

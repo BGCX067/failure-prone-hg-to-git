@@ -15,6 +15,7 @@
 renderer *mainrenderer;
 Camera c;
 Shader *shdr;
+Shader *shdrNrm;
 int spriteOrientation = 0;
 sprite *s;
 sprite* grass;
@@ -130,20 +131,20 @@ int loadStage(char* filename){
 			float y = atof(ezxml_attr(drect, "y"));
 			float sizex = atof(ezxml_attr(drect, "sizex"));
 			float sizey = atof(ezxml_attr(drect, "sizey"));
-		    g1->gfx = initializeSprite(x, y, sizex, sizey, shdr);
-            g1->gfx->pos[2] = g1->layer;
+		    g1->gfx = initializeSprite(x, y, sizex, sizey, shdrNrm);
 		}
 		ezxml_t frame;
 		//primeiro adiciona todos os sprites dele
 		for ( frame = ezxml_child(object, "frame"); frame; frame = frame->next){
 			int numimages =  atoi( ezxml_attr(frame, "numimages") );
 			float delay = atof( ezxml_attr(frame, "delay") );
-
+            int hasNormal = atoi(ezxml_attr(frame, "normal"));
 			if ( numimages == 1 ){
-				addSprite(g1->gfx, frame->txt, 0 );
+				addSprite(g1->gfx, frame->txt, hasNormal, 0 );
 			}else {
 				addSprites(g1->gfx, frame->txt,numimages ,delay );
 			}
+
 		}
 
 		ezxml_t rect = ezxml_child(object, "rect");
@@ -204,8 +205,7 @@ void InitializeGame(){
 
 
     shdr = initializeShader( readTextFile("data/shaders/phong.vert"), readTextFile("data/shaders/phong.frag"));
-    //shdr = initializeShader(SpriteVSSource, SpriteFSSource);
-
+    shdrNrm = initializeShader( readTextFile("data/shaders/phong_normal.vert"), readTextFile("data/shaders/phong_normal.frag"));
 
 	cpInitChipmunk();
 	cpResetShapeIdCounter();
@@ -358,9 +358,6 @@ int Update( event* e, double* dt ){
 	updatephysics(*dt);
     //atualizar posição de todos os sprites dinâmicos
     translateSprite(s, playerInstance.shape->body->p.x - 45.0, playerInstance.shape->body->p.y - 63.0);
-
-	printf("delta time %f \n", *dt);	
-	
 }
 
 int HandleEvent(){
@@ -422,8 +419,8 @@ int Render(event *e, double* dt){
     c.pos[1] = s->pos[1] + s->h*0.5;
     setupViewMatrix(&c);
     fpMultMatrix(c.mvp, c.projection, c.modelview);
-    //setShaderConstant4x4f(shdr, "mvp", c.mvp);
-    //setShaderConstant4x4f(shdr, "modelview", c.modelview);
+    setView(c.modelview);
+    setProjection(c.projection); //TODO isso so precisaria ser calculado/setado 1x
 
 	begin2d();
 
@@ -471,7 +468,7 @@ int main(){
 
 	setVideoMode(800, 600, 0);
 	warpmouse(0);
-	mainrenderer  = initializeRenderer(800,  600, 0.1, 10000.0, 45.0, TRACKBALL);
+	mainrenderer  = initializeRenderer(800,  600, 0.1, 10000.0, 45.0);
 	initializeGUI(800, 600);
 	InitializeGame();
 	MainLoop( );

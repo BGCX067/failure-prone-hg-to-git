@@ -96,8 +96,7 @@ sprite* initializeSprite(float x, float y, float sizex, float sizey, Shader *s){
     return anim;
 }
 
-int addSprite(sprite* s, char* filename, float delay){
-
+int addSprite(sprite* s, char* filename, int nrm, float delay){
 	if (s == NULL || filename == NULL)
 		return 0;
 
@@ -107,7 +106,7 @@ int addSprite(sprite* s, char* filename, float delay){
 	frame->numImages = 1;
 	frame->timeCounter = 0;
 	frame->currentImage = 0;
-
+    frame->normal = NULL;
 
 	frame->images[0] = initialize2DTexture(filename);
 	if (frame->images[0] == NULL){
@@ -115,6 +114,18 @@ int addSprite(sprite* s, char* filename, float delay){
 		printf("File not found: %s \n", filename);
 		return 0;
 	}
+
+    if(nrm == 1) {
+        //Verificar se strtok muda filename
+        char origfilename[strlen(filename) + 1];
+        strcpy(origfilename, filename);
+        char *nrmExt = "_NRM.png";
+        char *prefix = strtok(origfilename, ".");
+        char nrmFilename[strlen(nrmExt) + strlen(origfilename) + 1];
+        strcat(nrmFilename, origfilename);
+        strcat(nrmFilename, nrmExt);
+        frame->normal = initializeTexture(nrmFilename, TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
+    }
 
 	return fparray_insback(frame, s->frames);	
 
@@ -128,6 +139,7 @@ int addSprites(sprite* s, char* path, int numframes, float delay){
 	frame->numImages = numframes;
 	frame->timeCounter = 0;
 	frame->currentImage = 0;
+    frame->normal = NULL;
 
 	int i;
 
@@ -214,6 +226,11 @@ void drawSprite(sprite* s, float elapsedtime, int framenum, int flags){
 
 	bindSamplerState(f->images[f->currentImage]->state, 0);
 	bindTexture( f->images[f->currentImage], 0);
+
+    if(f->normal) {
+        bindSamplerState(f->normal->state, 1);
+        bindTexture( f->normal, 1);
+    }
 	
     extern Camera c;
 	setShaderConstant4x4f(s->shdr, "mvp", c.mvp);
@@ -221,6 +238,7 @@ void drawSprite(sprite* s, float elapsedtime, int framenum, int flags){
 	bindShader(s->shdr);
     drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES);
 	s->lastFrame = framenum;
+    bindShader(0);
 }
 
 
@@ -230,3 +248,4 @@ void translateSprite(sprite *s, float tx, float ty) {
     s->pos[0] = tx;
     s->pos[1] = ty;
 }
+
