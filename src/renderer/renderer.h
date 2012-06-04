@@ -232,6 +232,6 @@ void setShaderConstantRaw(Shader* s, const char *name, const void *data, const i
 // Util
 /////////
 void printGPUMemoryInfo();
-
+void screenshot(char* filename);
 
 #endif

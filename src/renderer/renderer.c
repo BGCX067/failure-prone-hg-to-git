@@ -148,7 +148,6 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	glClearColor( 0.5, 0.5, 0.5, 1.0 );
 	glClearDepth(1.0f);
 	glDepthFunc(GL_LEQUAL);
-	glShadeModel(GL_SMOOTH);
 
 	glClearStencil(0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -793,8 +792,49 @@ int checkFramebufferStatus( int silent)
     return 1;
 }
 
+Framebuffer* initializeFramebuffer(int width, int height){
 
-Framebuffer* initializeFramebuffer(int width, int height) {
+    Framebuffer *fb = malloc(sizeof(Framebuffer));
+    fb->width = width;
+    fb->height = height;
+    glGenFramebuffers(1, &fb->id);
+    glBindFramebuffer(GL_FRAMEBUFFER, fb->id);
+    
+    //fb->tex = initializeTextureFromMemory(0, width, height, TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE);
+
+    fb->tex = malloc(sizeof(Texture));
+    fb->tex->state = initializeSamplerState(CLAMP, GL_NEAREST, GL_NEAREST, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glGenTextures(1, &fb->tex->texid);
+    glBindTexture(TEXTURE_2D, fb->tex->texid);
+
+    fb->tex->target = TEXTURE_2D;
+    glTexImage2D(TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, fb->tex->texid, 0);
+
+    //Cria o depth buffer
+//    glGenRenderbuffers(1, &fb->depthid);
+//    glBindRenderbuffer(GL_RENDERBUFFER, fb->depthid);
+//    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+//    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb->depthid);
+
+    GLenum drawBufs[] = {GL_NONE};
+    glDrawBuffers(1, drawBufs);
+
+//	glDrawBuffer(GL_NONE);
+//	glReadBuffer(GL_NONE);
+
+    checkFramebufferStatus(0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+    return fb;
+
+
+}
+
+Framebuffer* initializeFramebuffer2(int width, int height) {
     //Inicializa o FBO
     Framebuffer *fb = malloc(sizeof(Framebuffer));
     fb->width = width;
@@ -818,11 +858,16 @@ Framebuffer* initializeFramebuffer(int width, int height) {
     //Cria o depth buffer
     glGenRenderbuffers(1, &fb->depthid);
     glBindRenderbuffer(GL_RENDERBUFFER, fb->depthid);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb->depthid);
 
-    GLenum drawBufs[] = {GL_COLOR_ATTACHMENT0};
-    glDrawBuffers(1, drawBufs);
+//    GLenum drawBufs[] = {GL_COLOR_ATTACHMENT0};
+//    glDrawBuffers(1, drawBufs);
+
+//	glDrawBuffer(GL_NONE);
+//	glReadBuffer(GL_NONE);
+
+    checkFramebufferStatus(0);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
@@ -918,3 +963,13 @@ void printGPUMemoryInfo(){
 		printf("GPU Memory Info Not Supported.");
 
 }
+
+void screenshot(char* filename){
+
+	unsigned char* pixels = malloc(sizeof( unsigned char)*r->viewPortWidth*r->viewPortHeight*3);
+	glReadPixels(0, 0, r->viewPortWidth, r->viewPortHeight, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+	stbi_write_tga(filename, r->viewPortWidth, r->viewPortHeight, 3, pixels);
+	free(pixels);
+
+}
+

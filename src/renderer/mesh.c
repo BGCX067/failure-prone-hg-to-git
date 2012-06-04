@@ -262,6 +262,7 @@ void setNormals(unsigned int *tIndices, float *tVerts, float *tNormals,
         tNormals[3*ic] = no[0];
         tNormals[3*ic + 1] = no[1];
         tNormals[3*ic + 2] = no[2];
+	//printf("%d \n", j);
     }
     for(int j = 0; j < verticesCount; j++) {
         vec3 n = { tNormals[3*j], tNormals[3*j + 1], tNormals[3*j + 2] };
