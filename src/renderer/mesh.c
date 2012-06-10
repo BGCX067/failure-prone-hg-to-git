@@ -115,7 +115,7 @@ void setmeshboundingbox(Mesh *m) {
     //para cada triangles da lista
     for(int i = 0; i < m->tris->size; i++) {
         Triangles *t = fplist_getdata(i, m->tris);
-        printf("t->verticesCount: %d\n", t->verticesCount);
+        //printf("t->verticesCount: %d\n", t->verticesCount);
         for(unsigned int j = 0; j < t->verticesCount/3; j++) {
             //X
             if(t->vertices[3*j] < m->b.pmin[0])
@@ -251,7 +251,7 @@ void setNormals(unsigned int *tIndices, float *tVerts, float *tNormals,
         vec3 e2;
         vecSub(icpos, ibpos, e2);
         vec3 no;
-        cross(e1, e2, no);
+        cross(e2, e1, no);
 
         tNormals[3*ia] = no[0];
         tNormals[3*ia + 1] = no[1];

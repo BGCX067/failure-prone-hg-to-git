@@ -1,5 +1,6 @@
 #include "material.h"
 #include "renderer.h"
+#include <stdlib.h>
 
 const char* colorDirVertex = {
 "#version 330 \n\
@@ -34,12 +35,12 @@ void main() { \n\
     vec3 n = normalize(normal); \n\
     vec3 s = normalize(LightPosition - vertexpos); \n\
     vec3 v = normalize(eyepos - vertexpos); \n\
-    vec3 r = reflect(-s, n); \n\
+    vec3 r = reflect(-v, n); \n\
     vec3 kd = vec3(1.0, 0.0, 0.0); \n\
-    vec3 outcolor3 = LightColor*(ka + kd*max(dot(s, n), 0.0) + ks*pow(max(dot(r, v), 0.0), shininess)); \n\
+    vec3 outcolor3 = LightColor*(kd*max(dot(s, n), 0.0)); \n\
     float gamma = 2.2; \n\
     outcolor = vec4(pow(outcolor3, vec3(1.0/gamma)), 1.0); \n\
-    outcolor = vec4(ka, 1.0); \n\
+    //outcolor = vec4(n, 1.0); \n\
 }\n\
 "};
 

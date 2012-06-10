@@ -53,37 +53,55 @@ void initializeGame(){
     int index = 0;
     for (int i = 0; i < 512; i++){
 	for(int j = 0; j < 512; j++){
-
 		//index = i + j*512;
+        
+        //Vert 1
 		vertices[index] = (float)i;
 		vertices[index+1] = terrain[j + i*512];
-		vertices[index+2] = (float)j; 
-		vertices[index+3] = (float)(i+1.0);
-		vertices[index+4] = terrain[j+(i+1)*512];
-		vertices[index+5] = (float)j;
-		vertices[index+6] = (float)i;
-		vertices[index+7] = terrain[(j+1) + i*512];
-		vertices[index+8] = (float)(j+1.0);
+		//vertices[index+1] = 0.0;
+		vertices[index+2] = (float)j;
 
+        //Vert 3
+		vertices[index+3] = (float)i;
+		vertices[index+4] = terrain[(j+1) + i*512];
+		//vertices[index+4] = 0.0; 
+		vertices[index+5] = (float)(j+1.0);
+
+        //Vert 2
+		vertices[index+6] = (float)(i+1.0);
+		vertices[index+7] = terrain[j+(i+1)*512];
+		//vertices[index+7] = 0.0;
+		vertices[index+8] = (float)j;
+
+        //Vert 4
 		vertices[index+9] = (float)i;
 		vertices[index+10] = terrain[(j+1) + i*512];
-		vertices[index+11] = (float)(j+1.0); 
-		vertices[index+12] = (float)(i+1.0);
-		vertices[index+13] = terrain[j+(i+1)*512];
-		vertices[index+14] = (float)j;
-		vertices[index+15] = (float)(i+1.0);
-		vertices[index+16] = terrain[(j+1) + (i+1)*512];
-		vertices[index+17] = (float)(j+1.0);
-		index += 18;
+		//vertices[index+10] = 0.0;
+		vertices[index+11] = (float)(j+1.0);
 
+        //Vert 6
+		vertices[index+12] = (float)(i+1.0);
+		vertices[index+13] = terrain[(j+1) + (i+1)*512];
+		//vertices[index+13] = 0.0;
+		vertices[index+14] = (float)(j+1.0);
+
+        //Vert 5
+		vertices[index+15] = (float)(i+1.0);
+		vertices[index+16] = terrain[j+(i+1)*512];
+		//vertices[index+16] = 0.0;
+		vertices[index+17] = (float)j;
+
+
+		index += 18;
 	}
     }
 
     float* normals = malloc(sizeof(float)*512*512*6*3);
+
     setNormals(indices, vertices, normals, 512*512*2, 512*512*6);
     addVertices(t, 512*512*6*3, 3, vertices);
     addIndices(t, 512*512*6, indices);
-    addNormals(t, 512*512*6, 3, normals);
+    addNormals(t, 512*512*6*3, 3, normals);
     prepareMesh(m);
     addMesh(cena, m);
 
@@ -95,19 +113,19 @@ void initializeGame(){
     char *fragshader = readTextFile("data/shaders/phong.frag");
     shdr = initializeShader(vertshader, fragshader); 
 
-    bbox.pmin[0] = -1.0;
-    bbox.pmin[1] = -1.0;
-    bbox.pmin[2] = -1.0;
-    bbox.pmax[0] = 1.0;
-    bbox.pmax[1] = 1.0;
-    bbox.pmax[2] = -1.0;
+    bbox.pmin[0] = 0.0;
+    bbox.pmin[1] = 0.0;
+    bbox.pmin[2] = 0.0;
+    bbox.pmax[0] = 512.0;
+    bbox.pmax[1] = 0.0;
+    bbox.pmax[2] = 512.0;
     camerafit(&c, bbox, 45.0, 800/600, 0.1, 1000.0);
 
-    l.pos[0]= 0; l.pos[1] = 1000.0; l.pos[2] = 0;
+    l.pos[0]= 256.0; l.pos[1] = 10.0; l.pos[2] = 256.0;
+    l.color[0] = 1.0;
     l.color[1] = 1.0;
     l.color[2] = 1.0;
     l.color[3] = 1.0;
-    l.color[4] = 1.0;
 
     mat = colorMaterialDir();
 
@@ -131,7 +149,7 @@ int Render(event *e, double* dt){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     vec3 bboxcenter;
-    bboxcenter[0] = 50.0;
+    bboxcenter[0] = 256.0;
     bboxcenter[1] = 0.0;
     bboxcenter[2] = 256.0;
     //translada para o centro
@@ -141,7 +159,7 @@ int Render(event *e, double* dt){
     setProjection(c.projection);
     setShaderConstant3f(mat->shdr, "eyepos", c.pos); 
 
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_BACK, GL_LINE);
     bindMaterial(mat, &l); 
     bindShader(mat->shdr);
     drawScene(cena);
