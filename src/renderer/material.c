@@ -28,7 +28,7 @@ uniform vec3 LightPosition; \n\
 uniform vec3 LightColor; \n\
 uniform vec3 ka; \n\
 uniform vec3 ks; \n\
-//uniform vec3 kd; \n\
+uniform vec3 kd; \n\
 uniform float shininess; \n\
 uniform vec3 eyepos; \n\
 void main() { \n\
@@ -36,7 +36,7 @@ void main() { \n\
     vec3 s = normalize(LightPosition - vertexpos); \n\
     vec3 v = normalize(eyepos - vertexpos); \n\
     vec3 r = reflect(-v, n); \n\
-    vec3 kd = vec3(1.0, 0.0, 0.0); \n\
+    //vec3 kd = vec3(1.0, 0.0, 0.0); \n\
     vec3 outcolor3 = LightColor*(kd*max(dot(s, n), 0.0)); \n\
     float gamma = 2.2; \n\
     outcolor = vec4(pow(outcolor3, vec3(1.0/gamma)), 1.0); \n\
@@ -51,23 +51,36 @@ Material* colorMaterialDir(){
 	m->diffmap = NULL;
 
 	m->shininess = 8.0;
-	m->ks[0] = 0.5; m->ks[1] = 0.0; m->ks[2] = 0.0; m->ks[3] = 1.0;
-	m->ka[0] = 0.0; m->ka[1] = 0.5; m->ka[2] = 0.0; m->ka[3] = 1.0;
-	m->kd[0] = 0.0; m->kd[1] = 0.0; m->kd[2] = 0.3; m->kd[3] = 1.0;
-	m->ke[0] = 0.0; m->ke[1] = 0.2; m->ke[2] = 0.0; m->ke[3] = 1.0;
+	m->ks[0] = 0.0; m->ks[1] = 0.0; m->ks[2] = 0.0; m->ks[3] = 1.0;
+	m->ka[0] = 0.0; m->ka[1] = 0.0; m->ka[2] = 0.0; m->ka[3] = 1.0;
+	m->kd[0] = 0.2; m->kd[1] = 0.7; m->kd[2] = 0.2; m->kd[3] = 1.0;
+	m->ke[0] = 0.0; m->ke[1] = 0.0; m->ke[2] = 0.0; m->ke[3] = 1.0;
 
 	m->shdr = initializeShader(colorDirVertex, colorDirFrag);
 
 	return m;
 }
 
-void bindMaterial(Material* m, Light* l ){
+Material* colorMaterialDir2(){
+	Material *m = malloc(sizeof(Material));
 
+	m->diffmap = NULL;
+
+	m->shininess = 8.0;
+	m->ks[0] = 0.0; m->ks[1] = 0.0; m->ks[2] = 0.0; m->ks[3] = 1.0;
+	m->ka[0] = 0.0; m->ka[1] = 0.0; m->ka[2] = 0.0; m->ka[3] = 1.0;
+	m->kd[0] = 0.0; m->kd[1] = 0.0; m->kd[2] = 0.8; m->kd[3] = 1.0;
+	m->ke[0] = 0.0; m->ke[1] = 0.0; m->ke[2] = 0.0; m->ke[3] = 1.0;
+
+	m->shdr = initializeShader(colorDirVertex, colorDirFrag);
+
+	return m;
+}
+void bindMaterial(Material* m, Light* l ){
 	if (!m || !l)
 		return;
 
-	
-	setShaderConstant4f(m->shdr, "kd", m->kd );
+	setShaderConstant3f(m->shdr, "kd", m->kd );
 	setShaderConstant4f(m->shdr, "ka", m->ka );
 	setShaderConstant4f(m->shdr, "ks", m->ks );
 	setShaderConstant1f(m->shdr, "shininess", m->shininess);

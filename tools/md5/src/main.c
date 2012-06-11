@@ -79,14 +79,15 @@ void initializeGame(){
 
     Light *l = malloc(sizeof(Light));
     l->pos[0] = 0.0;
-    l->pos[1] = 10.0;
-    l->pos[2] = 325.0;
+    l->pos[1] = 300.0;
+    l->pos[2] = 100.0;
     l->color[0] = 1.0;
     l->color[1] = 1.0;
     l->color[2] = 1.0;
     l->color[3] = 1.0;
 
     addLight(cena, l);
+    glPolygonMode(GL_BACK, GL_LINE);
 }
 
 int Update(event* e, double *dt){

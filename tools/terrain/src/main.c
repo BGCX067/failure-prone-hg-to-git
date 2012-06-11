@@ -18,7 +18,7 @@ Shader *shdr;
 Camera c;
 BoundingBox bbox;
 Light l;
-Material* mat;
+//Material* mat;
 
 void generateTerrain(int sizex, int sizey){
 	float* terrain = malloc(sizex*sizey*sizeof(float));
@@ -92,6 +92,7 @@ void generateTerrain(int sizex, int sizey){
     prepareMesh(m);
     addMesh(cena, m);
 
+    t->material = colorMaterialDir();
     free(vertices);
     free(normals);
     free(indices);
@@ -181,6 +182,8 @@ void generateSkyDome(int ndiv, float radius) {
     prepareMesh(m);
     addMesh(cena, m);
 
+    t->material = colorMaterialDir2();
+
     free(vertices);
     free(normals);
     free(indices);
@@ -214,8 +217,9 @@ void initializeGame(){
     l.color[1] = 1.0;
     l.color[2] = 1.0;
     l.color[3] = 1.0;
-
-    mat = colorMaterialDir();
+    
+    //mat = colorMaterialDir();
+    glPolygonMode(GL_BACK, GL_LINE);
 }
 
 int Update(event* e, double* dt){
@@ -236,12 +240,30 @@ int Render(event *e, double* dt){
     fpMultMatrix(c.mvp, c.projection, c.modelview);
     setView(c.modelview);
     setProjection(c.projection);
-    setShaderConstant3f(mat->shdr, "eyepos", c.pos); 
+    //setShaderConstant3f(mat->shdr, "eyepos", c.pos); 
 
-    glPolygonMode(GL_BACK, GL_LINE);
-    bindMaterial(mat, &l); 
-    bindShader(mat->shdr);
-    drawScene(cena);
+    //bindMaterial(mat, &l); 
+    //bindShader(mat->shdr);
+    //drawScene(cena);
+    
+    
+    //Desenhar cena
+    if (cena->meshList){
+        Mesh* m = NULL;
+        for( int i = 0; i < cena->meshList->size; i++){ // para da mesh da cena
+            m = fplist_getdata(i, cena->meshList);
+            if (m->tris){
+                Triangles* tri = NULL;
+                for( int k = 0; k < m->tris->size; k++){ //para cada chunk de triangles do mesh
+                    tri = fplist_getdata(k, m->tris);
+                    setShaderConstant3f(tri->material, "eyepos", c.pos); 
+                    bindMaterial(tri->material, &l);
+                    bindShader(tri->material->shdr);
+                    drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES);
+                }
+            }
+        }
+    }
 
     glFlush();
 }

@@ -30,6 +30,7 @@ typedef struct material_{
 void bindMaterial(Material* m, Light* l);
 
 Material* colorMaterialDir();
+Material* colorMaterialDir2();
 Material* colorMateralPoint();
 
 Material* texturedMaterialDir();
