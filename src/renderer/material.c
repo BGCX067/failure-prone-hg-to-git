@@ -71,8 +71,11 @@ Material* colorMaterialDir2(){
 	m->ka[0] = 0.0; m->ka[1] = 0.0; m->ka[2] = 0.0; m->ka[3] = 1.0;
 	m->kd[0] = 0.0; m->kd[1] = 0.0; m->kd[2] = 0.8; m->kd[3] = 1.0;
 	m->ke[0] = 0.0; m->ke[1] = 0.0; m->ke[2] = 0.0; m->ke[3] = 1.0;
-
-	m->shdr = initializeShader(colorDirVertex, colorDirFrag);
+    
+    char *vertshader = readTextFile("data/shaders/skyfromatmosphere.vert");
+    char *fragshader = readTextFile("data/shaders/skyfromatmosphere.frag");
+    m->shdr = initializeShader(vertshader, fragshader); 
+	//m->shdr = initializeShader(colorDirVertex, colorDirFrag);
 
 	return m;
 }

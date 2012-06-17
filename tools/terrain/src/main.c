@@ -219,7 +219,8 @@ void initializeGame(){
     l.color[3] = 1.0;
     
     //mat = colorMaterialDir();
-    glPolygonMode(GL_BACK, GL_LINE);
+    //glPolygonMode(GL_BACK, GL_LINE);
+    glEnable(GL_CULL_FACE);
 }
 
 int Update(event* e, double* dt){
