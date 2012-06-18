@@ -104,7 +104,7 @@ void cameraHandleEvent(Camera *c, event *e) {
             quatNormalize(c->orientation);
         }
     } else if (c->type == TRACKBALL) {
-        if(e->type & MOUSE_MOTION_EVENT && e->buttonLeft ) {
+        if(e->type & MOUSE_MOTION_EVENT && e->buttonRight ) {
             //printf("c->type == TRACKBALL && e->type & MOUSE_BUTTON_PRESS\n");
             if(!initializedtrackball) {
                 //Mapeia de coordenadas de janela para a trackball [-1, 1]
@@ -140,16 +140,14 @@ void cameraHandleEvent(Camera *c, event *e) {
                 lastpos[1] = currpos[1];
                 lastpos[2] = currpos[2];
                 if(phi != 0.0) {
-                    //printf("CAMERA - phi: %f\n", phi);
                     quaternion q;
                     fromAxisAngle(rotaxis, phi, q);
-                    //printf("CAMERA - c->orientation: %f, %f, %f, %f\n", c->orientation[0], c->orientation[1], c->orientation[2], c->orientation[3]);
                     //mult(q, c->orientation, c->orientation);
                     quatMult(c->orientation, q, c->orientation);
                     quatNormalize(c->orientation);
                 }
             }
-        } else if(e->type & MOUSE_BUTTON_RELEASE) {
+        } else if( (e->type & MOUSE_BUTTON_RELEASE) && e->buttonRight) {
             //printf("c->type == TRACKBALL && e->type & MOUSE_BUTTON_RELEASE\n");
             initializedtrackball = 0;
             VEC3_ZERO(lastpos);

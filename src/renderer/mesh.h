@@ -104,6 +104,13 @@ void addTexCoords(Triangles *t, int num, int comp, int texset, float *texcoords)
 void addIndices(Triangles *t, int count, unsigned int *indices);
 void prepareMesh(Mesh *m);
 
+// API pra updatear arrays de geometria do mesh. 
+// TODO talvez fosse bom poder updatear somente parte do array
+// TODO fazer pra texcoords e indices
+// TODO so funciona pra mesh com 1 triangles
+void updateMeshNormals(Mesh* m, float* normals);
+void updateMeshVertices(Mesh* m, float* vertices);
+
 void addAnim(Mesh *m, SkeletalAnim *anim);
 SkeletalAnim* getCurrentAnim(Mesh *m);
 

@@ -310,16 +310,16 @@ void MainLoop( ){
 				case ButtonPress:
 					evt.button |= 1 << (event.xbutton.button - 1);
        					evt.type |= MOUSE_BUTTON_PRESS;
-					evt.buttonLeft = 1;
-					evt.buttonRight = 1;
-					printf("BUTTONPRESS\n");
+					if (event.xbutton.button == 1)
+						evt.buttonLeft = 1;
+					else if (event.xbutton.button == 3)
+						evt.buttonRight = 1;
 					break;
 				case ButtonRelease:
 					evt.button  &= ~( 1 <<event.xbutton.button - 1  );
 					evt.type |= MOUSE_BUTTON_RELEASE;
 					evt.buttonLeft = 0;
 					evt.buttonRight = 0;
-                    printf("BUTTONRELEASE\n");
 					break;
 			}
 

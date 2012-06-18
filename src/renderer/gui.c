@@ -148,8 +148,8 @@ void beginGUI(event* e){
 	glDepthMask( GL_FALSE );
 
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-*/
+*/	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	begin2d();
 	fpOrtho(ortho, 0, gui->w, 0, gui->h, -1.0, 1.0);
 
@@ -212,16 +212,15 @@ void drawRoundedRect( rect* rect,  point* corner, int fillColorId, int borderCol
 
     float xb = corner->x;
     float yb = corner->y;
-
     float x0 = rect->x;
     float x1 = rect->x + corner->x;
     float x2 = rect->x + rect->w - corner->x;
     float x3 = rect->x + rect->w;
-    
     float y0 = rect->y;
     float y1 = rect->y + corner->y;
     float y2 = rect->y + rect->h - corner->y;
     float y3 = rect->y + rect->h;
+
 
     glBegin(GL_TRIANGLE_STRIP);
         glTexCoord2f(xb, yb);
@@ -245,7 +244,7 @@ void drawRoundedRect( rect* rect,  point* corner, int fillColorId, int borderCol
         glVertex2f( x1, y3);
     glEnd();
 
-    glBegin(GL_TRIANGLE_STRIP);
+   glBegin(GL_TRIANGLE_STRIP);
         glTexCoord2f(0, yb);
         glVertex2f( x2, y0);
         glTexCoord2f(xb, yb);
@@ -266,6 +265,7 @@ void drawRoundedRect( rect* rect,  point* corner, int fillColorId, int borderCol
         glTexCoord2f(xb, yb);
         glVertex2f( x3, y3);
     glEnd();
+
     glBegin(GL_TRIANGLE_STRIP);
         glTexCoord2f(0, yb);
         glVertex2f( x1, y0);
@@ -289,6 +289,7 @@ void drawRoundedRect( rect* rect,  point* corner, int fillColorId, int borderCol
     glEnd();
 
 	bindShader(0);
+
 }
 
 void drawDownArrow( rect* rect, int width, int fillColorId, int borderColorId ){
@@ -467,7 +468,7 @@ void doLabel( rect* textRect, char* text ){
 		textRect->y += gui->menuoffsety;
 	}
 	sth_begin_draw(gui->stash);
-	sth_draw_text(gui->stash, 0, 20.0, textRect->x, textRect->y, text, &textRect->x, gui->fontColor[0]);
+	sth_draw_text(gui->stash, 0, 20, textRect->x, textRect->y, text, &textRect->x, gui->fontColor[0]);
 	sth_end_draw(gui->stash);
 }
 
@@ -501,10 +502,14 @@ void endMenu(int id, int x, int y, int w, int h, float* xoffset, float* yoffset)
 	r.h = h;
 
 	int hover = isHover(&r);
-	if (hover && (gui->hotitem == 0))
+	if (hover && (gui->hotitem == 0)){
 		gui->hotitem = id;
+		if (guiEv->buttonLeft && (gui->activeitem == 0)){
+			gui->activeitem = id;
+		}
+	}
 
-	if ( (guiEv->buttonLeft) && hover && gui->hotitem == id){
+	if ( (guiEv->buttonLeft) && hover && gui->hotitem == id && gui->activeitem == id){
 
 	//	if (gui->activeitem == 0){
 	//		gui->activeitem = id;
@@ -523,6 +528,11 @@ void endMenu(int id, int x, int y, int w, int h, float* xoffset, float* yoffset)
 		r.x += xfinal;
 		r.y += yfinal;
 
+	}
+
+	if( !guiEv->buttonLeft && (gui->hotitem == id) && (gui->activeitem == id) ){
+		gui->activeitem = 0;
+		return 1;
 	}
 
 	gui->drawingMenu = 0;
@@ -683,7 +693,6 @@ void doHorizontalSlider(int id, rect* r, float* value){
 		r->y += gui->menuoffsety;
 	}
 
-
 	float min = 0;
 	float max = 1.0;
 
@@ -744,7 +753,7 @@ void doHorizontalSlider(int id, rect* r, float* value){
 	p.x = 2;
 	p.y = 2;
 
-	drawFrame(&rScroll, p, isHover, 0);
+	drawFrame(&rScroll, p, hover, 0);
 
 	rCircle.x += r->x;
 	rCircle.y += r->y;
@@ -825,7 +834,7 @@ void doVerticalSlider(int id, rect* r, float* value){
 	p.x = 2;
 	p.y = 2;
 
-	drawFrame(&rScroll, p, isHover, 0);
+	drawFrame(&rScroll, p, hover, 0);
 
 	rCircle.x += r->x;
 	rCircle.y += r->y;

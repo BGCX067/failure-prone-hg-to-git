@@ -374,7 +374,7 @@ static struct sth_glyph* get_glyph(struct sth_stash* stash, struct sth_font* fnt
 	bmp = (unsigned char*)malloc(gw*gh);
 	if (bmp)
 	{
-		printf("criando bmp \n");
+	//	printf("criando bmp \n");
 		stbtt_MakeGlyphBitmap(&fnt->font, bmp, gw,gh,gw, scale,scale, g);
 		// Update texture
 		glPixelStorei(GL_UNPACK_ALIGNMENT,1);

@@ -35,6 +35,8 @@ float vecLength(vec3 v) {
 
 void vecNormalize(vec3 v) {
     float len = vecLength(v);
+    if (len == 0)
+	return;
     v[0] /= len;
     v[1] /= len;
     v[2] /= len;

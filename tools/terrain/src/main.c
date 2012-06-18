@@ -20,18 +20,96 @@ BoundingBox bbox;
 Light l;
 //Material* mat;
 
-void generateTerrain(int sizex, int sizey){
-	float* terrain = malloc(sizex*sizey*sizeof(float));
+float* terrain;
+unsigned int* indices;
 
-    Mesh* m = initMesh();
-    Triangles* t = addTris(m); 	
+float persistence = 0.1;
+float lacunarity = 0.2;
+float frequency = 0.1;
+float octaves = 6.0/10.0;
 
-    unsigned char* terrainbmp = malloc(sizex*sizey*sizeof (unsigned char));
+Mesh* tMesh;
+Triangles* tTris; 	
+
+
+void changeTerrain(){
+
+    int sizex, sizey;
+    sizex = sizey = 512;
+
     for( int i = 0; i < sizex; i++)
 	for(int j = 0; j < sizey; j++)
-		terrain[j + i*sizex] = fbm2( (float) (i),  (float) (j), 10, 0.01, 4)*10;
+		terrain[j + i*sizex] = fbm2( (float) (i),  (float) (j), frequency/1.0, lacunarity*10.0, persistence/10.0, (int)(octaves*10))*10;
 
-    unsigned int* indices = malloc( sizeof(unsigned int)*sizex*sizey*2*3 );
+    float* vertices = malloc( sizeof(float)*sizex*sizey*6*3 ); //cada tile sao 2 triangulos, com 3 vertices cada com 3 componentes
+
+    int index = 0;
+    for (int i = 0; i < sizex; i++){
+	for(int j = 0; j < sizey; j++){
+		//index = i + j*512;
+        
+        //Vert 1
+		vertices[index] = (float)i;
+		vertices[index+1] = terrain[j + i*sizex];
+		//vertices[index+1] = 0.0;
+		vertices[index+2] = (float)j;
+
+        //Vert 3
+		vertices[index+3] = (float)i;
+		vertices[index+4] = terrain[(j+1) + i*sizex];
+		//vertices[index+4] = 0.0; 
+		vertices[index+5] = (float)(j+1.0);
+
+        //Vert 2
+		vertices[index+6] = (float)(i+1.0);
+		vertices[index+7] = terrain[j+(i+1)*sizex];
+		//vertices[index+7] = 0.0;
+		vertices[index+8] = (float)j;
+
+        //Vert 4
+		vertices[index+9] = (float)i;
+		vertices[index+10] = terrain[(j+1) + i*sizex];
+		//vertices[index+10] = 0.0;
+		vertices[index+11] = (float)(j+1.0);
+
+        //Vert 6
+		vertices[index+12] = (float)(i+1.0);
+		vertices[index+13] = terrain[(j+1) + (i+1)*sizex];
+		//vertices[index+13] = 0.0;
+		vertices[index+14] = (float)(j+1.0);
+
+        //Vert 5
+		vertices[index+15] = (float)(i+1.0);
+		vertices[index+16] = terrain[j+(i+1)*sizex];
+		//vertices[index+16] = 0.0;
+		vertices[index+17] = (float)j;
+
+
+		index += 18;
+	}
+    }
+
+    float* normals = malloc(sizeof(float)*sizex*sizey*6*3);
+
+    setNormals(indices, vertices, normals, sizex*sizey*2, sizex*sizey*6);
+
+    updateMeshNormals(tMesh, normals);
+    updateMeshVertices(tMesh, vertices);
+
+    free(normals);
+    free(vertices);
+
+}
+
+void generateTerrain(int sizex, int sizey){
+
+
+    for( int i = 0; i < sizex; i++)
+	for(int j = 0; j < sizey; j++)
+		terrain[j + i*sizex] = fbm2( (float) (i),  (float) (j), frequency/1.0, lacunarity*10.0, persistence/10.0, (int)(octaves*10))*10;
+//		  terrain[j + i*sizex] = ridgedMulti( (float) (i),  (float) (j), 20.0, 0.09, 2.0, 1.0, 1.0, 6)*10;
+
+    indices = malloc( sizeof(unsigned int)*sizex*sizey*2*3 );
     float* vertices = malloc( sizeof(float)*sizex*sizey*6*3 ); //cada tile sao 2 triangulos, com 3 vertices cada com 3 componentes
 
     for (int i = 0; i < sizex*sizey*6; i++)
@@ -86,17 +164,17 @@ void generateTerrain(int sizex, int sizey){
     float* normals = malloc(sizeof(float)*sizex*sizey*6*3);
 
     setNormals(indices, vertices, normals, sizex*sizey*2, sizex*sizey*6);
-    addVertices(t, sizex*sizey*6*3, 3, vertices);
-    addIndices(t, sizex*sizey*6, indices);
-    addNormals(t, sizex*sizey*6*3, 3, normals);
-    prepareMesh(m);
-    addMesh(cena, m);
+    addVertices(tTris, sizex*sizey*6*3, 3, vertices);
+    addIndices(tTris, sizex*sizey*6, indices);
+    addNormals(tTris, sizex*sizey*6*3, 3, normals);
+    prepareMesh(tMesh);
+    addMesh(cena, tMesh);
 
-    t->material = colorMaterialDir();
+    tTris->material = colorMaterialDir();
     free(vertices);
     free(normals);
-    free(indices);
-    free(terrain);
+    //free(indices);
+//    free(terrain);
 }
 
 static void subdivide(vec3 v1, vec3 v2, vec3 v3, int depth, float *vertices)
@@ -142,7 +220,7 @@ void generateSkyDome(int ndiv, float radius) {
 
     float *vertices = malloc(sizeof(float)*ntris*3*3); // 3 vertices por triangulo, com 3 componentes
     
-    const float X = 0.525731112119133606;
+    const float X = 0.525731112119133606; //TODO MAGIC NUMBERS ?!!
     const float Z = 0.850650808352039932;
 
     vec3 vdata[12];
@@ -189,8 +267,17 @@ void generateSkyDome(int ndiv, float radius) {
     free(indices);
 }
 
+int menux, menuy;
 
 void initializeGame(){
+
+    menux = menuy = 0;
+    tMesh = initMesh();
+    tTris = addTris(tMesh);
+    initializeGUI(800, 600);
+
+    terrain = malloc(512*512*sizeof(float));
+
     cena = initializeScene();
     
     generateTerrain(512, 512);
@@ -219,8 +306,7 @@ void initializeGame(){
     l.color[3] = 1.0;
     
     //mat = colorMaterialDir();
-    //glPolygonMode(GL_BACK, GL_LINE);
-    glEnable(GL_CULL_FACE);
+//    glPolygonMode(GL_BACK, GL_LINE);
 }
 
 int Update(event* e, double* dt){
@@ -228,6 +314,7 @@ int Update(event* e, double* dt){
     setupViewMatrix(&c);
 
 }
+
 
 int Render(event *e, double* dt){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -265,6 +352,31 @@ int Render(event *e, double* dt){
             }
         }
     }
+
+    rect r,  r2, r3, r4, r5, r6, r7, r8, r9;
+    beginGUI(e);
+	beginMenu(1, 200, 300, 250, 150, &menux, &menuy, "Noise" );
+		r.x = 210, r.y = 430;
+		doLabel(&r, "Persistence");
+		r6.x = 310; r6.y = 430;
+		doHorizontalSlider(3, &r6, &persistence);
+		r2.x = 210; r2.y = 410;
+		doLabel(&r2, "Lacunarity");
+		r7.x = 310; r7.y = 410;
+		doHorizontalSlider(4, &r7, &lacunarity);
+		r3.x = 210; r3.y = 390;
+		doLabel(&r3, "Frequency");
+		r8.x = 310; r8.y = 390;
+		doHorizontalSlider(5, &r8, &frequency);
+		r4.x = 210; r4.y = 370;
+		doLabel(&r4, "Octaves");
+		r9.x = 310; r9.y = 370;
+		doHorizontalSlider(6, &r9, &octaves);
+		r5.x = 260; r5.y = 330;
+		if (doButton(2, &r5, "Apply"))
+			changeTerrain();
+	endMenu(1, 200, 300, 200, 150, &menux, &menuy);
+    endGUI();
 
     glFlush();
 }

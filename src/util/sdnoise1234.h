@@ -29,10 +29,6 @@
  * returned, to make it possible to do lots of fun stuff like
  * flow animations, curl noise, analytic antialiasing and such.
  *
- * Visually, this noise is exactly the same as the plain version of
- * simplex noise provided in the file "snoise1234.c". It just returns
- * all partial derivatives in addition to the scalar noise value.
- *
  */
 
 #include <math.h>
@@ -64,16 +60,19 @@ float sdnoise4( float x, float y, float z, float w,
                 float *dnoise_dx, float *dnoise_dy,
                 float *dnoise_dz, float *dnoise_dw);
 
-/** a simple wrapper to sum the noise octaves
-* alpha is the weight when the sum is formed (2 is a good value) 
-* 1 the function is noisier.  beta is the harmonic scaling, (2).
-*/
+/* WRAPERS
+   freq is the frequency of the first octave
+   persisrence controls the roughness, larger values produce rougher noise. persistence determines how quickly the amplitude
+   dimish for successive octaves. 
+   lacunarity specifies the frequency multipler between successive octaves */
+float fbm1(float x, float persistence, float lacunarity, float freq, unsigned int noctaves );
 
-float fbm1(float x, float alpha, float beta, unsigned int noctaves );
+float fbm2(float x, float y, float  persistence, float lacunarity, float freq, unsigned int noctaves);
 
-float fbm2(float x, float y, float  alpha, float beta, unsigned int noctaves);
+float fbm3(float x, float y, float z, float persistence, float lacunarity, float freq, unsigned int noctaves);
 
-float fbm3(float x, float y, float z, float alpha, float beta, unsigned int noctaves);
+// usado pra motanhas pedregrosas ou marmore offset = 1, gain = 2 H = 1.0
+float ridgedMulti(float x, float y,  float lacunarity, float freq, float gain, float offset, float H, unsigned int noctaves);
 
 float turbulence2(float x, float y, float freq, float scale, unsigned int noctaves);
 

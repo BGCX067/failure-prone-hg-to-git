@@ -715,55 +715,57 @@ float sdnoise4( float x, float y, float z, float w,
     return noise;
 }
 
-float fbm1(float x, float alpha, float beta, unsigned int noctaves){
+float fbm1(float x, float persistence, float lacunarity, float freq, unsigned int noctaves){
 
-	float  d, t = 0;
-	float scale = 1;
+	float  d, value = 0;
+	float curPersistence = 1;
+
+	x *= freq;
 	
 	for (unsigned int i = 0; i < noctaves; i++){
-		x *= beta;
-		t += sdnoise1(x, &d)/scale;
-		scale *= alpha;
+		value += sdnoise1(x, &d)*curPersistence;
+		curPersistence *= persistence;
+		x *= lacunarity;
 	}
-	return t;
+	return value;
 }
 
-float fbm2(float x, float y, float weight, float freq, unsigned int noctaves){
+float fbm2(float x, float y, float persistence, float lacunarity, float freq, unsigned int noctaves){
 
-	float d1, d2, t = 0;
-	float scale = 1;
+	float d1, d2, value = 0;
+	float curPersistence = 1;
+
+	x *= freq;
+	y *= freq;
 
 	for (unsigned int i = 0; i < noctaves; i++){
-		x *= freq;
-		y *= freq;
-		t += sdnoise2(x, y, &d1, &d2)/scale;
-		scale *= weight;
-		freq *= 0.5;
+		value += sdnoise2(x, y, &d1, &d2)*curPersistence;
+		curPersistence *= persistence;
+		x *= lacunarity;
+		y *= lacunarity;
 	}
 
-	return t;
+	return value;
 
 }
 
-float fbm3(float x, float y, float z, float alpha, float beta, unsigned int noctaves){
+float fbm3(float x, float y, float z, float persistence, float lacunarity, float freq, unsigned int noctaves){
 
-	alpha = alpha;
+	float  d1, d2, d3, value = 0;
+	float curPersistence = 1;
 
-	float  d1, d2, d3, t = 0;
-	float scale = 1;
-
-	x *= beta;
-	y *= beta;
-	z *= beta;
+	x *= freq;
+	y *= freq;
+	z *= freq;
 	for (unsigned int i = 0; i < noctaves; i++){
-		t += sdnoise3(x, y, z, &d1, &d2, &d3)/scale;
-		x *= beta;
-		y *= beta;
-		z *= beta;
+		value += sdnoise3(x, y, z, &d1, &d2, &d3)*curPersistence;
+		curPersistence *= persistence;
+		x *= lacunarity;
+		y *= lacunarity;
+		z *= lacunarity;
 	}
 
-	return t;
-
+	return value;
 
 }
 
@@ -779,3 +781,51 @@ float turbulence2( float x,  float y, float  freq, float scale, unsigned int noc
         return t;
 }
 
+
+float ridgedMulti(float x, float y, float lacunarity, float freq, float gain, float offset, float H, unsigned int noctaves){
+
+	x *= freq;
+	y *= freq;
+
+	float d1, d2;
+	float signal = 0;
+	float value = 0;
+	float weight = 1.0;
+
+	static int first = 0;
+	static float *exponent_array;
+	if (!first){
+
+		exponent_array = (float*) malloc(sizeof(float)*30); // 30 = max number of octaves
+		for (int i = 0; i < 30; i++){
+			exponent_array[i] = pow(freq, -H);
+			freq *= lacunarity;
+		}
+
+		first = 1;
+	}
+
+	for ( int i = 1; i < noctaves; i++){
+
+		signal = sdnoise3(x, y, (x+y)*lacunarity, &d1, &d2, &d2 );
+		signal = fabs(signal);
+		signal = offset - signal;
+		signal *= signal;
+		signal *= weight;
+
+		weight = signal * gain;
+
+		if (weight > 1.0)
+			weight = 1.0;
+
+		if (weight < 0.0)
+			weight = 0.0;
+
+		value += signal * exponent_array[i];
+
+		x *= lacunarity;
+		y *= lacunarity;
+	}
+
+	return value;
+}

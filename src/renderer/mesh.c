@@ -273,6 +273,26 @@ void setNormals(unsigned int *tIndices, float *tVerts, float *tNormals,
     }
 }
 
+void updateMeshNormals(Mesh* m,  float* normals){
+	Triangles* t = fplist_getdata(0, m->tris);
+	if (t ==NULL)
+		return;
+	float* n = mapVBO(t->normalsVBO, GL_WRITE_ONLY);
+	//TODO pode ser 2
+	memcpy(n, normals, t->normalsCount*sizeof(float));
+	unmapVBO(t->normalsVBO);
+}
+
+void updateMeshVertices(Mesh* m,  float* normals){
+	Triangles* t = fplist_getdata(0, m->tris);
+	if (t ==NULL)
+		return;
+	float* n = mapVBO(t->verticesVBO, GL_WRITE_ONLY);
+	//TODO pode ser 2
+	memcpy(n, normals, t->verticesCount*sizeof(float));
+	unmapVBO(t->verticesVBO);
+}
+
 
 void updateMesh(Mesh* m, Joint *skeleton) {
     for(int i = 0; i < m->tris->size; i++) {
