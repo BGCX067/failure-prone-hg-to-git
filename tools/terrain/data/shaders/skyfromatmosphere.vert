@@ -5,12 +5,12 @@ layout(location = 0) in vec3 inpos;
 //eyepos
 uniform vec3 eyepos;		// The camera's current position
 
-const vec3 v3LightPos = vec3(1.0, 0.0, 0.0);		// The direction vector to the light source
+const vec3 v3LightPos = vec3(0.0, 1.0, 0.0);		// The direction vector to the light source
 
 const vec3 v3InvWavelength = vec3(1.0/pow(0.650, 4.0), 1.0/pow(0.570, 4.0), 1.0/pow(0.475, 4.0));
 
 const float fInnerRadius = 100;		// The inner (planetary) radius
-const float fOuterRadius = fInnerRadius + fInnerRadius*0.25;		// The outer (atmosphere) radius
+const float fOuterRadius = fInnerRadius + fInnerRadius*1.2;		// The outer (atmosphere) radius
 
 vec3 atmosOffset = vec3(0.0, fInnerRadius, 0.0);
 

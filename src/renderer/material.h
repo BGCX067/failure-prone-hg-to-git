@@ -36,4 +36,6 @@ Material* colorMateralPoint();
 Material* texturedMaterialDir();
 Material* texturedMaterialPoint();
 
+Material* volumeMaterial(Texture* t);
+
 #endif

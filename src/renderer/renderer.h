@@ -179,6 +179,7 @@ void bindSamplerState(SamplerState* s, unsigned int slot);
 Texture* initialize2DTexture(char *filename);
 Texture* initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type);
 Texture* initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type);
+Texture* initialize3DTexture(void* data, int xdim, int ydim, int zdim,int imageFormat, int internalFormat, int type);
 void bindTexture(Texture* t, unsigned int slot);
 void destroyTexture(Texture* t);
 

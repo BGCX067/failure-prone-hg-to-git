@@ -280,7 +280,7 @@ void initializeGame(){
 
     cena = initializeScene();
     
-    generateTerrain(512, 512);
+//    generateTerrain(512, 512);
     generateSkyDome(5, 1024);
 
   //  stbi_write_tga("noise.tga", 512, 512, 1, terrainbmp );
@@ -306,7 +306,7 @@ void initializeGame(){
     l.color[3] = 1.0;
     
     //mat = colorMaterialDir();
-//    glPolygonMode(GL_BACK, GL_LINE);
+    glPolygonMode(GL_BACK, GL_LINE);
 }
 
 int Update(event* e, double* dt){

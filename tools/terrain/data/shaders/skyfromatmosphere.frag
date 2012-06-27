@@ -1,6 +1,6 @@
 #version 330
 
-const vec3 v3LightPos = vec3(1.0, 0.0, 0.0);
+const vec3 v3LightPos = vec3(0.0, 1.0, 0.0);
 const float g = -0.999;
 const float g2 = g*g;
 

@@ -392,6 +392,21 @@ Texture* initialize2DTexture(char *filename) {
     return t;
 }
 
+Texture* initialize3DTexture(void *data, int xdim, int ydim, int zdim, int imageFormat, int internalFormat, int type) {
+    Texture *t = malloc(sizeof(Texture));
+    t->state = initializeSamplerState(GL_CLAMP, GL_LINEAR, GL_LINEAR, 0);
+    glGenTextures(1, &t->texid);
+    glBindTexture(GL_TEXTURE_3D, t->texid);
+
+    t->target = GL_TEXTURE_3D;
+    t->internalFormat = internalFormat;
+
+    glTexImage3D(GL_TEXTURE_3D, 0, internalFormat, xdim, ydim, zdim, 0, imageFormat, type, data);
+
+    return t;
+
+}
+
 void bindTexture(Texture* t, unsigned int slot){
 	if (t != NULL){
 		glActiveTexture(GL_TEXTURE0 + slot);
