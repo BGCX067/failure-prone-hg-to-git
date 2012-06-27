@@ -12,6 +12,20 @@
 #include "util/sdnoise1234.h"
 #include "util/image.h"
 #include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    unsigned char isovalue;
+    float r, g, b, a;
+} TransferNode;
+
+typedef struct {
+    unsigned char *voldata;
+    unsigned char *transferdata; //sempre tamanho 256?
+    int xdim, ydim, zdim;
+} VolumetricScene;
+
+
 
 Scene* cena;
 Shader *shdr;
@@ -19,10 +33,26 @@ Camera c;
 BoundingBox bbox;
 Light l;
 
-unsigned char* loadVolumeFromFile(const char *filename) {
-    int xdim, ydim, zdim; //pegar do nome do arquivo
-    xdim = ydim = zdim = 256;
+Triangles *t;
 
+int menux, menuy;
+float alpha = 0.9;
+float samples = 0.5;
+
+char *cenasComboBox[] = {"Bonsai", "Head"};
+char *scenePath[] = {"data/scene1.txt\0", "data/scene2.txt\0"};
+int comboboxState = 0;
+int currScene = 0;
+int prevScene = 0;
+
+VolumetricScene *currVolScene;
+
+char volWidth[50];
+char volHeight[50];
+char volDepth[50];
+
+
+unsigned char* loadVolumeFromFile(const char *filename, int xdim, int ydim, int zdim) {
     const int size = xdim*ydim*zdim;
     unsigned char *data = malloc(size*sizeof(unsigned char));
 
@@ -38,13 +68,135 @@ unsigned char* loadVolumeFromFile(const char *filename) {
     return data;
 }
 
+unsigned char* loadTransferFunction1D(const char* filename) { 
+    unsigned char *data = malloc(256*sizeof(unsigned char)*4);
+    
+    FILE *fp = fopen(filename, "rb");
+    if(fp == NULL) {
+        printf("Problema ao ler o arquivo: %s\n", filename);
+        exit(0);
+    }
+
+    char buff[512];
+    TransferNode *colors;
+    TransferNode *alphas;
+    int nColors;
+    int nAlphas;
+    while (!feof (fp)) {
+        fgets (buff, sizeof (buff), fp);
+        if (strncmp(buff, "\%Color", 6) == 0) {
+            fgets (buff, sizeof (buff), fp);
+            sscanf(buff, "%d", &nColors);
+            colors = malloc(nColors*sizeof(TransferNode));
+            for(int i = 0; i < nColors; i++) {
+                fgets (buff, sizeof (buff), fp);
+                sscanf(buff, "%d %f %f %f", &(colors[i].isovalue), &(colors[i].r), &(colors[i].g), &(colors[i].b));
+            }
+        } else if (strncmp(buff, "\%Alpha", 6) == 0) {
+            fgets (buff, sizeof (buff), fp);
+            sscanf(buff, "%d", &nAlphas);
+            alphas = malloc(nAlphas*sizeof(TransferNode));
+            for(int i = 0; i < nAlphas; i++) {
+                fgets (buff, sizeof (buff), fp);
+                sscanf(buff, "%d %f", &alphas[i].isovalue, &alphas[i].a);
+            }
+        }
+    }
+
+    //TODO interpolar os valores entre os intervalos
+    for(int i = 0; i < nColors - 1; i++) {
+        for(int j = colors[i].isovalue; j <= colors[i + 1].isovalue; j++) {
+            data[4*j] = colors[i].r*255;
+            data[4*j + 1] = colors[i].g*255;
+            data[4*j + 2] = colors[i].b*255;
+        }
+    }
+    
+    for(int i = 0; i < nAlphas - 1; i++) {
+        for(int j = alphas[i].isovalue; j <= alphas[i + 1].isovalue; j++) {
+            data[4*j + 3] = alphas[i].a*255;
+        }
+    }
+
+    free(colors);
+    free(alphas);
+    fclose(fp);
+    return data;
+}
+
+VolumetricScene* loadVolumeScene(const char *filename, Triangles *box) {
+    FILE *fp = fopen(filename, "rb");
+    if(fp == NULL) {
+        printf("Problema ao ler o arquivo: %s\n", filename);
+        return 0;
+    }
+    
+    VolumetricScene *vs = malloc(sizeof(VolumetricScene));
+    char buff[256];
+    while (!feof (fp)) {
+        fgets (buff, sizeof (buff), fp);
+        if (strncmp(buff, "\%VolumeData", 11) == 0) {
+            int xdim, ydim, zdim;
+            //Ler path
+            fgets (buff, sizeof (buff), fp);
+            char path[128];
+            strcpy(path, buff);
+            for(int i = 0; i < 128; i++)
+                if(path[i] == '\n')
+                    path[i] = '\0';
+            fgets (buff, sizeof (buff), fp);
+            sscanf(buff, "xdim %d", &xdim);
+            fgets (buff, sizeof (buff), fp);
+            sscanf(buff, "ydim %d", &ydim);
+            fgets (buff, sizeof (buff), fp);
+            sscanf(buff, "zdim %d", &zdim);
+            
+            vs->voldata = loadVolumeFromFile(path, xdim, ydim, zdim);
+            vs->xdim = xdim;
+            vs->ydim = ydim;
+            vs->zdim = zdim;
+        }
+        if (strncmp(buff, "\%TransferData", 13) == 0) {
+            int useTransferFunc;
+            fgets (buff, sizeof (buff), fp);
+            sscanf(buff, "%d", &useTransferFunc);
+            if(!useTransferFunc) {
+                vs->transferdata = NULL;
+            } else {
+                fgets (buff, sizeof (buff), fp);
+                char path[128];
+                strcpy(path, buff);
+                for(int i = 0; i < 128; i++)
+                    if(path[i] == '\n')
+                        path[i] = '\0';
+                vs->transferdata = loadTransferFunction1D(path);
+            }
+
+        }
+    }
+    fclose(fp);
+
+    Texture *tex = initialize3DTexture(vs->voldata, vs->xdim, vs->ydim, vs->zdim, GL_LUMINANCE, GL_INTENSITY, GL_UNSIGNED_BYTE);
+
+    //Inicializar transfer function
+    if(vs->transferdata) {
+        Texture *tex2 = initializeTextureFromMemory(vs->transferdata, 255, 0, GL_TEXTURE_1D, GL_RGBA, GL_RGBA8, GL_UNSIGNED_BYTE);
+        box->material = volumeMaterialTransfer(tex, tex2);
+    } else {
+        box->material = volumeMaterial(tex);
+    }
+
+    return vs;
+}
+
 void initializeGame(){
+    menux = menuy = 0;
     initializeGUI(800, 600);
 
     cena = initializeScene();
 
     Mesh *m = initMesh();
-    Triangles *t = addTris(m);
+    t = addTris(m);
     float vertices[] = {0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0, //Front1
                         0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, //Front2
                         0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, //Back1
@@ -93,13 +245,18 @@ void initializeGame(){
     addMesh(cena, m);
 
     //Ler o volume do arquivo
-    //unsigned char *volData = loadVolumeFromFile("data/nucleon_41_41_41.raw");
-    unsigned char *volData = loadVolumeFromFile("data/bonsai.raw");
-    Texture *tex = initialize3DTexture(volData, 256, 256, 256, GL_LUMINANCE, GL_INTENSITY, GL_UNSIGNED_BYTE);
-    //Texture *tex = initialize3DTexture(volData, 41, 41, 41, GL_LUMINANCE, GL_LUMINANCE, GL_UNSIGNED_BYTE);
-    free(volData);
-    t->material = volumeMaterial(tex);
-    
+    //const char* initScene = "data/scene2.txt\0";
+    currVolScene = loadVolumeScene(scenePath[currScene], t);
+    if(!currVolScene) {
+        printf("Erro ao ler a cena: %s", scenePath[currScene]);
+        exit(0);
+    }
+
+    sprintf(volWidth, "Volume width: %d", currVolScene->xdim);
+    sprintf(volHeight, "Volume height: %d", currVolScene->ydim);
+    sprintf(volDepth, "Volume depth: %d", currVolScene->zdim);
+
+
     initCamera(&c, TRACKBALL);
     
     bbox.pmin[0] = 0.0;
@@ -115,8 +272,6 @@ void initializeGame(){
     l.color[1] = 1.0;
     l.color[2] = 1.0;
     l.color[3] = 1.0;
-    
-    //glPolygonMode(GL_BACK, GL_LINE);
 }
 
 int Update(event* e, double* dt){
@@ -146,6 +301,10 @@ int Render(event *e, double* dt){
     mat4 invModelview;
     fpInverse(invModelview, c.modelview); 
 
+    vec3 asdf;
+    asdf[0] = alpha;
+    asdf[1] = 0.0;
+    asdf[2] = 0.0;
     //Desenhar cena
     if (cena->meshList){
         Mesh* m = NULL;
@@ -154,8 +313,15 @@ int Render(event *e, double* dt){
             if (m->tris){
                 Triangles* tri = NULL;
                 for( int k = 0; k < m->tris->size; k++){ //para cada chunk de triangles do mesh
+                    vec3 steps;
+                    steps[0] = 100*samples;
+                    steps[1] = 0;
+                    steps[2] = 0;
+
                     tri = fplist_getdata(k, m->tris);
                     setShaderConstant3f(tri->material->shdr, "eyepos", c.pos); 
+                    setShaderConstant3f(tri->material->shdr, "alpha", asdf); 
+                    setShaderConstant3f(tri->material->shdr, "steps", steps);
                     setShaderConstant4x4f(tri->material->shdr, "invModelview", invModelview); 
                     bindMaterial(tri->material, &l);
                     bindShader(tri->material->shdr);
@@ -165,6 +331,46 @@ int Render(event *e, double* dt){
         }
     }
     glDisable(GL_BLEND);
+
+    
+    rect r,  r2, r3, r4, r5, r6, r7, r8, r9;
+    beginGUI(e);
+	beginMenu(1, 200, 300, 250, 150, &menux, &menuy, "RayCast" );
+		r.x = 210, r.y = 430;
+		doLabel(&r, "Alpha");
+		r6.x = 310; r6.y = 430;
+		doHorizontalSlider(3, &r6, &alpha);
+		r2.x = 210; r2.y = 410;
+		doLabel(&r2, "Samples");
+		r7.x = 310; r7.y = 410;
+		doHorizontalSlider(4, &r7, &samples);
+        r5.x = 210; r5.y = 390;
+        doLabel(&r5, volWidth);
+        r7.x = 210; r7.y = 370;
+        doLabel(&r7, volHeight);
+        r8.x = 210; r8.y = 350;
+        doLabel(&r8, volDepth);
+	endMenu(1, 200, 300, 200, 150, &menux, &menuy);
+        r3.x = 20; r3.y = 580;
+        doLabel(&r3, "Cena");
+        r4.x = 80; r4.y = 575;
+        doComboBox(5, &r4, 2, cenasComboBox, &currScene, &comboboxState);
+    endGUI();
+    if(currScene != prevScene) {
+        printf("currscene: %d; prevScene: %d\n", currScene, prevScene);
+        //deleta o volume anterior
+        free(currVolScene->voldata);
+        if(currVolScene->transferdata)
+            free(currVolScene->transferdata);
+        free(currVolScene);
+        currVolScene = loadVolumeScene(scenePath[currScene], t);
+        prevScene = currScene;
+
+        sprintf(volWidth, "Volume width: %d", currVolScene->xdim);
+        sprintf(volHeight, "Volume height: %d", currVolScene->ydim);
+        sprintf(volDepth, "Volume depth: %d", currVolScene->zdim);
+    }
+
     glFlush();
 }
 

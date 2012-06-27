@@ -94,11 +94,34 @@ Material *volumeMaterial(Texture *t) {
 	m->kd[0] = 0.0; m->kd[1] = 0.0; m->kd[2] = 0.0; m->kd[3] = 1.0;
 	m->ke[0] = 0.0; m->ke[1] = 0.0; m->ke[2] = 0.0; m->ke[3] = 1.0;
     
-    char *vertshader = readTextFile("data/shaders/phong.vert");
-    char *fragshader = readTextFile("data/shaders/phong.frag");
+    char *vertshader = readTextFile("data/shaders/volume.vert");
+    char *fragshader = readTextFile("data/shaders/volume.frag");
     m->shdr = initializeShader(vertshader, fragshader); 
 
     return m;
+}
+
+
+Material* volumeMaterialTransfer(Texture* volData, Texture* transferData) {
+    Material *m = malloc(sizeof(Material));
+
+    m->diffsource = TEXTURE;
+    m->diffmap = volData;
+
+    m->transfermap = transferData;
+
+    m->shininess = 0.0;
+    m->ks[0] = 0.0; m->ks[1] = 0.0; m->ks[2] = 0.0; m->ks[3] = 1.0;
+	m->ka[0] = 0.0; m->ka[1] = 0.0; m->ka[2] = 0.0; m->ka[3] = 1.0;
+	m->kd[0] = 0.0; m->kd[1] = 0.0; m->kd[2] = 0.0; m->kd[3] = 1.0;
+	m->ke[0] = 0.0; m->ke[1] = 0.0; m->ke[2] = 0.0; m->ke[3] = 1.0;
+    
+    char *vertshader = readTextFile("data/shaders/volume.vert");
+    char *fragshader = readTextFile("data/shaders/volumeTransfer.frag");
+    m->shdr = initializeShader(vertshader, fragshader); 
+
+    return m;
+
 }
 
 void bindMaterial(Material* m, Light* l ){
@@ -123,5 +146,10 @@ void bindMaterial(Material* m, Light* l ){
     if(m->diffsource == TEXTURE) {
         bindSamplerState(m->diffmap->state, 0);
         bindTexture(m->diffmap, 0);
+    }
+
+    if(m->transfermap ) {
+        bindSamplerState(m->transfermap->state, 1);
+        bindTexture(m->transfermap, 1);
     }
 }

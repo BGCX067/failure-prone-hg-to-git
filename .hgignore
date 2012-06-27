@@ -22,6 +22,9 @@
 ^tools/fbotest/objs_optimized$
 ^tools/2dstuff/deps_optimized
 ^tools/2dstuff/objs_optimized
+^tools/raycast/deps_optimized
+^tools/raycast/objs_optimized
+
 
 
 

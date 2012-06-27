@@ -56,5 +56,8 @@ void endMenu(int id, int x, int y, int w, int h, float* xoffset, float* yoffset)
 void plot1d(float* serie, int num, int x, int y, int w, int h, int r, int g, int b);
 
 
+int doComboBox(int id, rect* r, int numOptions, char* options[], int* selected, int * state);
+
+
 #endif
 

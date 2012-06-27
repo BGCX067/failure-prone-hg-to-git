@@ -351,6 +351,8 @@ Texture* initializeTextureFromMemory(void* data, int x, int y, int target, int i
     t->internalFormat = internalFormat;
     if ((target == TEXTURE_2D) || (target == TEXTURE_RECTANGLE) ){
 		glTexImage2D(target, 0, internalFormat, x, y, 0, imageFormat, type, data);
+    } else if (target == TEXTURE_1D) {
+        glTexImage1D(target, 0, internalFormat, x, 0, imageFormat, type, data);
     }
     return t;
 }
@@ -564,6 +566,7 @@ Shader* initializeShader(const char* vertexSource, const char* fragmentSource){
 	return newShader;
 }
 
+//bug
 void bindShader(Shader* shdr){
 	if (shdr == NULL)
 		return;    
@@ -583,6 +586,7 @@ void bindShader(Shader* shdr){
             } else if (shdr->uniforms[i]->type == CONSTANT_VEC4){
                 glUniform4fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, (float*)shdr->uniforms[i]->data);
             } else if (shdr->uniforms[i]->type == CONSTANT_FLOAT){
+                //printf("enviando 1f: %d, %f\n", shdr->uniforms[i]->location, *(shdr->uniforms[i]->data));
                 glUniform1f(shdr->uniforms[i]->location, *(shdr->uniforms[i]->data));
            }
         }

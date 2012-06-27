@@ -18,6 +18,7 @@ typedef struct material_{
     //TODO outras texturas (specular map, normal map, etc)
     Texture *diffmap;
     int diffsource;
+    Texture *transfermap;
 
 
     //FIXME so precisa pra hora de ler do arquivo também
@@ -37,5 +38,6 @@ Material* texturedMaterialDir();
 Material* texturedMaterialPoint();
 
 Material* volumeMaterial(Texture* t);
+Material* volumeMaterialTransfer(Texture* volData, Texture* transferData);
 
 #endif
