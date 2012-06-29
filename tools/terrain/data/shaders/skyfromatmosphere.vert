@@ -3,7 +3,7 @@
 layout(location = 0) in vec3 inpos;
 
 //eyepos
-uniform vec3 eyepos;		// The camera's current position
+//uniform vec3 eyepos;		// The camera's current position
 
 const vec3 v3LightPos = vec3(0.0, 1.0, 0.0);		// The direction vector to the light source
 
@@ -44,7 +44,7 @@ float scale(float fCos)
 
 void main(void)
 {
-    vec3 v3CameraPos = eyepos + atmosOffset;
+    vec3 v3CameraPos = atmosOffset;
     float fCameraHeight = v3CameraPos.y;//length(v3CameraPos);
 
     float fScale = 1.0/(fOuterRadius - fInnerRadius);

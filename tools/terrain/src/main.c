@@ -18,7 +18,6 @@ Shader *shdr;
 Camera c;
 BoundingBox bbox;
 Light l;
-//Material* mat;
 
 float* terrain;
 unsigned int* indices;
@@ -280,7 +279,7 @@ void initializeGame(){
 
     cena = initializeScene();
     
-//    generateTerrain(512, 512);
+    generateTerrain(512, 512);
     generateSkyDome(5, 1024);
 
   //  stbi_write_tga("noise.tga", 512, 512, 1, terrainbmp );
@@ -306,7 +305,7 @@ void initializeGame(){
     l.color[3] = 1.0;
     
     //mat = colorMaterialDir();
-    glPolygonMode(GL_BACK, GL_LINE);
+    //glPolygonMode(GL_BACK, GL_LINE);
 }
 
 int Update(event* e, double* dt){
@@ -328,12 +327,6 @@ int Render(event *e, double* dt){
     fpMultMatrix(c.mvp, c.projection, c.modelview);
     setView(c.modelview);
     setProjection(c.projection);
-    //setShaderConstant3f(mat->shdr, "eyepos", c.pos); 
-
-    //bindMaterial(mat, &l); 
-    //bindShader(mat->shdr);
-    //drawScene(cena);
-    
     
     //Desenhar cena
     if (cena->meshList){
@@ -344,7 +337,7 @@ int Render(event *e, double* dt){
                 Triangles* tri = NULL;
                 for( int k = 0; k < m->tris->size; k++){ //para cada chunk de triangles do mesh
                     tri = fplist_getdata(k, m->tris);
-                    setShaderConstant3f(tri->material, "eyepos", c.pos); 
+                    setShaderConstant3f(tri->material->shdr, "eyepos", c.pos); 
                     bindMaterial(tri->material, &l);
                     bindShader(tri->material->shdr);
                     drawIndexedVAO(tri->vaoId, tri->indicesCount, GL_TRIANGLES);

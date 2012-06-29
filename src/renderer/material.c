@@ -45,10 +45,10 @@ void main() { \n\
 "};
 
 Material* colorMaterialDir(){
-
 	Material *m = malloc(sizeof(Material));
-
-	m->diffmap = NULL;
+    memset(m, 0, sizeof(Material));
+    
+    m->diffsource = VEC;
 
 	m->shininess = 8.0;
 	m->ks[0] = 0.0; m->ks[1] = 0.0; m->ks[2] = 0.0; m->ks[3] = 1.0;
@@ -63,8 +63,8 @@ Material* colorMaterialDir(){
 
 Material* colorMaterialDir2(){
 	Material *m = malloc(sizeof(Material));
+    memset(m, 0, sizeof(Material));
 
-	m->diffmap = NULL;
     m->diffsource = VEC;
 
 	m->shininess = 8.0;
@@ -87,6 +87,7 @@ Material *volumeMaterial(Texture *t) {
 
     m->diffsource = TEXTURE;
     m->diffmap = t;
+    m->transfermap = NULL;
 
     m->shininess = 0.0;
     m->ks[0] = 0.0; m->ks[1] = 0.0; m->ks[2] = 0.0; m->ks[3] = 1.0;
@@ -148,7 +149,7 @@ void bindMaterial(Material* m, Light* l ){
         bindTexture(m->diffmap, 0);
     }
 
-    if(m->transfermap ) {
+    if(m->transfermap) {
         bindSamplerState(m->transfermap->state, 1);
         bindTexture(m->transfermap, 1);
     }
