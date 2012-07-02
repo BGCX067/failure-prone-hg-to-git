@@ -147,7 +147,7 @@ void cameraHandleEvent(Camera *c, event *e) {
                     quatNormalize(c->orientation);
                 }
             }
-        } else if( (e->type & MOUSE_BUTTON_RELEASE) && e->buttonRight) {
+        } else if(e->type & MOUSE_BUTTON_RELEASE) {
             //printf("c->type == TRACKBALL && e->type & MOUSE_BUTTON_RELEASE\n");
             initializedtrackball = 0;
             VEC3_ZERO(lastpos);

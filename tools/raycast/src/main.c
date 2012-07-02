@@ -332,7 +332,7 @@ int Render(event *e, double* dt){
     }
     glDisable(GL_BLEND);
 
-    
+    int newScene = currScene;   
     rect r,  r2, r3, r4, r5, r6, r7, r8, r9;
     beginGUI(e);
 	beginMenu(1, 200, 300, 250, 150, &menux, &menuy, "RayCast" );
@@ -354,9 +354,11 @@ int Render(event *e, double* dt){
         r3.x = 20; r3.y = 580;
         doLabel(&r3, "Cena");
         r4.x = 80; r4.y = 575;
-        doComboBox(5, &r4, 2, cenasComboBox, &currScene, &comboboxState);
+        doComboBox(5, &r4, 2, cenasComboBox, &newScene, &comboboxState);
     endGUI();
-    if(currScene != prevScene) {
+    if(currScene != newScene) {
+        prevScene = currScene;
+        currScene = newScene;
         printf("currscene: %d; prevScene: %d\n", currScene, prevScene);
         //deleta o volume anterior
         free(currVolScene->voldata);

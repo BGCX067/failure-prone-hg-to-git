@@ -8,6 +8,7 @@
 #include "renderer/gui.h"
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 
 Scene* cena;
 Shader *shdr;
