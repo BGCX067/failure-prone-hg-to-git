@@ -82,6 +82,28 @@ Material* colorMaterialDir2(){
 }
 
 //
+Material* texturedMaterialDir(Texture *t) {
+    Material *m = malloc(sizeof(Material));
+
+    m->diffsource = TEXTURE;
+    m->diffmap = t;
+    m->transfermap = NULL;
+
+    m->shininess = 0.0;
+    m->ks[0] = 0.0; m->ks[1] = 0.0; m->ks[2] = 0.0; m->ks[3] = 1.0;
+	m->ka[0] = 0.0; m->ka[1] = 0.0; m->ka[2] = 0.0; m->ka[3] = 1.0;
+	m->kd[0] = 0.0; m->kd[1] = 0.0; m->kd[2] = 0.0; m->kd[3] = 1.0;
+	m->ke[0] = 0.0; m->ke[1] = 0.0; m->ke[2] = 0.0; m->ke[3] = 1.0;
+
+    char *vertshader = readTextFile("data/shaders/vertshader.vert");
+    char *fragshader = readTextFile("data/shaders/fragshader.frag");
+    m->shdr = initializeShader(vertshader, fragshader); 
+
+    return m;
+}
+
+
+
 Material *volumeMaterial(Texture *t) {
     Material *m = malloc(sizeof(Material));
 

@@ -34,10 +34,11 @@ Material* colorMaterialDir();
 Material* colorMaterialDir2();
 Material* colorMateralPoint();
 
-Material* texturedMaterialDir();
-Material* texturedMaterialPoint();
+Material* texturedMaterialDir(Texture *t);
+//Material* texturedMaterialPoint();
 
 Material* volumeMaterial(Texture* t);
 Material* volumeMaterialTransfer(Texture* volData, Texture* transferData);
+
 
 #endif

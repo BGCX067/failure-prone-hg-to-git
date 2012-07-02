@@ -24,7 +24,8 @@
 ^tools/2dstuff/objs_optimized
 ^tools/raycast/deps_optimized
 ^tools/raycast/objs_optimized
-
+^tools/voronoi/deps_optimized
+^tools/voronoi/objs_optimized
 
 
 
