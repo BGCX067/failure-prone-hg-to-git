@@ -26,7 +26,8 @@
 ^tools/raycast/objs_optimized
 ^tools/voronoi/deps_optimized
 ^tools/voronoi/objs_optimized
-
+^tools/matriz/deps_optimized
+^tools/matriz/objs_optimized
 
 
 

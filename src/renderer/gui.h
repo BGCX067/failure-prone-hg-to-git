@@ -37,6 +37,15 @@ typedef struct _GUI{
 	float menuoffsetx,menuoffsety;
 }GUI;
 
+typedef struct _matrix{
+
+	int sizex;
+	int sizey;
+	float* data;
+
+}MatrixData;
+
+
 int initializeGUI(int w, int h);
 void beginGUI(event *e);
 void endGUI();
@@ -58,6 +67,6 @@ void plot1d(float* serie, int num, int x, int y, int w, int h, int r, int g, int
 
 int doComboBox(int id, rect* r, int numOptions, char* options[], int* selected, int * state);
 
-
+int doMatrix(MatrixData* a, float x, float y, float size);
 #endif
 

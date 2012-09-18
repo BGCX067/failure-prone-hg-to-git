@@ -176,12 +176,12 @@ int isHover(rect *r){
 
 void drawRect(rect* r, int fillColor, int borderColor){
 
-	bindShader(gui->widgetShader);	
 	setShaderConstant4f(gui->widgetShader, "fillColor", gui->widgetColor[fillColor]);
 	setShaderConstant4f(gui->widgetShader, "borderColor", gui->borderColor[borderColor] );
 	setShaderConstant4x4f(gui->widgetShader, "ortho", ortho);
 	float zones[] = {0.0, 0.0};
 	setShaderConstant2f(gui->widgetShader, "zones", zones);
+	bindShader(gui->widgetShader);	
 
 	float x0 = r->x;
 	float x1 = r->x + r->w;
@@ -199,6 +199,41 @@ void drawRect(rect* r, int fillColor, int borderColor){
 
 	bindShader(0);
 }
+
+
+int doMatrix(MatrixData* m, float x, float y, float size){
+
+	int sizex = 24;
+	int sizey = 24;
+
+	rect r;
+	r.x = x + 5;
+	r.y = y + 5;
+	r.h = size;
+	r.w = size;
+
+	int j2 = 23;
+
+	for (int i = 0; i < sizex; i++){
+		for (int j = 23; j >=0; j--){
+			if (m->data[i + 24*(j)] != 0 ){
+				gui->widgetColor[0][0] = 17.0/255.0; gui->widgetColor[0][1] = 246.0/255.0; gui->widgetColor[0][2] = 250.0/255.0; gui->widgetColor[0][3] = 0.7;
+			}else{
+				gui->widgetColor[0][0] = 89.0/255.0; gui->widgetColor[0][1] = 89.0/255.0; gui->widgetColor[0][2] = 89.0/255.0; gui->widgetColor[0][3] = 0.7; 
+			}
+			drawRect(&r, 0 , 1);
+			r.y += r.h+1;
+			gui->widgetColor[0][0] = 89.0/255.0; gui->widgetColor[0][1] = 89.0/255.0; gui->widgetColor[0][2] = 89.0/255.0; gui->widgetColor[0][3] = 0.7;
+		}
+		r.y = y + 5;
+		r.x += r.w+1;
+		j2--;
+	}
+
+
+	return 1;
+}
+
 
 void drawRoundedRect( rect* rect,  point* corner, int fillColorId, int borderColorId ){
 
