@@ -1,0 +1,8 @@
+%VolumeData 
+data/vismale.raw
+xdim 128
+ydim 256
+zdim 256
+%TransferData 
+1
+data/transfer_func1.txt

@@ -1,0 +1,42 @@
+Sistemas Atuais
+- renderizar melhor as fontes
+- fazer gui poder ser texturizada
+- fazer sistema de salas
+- poder usar outras resolucoes alem de 800x600
+- sistema de camera diferente (aproximando das bordas para mover e zoom in/out)
+- melhorar as luzes (depende se usar  deferred)
+- melhorar o material
+- facilitar o uso de animacoes (exemplo, funcoes MoveMobToLocation())
+
+Sistemas Novos - Renderer
+- sombras
+- particulas
+- deferred shading (ja que teremos muitas luzes por sala)
+- glow
+
+Sistemas do Game
+- desenhar grid da torre
+- sistema de save/load game
+- sistema de ler dados tipo atributos/status/etc (usar xml ou um cfg ?)
+- pathfiding dos mobs
+- sistema de 'gastar tempo' (estudar novas magias, coletar reagentes, extrair mana, copiar textos, viajar, etc)
+- IA dos mobs goons
+- IA dos allies
+- classes dos allies
+- classes dos goons
+- sistemas de skills (comprar/evoluir/especializar/usar)
+- gerador de nomes aleatorios
+- sistemas de livros
+- construcao da torre (novos andares)
+- implementacao dos tipos de salas
+- fazer selecao do ambiente da torre poder alterar propriedades dela
+- sistema de lealdade dos mobs (goons e allies) com o mago
+- sistema de expedicoes
+- sistema de familiar (vantagens e desvantagens dos familiares, do familiar e do mago)
+- definir recursos e sistema de consegui-los (mana, gold, etc)
+- sistema de ordem de magia
+- escolher a escola de magia (alquimia, demonologia, wicca, etc) cada escola tem um sistema de uso
+- sistema de aprender magias
+- relacoes do mago com outros magos
+- relacoes do mago com moradores proximos
+- vantagens e desvantagens da torre

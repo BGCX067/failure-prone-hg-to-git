@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<glowfalls>
+	<object layer = "0">
+		<frame delay="0", numimages = "1", normal = "1">data/sprites/longgrass_1.png</frame>
+		<drawrect x="0", y= "10", sizex = "800", sizey = "100" />
+		<rect  x="0", y= "0", sizex = "800", sizey = "100" />
+	</object>
+    <object layer = "0">
+		<frame delay="0", numimages = "1", normal = "1">data/sprites/longgrass_1.png</frame>
+		<drawrect x="800", y= "10", sizex = "800", sizey = "100" />
+		<rect  x="800", y= "0", sizex = "800", sizey = "100" />
+	</object>
+    <object layer = "0">
+		<frame delay="0", numimages = "1", normal = "1">data/sprites/longgrass_1.png</frame>
+		<drawrect x="1600", y= "10", sizex = "800", sizey = "100" />
+		<rect  x="1600", y= "0", sizex = "800", sizey = "100" />
+	</object>
+    <object layer = "0">
+		<frame delay="0", numimages = "1", normal = "1">data/sprites/longgrass_1.png</frame>
+		<drawrect x="2400", y= "10", sizex = "800", sizey = "100" />
+		<rect  x="2400", y= "0", sizex = "800", sizey = "100" />
+	</object>
+    <object layer = "0">
+		<frame delay="0", numimages = "1", normal = "1">data/sprites/longgrass_1.png</frame>
+		<drawrect x="3300", y= "10", sizex = "800", sizey = "100" />
+		<rect  x="3300", y= "0", sizex = "800", sizey = "100" />
+	</object>
+	<object layer = "-1">
+		<frame delay="0", numimages = "1", normal = "1">data/sprites/backtree1.png</frame>
+		<drawrect x="600", y= "85", sizex = "80", sizey = "400" />
+	</object>
+	<object layer = "-1">
+		<frame delay="0", numimages = "1", normal = "1">data/sprites/backtree1.png</frame>
+		<drawrect x="500", y= "85", sizex = "80", sizey = "400" />
+	</object>
+	<object layer = "-1">
+		<frame delay="0", numimages = "1", normal = "1">data/sprites/backtree1.png</frame>
+		<drawrect x="400", y= "85", sizex = "80", sizey = "400" />
+	</object>
+	<object layer = "1">
+		<frame delay="0", numimages = "1", normal = "1">data/sprites/front_planta.png</frame>
+		<drawrect x="170", y= "70", sizex = "280", sizey = "100" />
+	</object>
+
+
+</glowfalls>

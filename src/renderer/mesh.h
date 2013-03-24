@@ -1,0 +1,127 @@
+#ifndef _MESH_H_
+#define _MESH_H_
+
+#include "math/boundingbox.h"
+#include "math/quaternion.h"
+#include "math/matrix.h"
+#include "material.h"
+#include "vertexattribute.h"
+
+#define MAX_TEXCOORDS 8
+
+typedef struct _texcoord{
+	unsigned int count;
+	unsigned int set;
+	unsigned short int components;
+	float* texCoords;
+}TexCoord;
+
+typedef struct _joint {
+    int parent;
+    vec3 pos;
+    quaternion orientation;
+}Joint;
+
+//TODO armazenar boundingbox
+typedef struct SkeletalAnim {
+    int numFrames, numJoints, frameRate;
+    Joint **skelFrames;
+    struct SkeletalAnim *prev, *next;
+}SkeletalAnim;
+
+//TODO eliminar pos do weight para que ele fique mais genérico
+typedef struct _md5weight {
+    int joint;
+    float factor;
+    vec3 pos;
+}Weight;
+
+typedef struct {
+    int start;
+    int count;
+}VertexWeightInfo;
+
+typedef struct Mesh{
+    //OpenGL related
+	unsigned int indicesId, vaoId;
+    //TODO: se usar vertexattrib, não precisa desses ids, guardar na propria struct
+    unsigned int verticesVBO, normalsVBO, texVBO[MAX_TEXCOORDS], binormalsVBO, tangentsVBO, colorsVBO;
+    VertexAttribute *attrs[MAX_VERTEX_ATTRS];
+
+	unsigned int indicesCount, verticesCount, normalsCount, tangentsCount, binormalsCount, colorsCount;
+	unsigned int verticesComponents;
+	unsigned int totalAttrs;
+	unsigned int* indices; //pode ser short
+	float* vertices;
+	float* normals;
+	float* tangents;
+	float* binormals;
+    float* colors;
+
+	TexCoord* texCoords[MAX_TEXCOORDS];
+	unsigned int numTexSets;
+
+    Material *material;
+
+    BoundingBox b;
+
+    unsigned int numweights;
+    Weight *weights;
+    VertexWeightInfo *weightInfo;
+
+    //temporario só pra teste
+    mat4 transform;
+
+    //informações da lista de meshes
+    struct Mesh *prev, *next;
+}Mesh;
+
+
+//FIXME tem que fazer um initialize pro AnimatedMesh que pelo menos faça animList = NULL;
+typedef struct _mesh{
+    int animated, currAnim;
+    SkeletalAnim *animList;
+    BoundingBox b;
+}AnimatedMesh;
+
+
+//TODO encapsular melhor usando struct auxiliar
+typedef struct MeshElem {
+    struct MeshElem *prev, *next;
+    Mesh *m;
+}MeshElem;
+
+int meshElemCmp(MeshElem *el1, MeshElem *el2);
+
+void setMeshBoundingBox(Mesh *m);
+
+Mesh* initMesh();
+void addVertices(Mesh *m, int num, int comp, float *vertices);
+void addNormals(Mesh *m, int num, int comp, float *normals);
+void addTexCoords(Mesh *m, int num, int comp, int texset, float *texcoords);
+void addIndices(Mesh *m, int count, unsigned int *indices);
+void addColors(Mesh *m, int count, float *colors);
+void prepareMesh(Mesh *m);
+
+// API pra updatear arrays de geometria do mesh. 
+// TODO talvez fosse bom poder updatear somente parte do array
+// TODO fazer pra texcoords e indices
+void updateMeshNormals(Mesh* m, float* normals);
+void updateMeshVertices(Mesh* m, float* vertices);
+void updateMeshColors(Mesh* t, float* colors);
+
+void addAnim(AnimatedMesh *m, SkeletalAnim *anim);
+SkeletalAnim* getCurrentAnim(AnimatedMesh *m);
+
+//Calcula normais assumindo que índices e vértices são dados
+void setNormals(unsigned int *tIndices, float *tVerts, float *tNormals, 
+                int indicesCount, int verticesCount);
+
+//Calcula as novas posições do vértices e normais do mesh
+//dado o skeleton
+//void updateMesh(Mesh* m, Joint *skeleton);
+
+//Interpola de 2 Skeletons
+void interpolateSkeletons(const Joint *skelA, const Joint *skelB,
+                          int numJoints, float interp, Joint *out);
+#endif

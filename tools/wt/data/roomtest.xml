@@ -1,0 +1,155 @@
+<?xml version="1.0"?>
+<wizard-tower>
+	<room id = "0" name = "Council Chamber">
+        <numrows>1</numrows>
+        <numcols>1</numcols>
+        <color>1.0 0.0 1.0</color>
+	    <desc>Courtroom for meetings with others mages and common people.</desc>
+    </room>
+    <room id = "1" name = "Guard Tower">
+        <numrows>2</numrows>
+        <numcols>2</numcols>
+        <color>1.0 0.0 0.0</color>
+	    <desc>Watchtower to improve the security of the surroundings.</desc>
+    </room>
+    <room id = "2" name = "Library">
+        <numrows>2</numrows>
+        <numcols>3</numcols>
+        <color>0.0 0.0 1.0</color>
+	    <desc>A room to store your precious spellbooks.</desc>
+    </room>
+    <room id = "3" name = "Scribe Workshop">
+        <numrows>3</numrows>
+        <numcols>1</numcols>
+        <color>0.0 1.0 1.0</color>
+	    <desc>Workshop for works with book bidings and copy manuscripts.</desc>
+    </room>
+    <room id = "4" name = "Barracks">
+        <numrows>3</numrows>
+        <numcols>3</numcols>
+        <color>1.0 1.0 1.0</color>
+        <desc>To train the guards.</desc>
+    </room>
+    <room id = "5" name = "Living Quarters">
+        <numrows>1</numrows>
+        <numcols>1</numcols>
+        <color>0.5 0.5 0.5</color>
+        <desc>Simple accomodations for servants.</desc>
+    </room>
+    <room id = "6" name = "Great Hall">
+        <numrows>5</numrows>
+        <numcols>5</numcols>
+        <color>0.2 0.3 0.5 </color>
+        <desc>A large room for festivities.</desc>
+    </room>
+    <room id = "7" name = "Kitchen">
+        <numrows>2</numrows>
+        <numcols>2</numcols>
+        <color>0.7 0.2 0.2</color>
+        <desc>You need a handmaiden to use this room.</desc>
+    </room>
+    <room id = "8" name = "Manson Workshop">
+        <numrows>2</numrows>
+        <numcols>2</numcols>
+        <color>0.2 0.7 0.2</color>
+        <desc>Workshop to produce building material.</desc>
+    </room>
+    <room id = "9" name = "Smith">
+        <numrows>2</numrows>
+        <numcols>2</numcols>
+        <color>0.3 0.9 0.9</color>
+        <desc>Workshop to forge armors and weapons</desc>
+    </room>
+    <room id = "10" name = "Tailors Workshop">
+        <numrows>2</numrows>
+        <numcols>2</numcols>
+        <color>0.3 0.9 0.9</color>
+        <desc>Workshop to make cloth and leather items.</desc>
+    </room>
+    <room id = "11" name = "Glassworks">
+        <numrows>2</numrows>
+        <numcols>2</numcols>
+        <color>0.3 0.9 0.9</color>
+        <desc>Workshop for glasses. Your alchemy lab will need it.</desc>
+    </room>
+    <room id = "12" name = "Torture Chamber">
+        <numrows>2</numrows>
+        <numcols>1</numcols>
+        <color>0.3 0.9 0.9</color>
+        <desc>Torture your enemies. A mean of obtaining information.</desc>
+    </room>
+    <room id = "13" name = "Tumba">
+        <numrows>1</numrows>
+        <numcols>1</numcols>
+        <color>0.3 0.9 0.9</color>
+        <desc>A memorial room for your beloved goons and allies.The remains can be useful later.</desc>
+    </room>
+    <room id = "14" name = "Treasury">
+        <numrows>1</numrows>
+        <numcols>1</numcols>
+        <color>0.3 0.9 0.9</color>
+        <desc>A vault for your coins and day-to-day founds.</desc>
+    </room>
+    <room id = "15" name = "Infirmary">
+        <numrows>2</numrows>
+        <numcols>2</numcols>
+        <color>0.3 0.9 0.9</color>
+        <desc>To heal wounded comrade-in-arms.</desc>
+    </room>
+    <room id = "16" name = "Divination Room">
+        <numrows>2</numrows>
+        <numcols>2</numcols>
+        <color>0.3 0.9 0.9</color>
+    </room>
+    <room id = "17" name = "Dissecation Room">
+        <numrows>1</numrows>
+        <numcols>1</numcols>
+        <color>0.3 0.9 0.9</color>
+    </room>
+    <room id = "18" name = "Alchemy Lab: Vitae">
+        <numrows>2</numrows>
+        <numcols>2</numcols>
+        <color>0.3 0.9 0.9</color>
+    </room>
+    <room id = "19" name = "Artifact Room">
+        <numrows>1</numrows>
+        <numcols>1</numcols>
+        <color>0.3 0.9 0.9</color>
+    </room>
+    <room id = "20" name = "Summoning Room">
+        <numrows>1</numrows>
+        <numcols>1</numcols>
+        <color>0.3 0.9 0.9</color>
+    </room>
+    <room id = "21" name = "Observatory">
+        <numrows>2</numrows>
+        <numcols>1</numcols>
+        <color>0.3 0.9 0.9</color>
+    </room>
+    <room id "22" name = "Conjuration Room">
+        <numrows>2</numrows>
+        <numcols>2</numcols>
+        <color>0.3 0.9 0.0</color>
+    </room>
+    <room id "23" name = "Jail">
+        <numrows>1</numrows>
+        <numcols>1</numcols>
+        <color>0.3 0.9 0.0</color>
+        <upgrade>Creature Jail</upgrade>
+    </room>
+    <room id "24" name = "Ritual Room">
+        <numrows>3</numrows>
+        <numcols>3</numcols>
+        <color>0.3 0.9 0.0</color>
+    </room>
+    <room id = "25" name = "Alchemy Lab: Materia">
+        <numrows>2</numrows>
+        <numcols>2</numcols>
+        <color>0.3 0.9 0.9</color>
+    </room>
+    <room id = "26" name = "Botany">
+        <numrows>2</numrows>
+        <numcols>2</numcols>
+        <color>0.3 0.9 0.9</color>
+    </room>
+</wizard-tower>

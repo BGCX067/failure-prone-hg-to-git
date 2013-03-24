@@ -1,0 +1,7 @@
+%VolumeData 
+data/bonsai.raw
+xdim 256
+ydim 256
+zdim 256
+%TransferData 
+0

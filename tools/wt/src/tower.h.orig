@@ -1,0 +1,43 @@
+#ifndef TOWER_H_
+#define TOWER_H_
+
+#include "renderer/mesh.h"
+//#include "util/fplist.h"
+
+typedef struct {
+    unsigned int numrows, numcols;
+    float r, g, b;
+    char *name;
+    unsigned int row, col;
+} TowerRoom;
+
+typedef struct _grid {
+    unsigned int numrows, numcols;
+    float *vertices; //precisa pro picking
+    float *colors; //também pro picking
+    unsigned int **grid;
+    Mesh *m;
+
+    fplist *roomList; 
+} TowerFloor;
+
+typedef struct _tower {
+    fplist *floorList;
+}Tower;
+
+Tower* initTower();
+TowerFloor* addFloor(Tower *t, int rows, int cols);
+void removeFloor(Tower *t, int floor);
+
+TowerFloor* generateTowerFloor(int rows, int cols);
+int placeRoom(TowerFloor *tf, const TowerRoom *tr, int row, int col);
+int testRoom(TowerFloor *tf, const TowerRoom *tr, int row, int col);
+void changeTileColor(TowerFloor *tf, const TowerRoom *tr, int row, int col);
+
+
+int loadRoomFile(const char *filename, int *numRooms, TowerRoom **towerRooms);
+//FIXME so pra testar tá passando uma TowerFloor
+//retornar algum tipo de erro
+void saveGameState(Tower *t, const char *filepath);
+int loadGameState(Tower *t, const char *filename);
+#endif
