@@ -162,7 +162,22 @@ Material* colorMaterialPhong(vec3 ka, vec3 kd, vec3 ks, float shininess) {
 	return m;
 }
 
+Material* colorMaterialShadowPhong(vec3 ka, vec3 kd, vec3 ks, float shininess) {
+    Material *m = malloc(sizeof(Material));
+    memset(m, 0, sizeof(Material));
 
+    m->diffsource = VEC;
+	m->shininess = shininess;
+	memcpy(m->ka, ka, sizeof(vec3));
+	memcpy(m->kd, kd, sizeof(vec3));
+	memcpy(m->ks, ks, sizeof(vec3));
+//	memcpy(m->ke, ke, sizeof(vec3));
+    
+    char *vertshader = readTextFile("data/shaders/shadowsecondpass.vert");
+    char *fragshader = readTextFile("data/shaders/shadowsecondpass.frag");
+    m->shdr = initializeShader(vertshader, fragshader); 
+	return m;
+}
 
 
 Material* colorMaterialNoLight() {

@@ -56,7 +56,7 @@
 
 
 # The name of the binary file we want to generate.  Also handles libraries! (.a)
-TARGET		= fbo.elf
+TARGET		= cornell-box.elf
 
 
 ##########################################################################
@@ -115,7 +115,7 @@ MAKEPARENTS	=
 #LIBS		+= libstdc++.a
 
 # find headers
-INCDIRS		+= /usr/includei /usr/include/freetype2
+INCDIRS		+= /usr/include /usr/include/freetype2
 
 # find  libraries
 LIBDIRS		+= /usr/lib /usr/X11R6/lib

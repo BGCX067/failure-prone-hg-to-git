@@ -209,8 +209,9 @@ void camerafit(Camera *c, BoundingBox b, float fovy, float ratio, float znear, f
     c->pos[0] = bcenter[0];
     c->pos[1] = bcenter[1];
     //c->pos[2] = bcenter[2] + 4*(b.pmax[2] - b.pmin[2]) + ((b.pmax[1] - bcenter[1])/tan(0.5*fovy));
-    c->pos[2] = b.pmax[2] + ((b.pmax[1] - bcenter[1])*0.5/tan(0.5*fovy));
+    c->pos[2] = b.pmax[2] + (b.pmax[1] - bcenter[1])/tan(0.5*3.141592*fovy/180.0) + znear;
     printf("c->pos: %f, %f, %f\n", c->pos[0], c->pos[1], c->pos[2]); 
+    printf("b.pmax: %f, %f, %f\n", b.pmax[0], b.pmax[1], b.pmax[2]); 
     printf("bcenter: %f, %f, %f\n", bcenter[0], bcenter[1], bcenter[2]); 
 
     c->viewDir[0] = 0;

@@ -239,7 +239,9 @@ SamplerState* initializeSamplerState(int wrapmode, int minfilter, int magfilter,
 	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_T, wrapmode);
 	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_R, wrapmode);
     	float someVec[4];
+        //FIXME teste pro shadowmap
     	someVec[0] = 0.0;
+    	//someVec[0] = 1.0;
     	someVec[1] = 0.0;
     	someVec[2] = 0.0;
     	someVec[3] = 0.0;
@@ -248,8 +250,12 @@ SamplerState* initializeSamplerState(int wrapmode, int minfilter, int magfilter,
 	glSamplerParameterf(samplerID, GL_TEXTURE_MIN_LOD, -1000.f);
 	glSamplerParameterf(samplerID, GL_TEXTURE_MAX_LOD, 1000.f);
 	glSamplerParameterf(samplerID, GL_TEXTURE_LOD_BIAS, 0.0f);
-	glSamplerParameteri(samplerID, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-	glSamplerParameteri(samplerID, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+	
+    //FIXME só teste pro shadowmap
+    //glSamplerParameteri(samplerID, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+	//glSamplerParameteri(samplerID, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+    glSamplerParameteri(samplerID, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+	glSamplerParameteri(samplerID, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
 	//glSamplerParameteri(samplerID, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
 	
 	SamplerState* state = (SamplerState*) malloc(sizeof(SamplerState));
@@ -603,6 +609,8 @@ void bindShader(Shader* shdr){
             glUniformMatrix3fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) normalmatrix);
         } else if(shdr->uniforms[i]->semantic == VIEW){
             glUniformMatrix4fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) view);
+        } else if(shdr->uniforms[i]->semantic == MODEL) { 
+            glUniformMatrix4fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, GL_FALSE, (float *) model);
         } else if(shdr->uniforms[i]->semantic == INVMODELVIEW){
             fpMultMatrix(modelview, view, model);
             mat4 invModelView;
@@ -832,27 +840,31 @@ Framebuffer* initializeFramebuffer(int width, int height){
     //fb->tex = initializeTextureFromMemory(0, width, height, TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE);
 
     fb->tex = malloc(sizeof(Texture));
-    fb->tex->state = initializeSamplerState(CLAMP, GL_NEAREST, GL_NEAREST, 0);
+    fb->tex->state = initializeSamplerState(CLAMP_TO_BORDER, GL_LINEAR, GL_LINEAR, 0);
     glActiveTexture(GL_TEXTURE0);
     glGenTextures(1, &fb->tex->texid);
     glBindTexture(TEXTURE_2D, fb->tex->texid);
 
     fb->tex->target = TEXTURE_2D;
     glTexImage2D(TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+    //glTexImage2D(TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, fb->tex->texid, 0);
+    //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb->tex->texid, 0);
 
     //Cria o depth buffer
-//    glGenRenderbuffers(1, &fb->depthid);
-//    glBindRenderbuffer(GL_RENDERBUFFER, fb->depthid);
-//    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
-//    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb->depthid);
+    //glGenRenderbuffers(1, &fb->depthid);
+    //glBindRenderbuffer(GL_RENDERBUFFER, fb->depthid);
+    //glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+    //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb->depthid);
 
-    GLenum drawBufs[] = {GL_NONE};
-    glDrawBuffers(1, drawBufs);
+//    GLenum drawBufs[] = {GL_NONE};
+//    GLenum drawBufs[] = {GL_COLOR_ATTACHMENT0};
 
-//	glDrawBuffer(GL_NONE);
-//	glReadBuffer(GL_NONE);
+    //glDrawBuffers(1, drawBufs);
+
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
 
     checkFramebufferStatus(0);
 

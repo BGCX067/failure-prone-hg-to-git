@@ -37,6 +37,7 @@ Material* colorMaterialNoLight();
 Material* colorMaterialLightSimple();
 //Material* colorMateralPoint();
 Material* colorMaterialPhong(vec3 ka, vec3 kd, vec3 ks, float shininess);
+Material* colorMaterialShadowPhong(vec3 ka, vec3 kd, vec3 ks, float shininess);
 
 Material* texturedMaterialDir(Texture *t);
 //Material* texturedMaterialPoint();

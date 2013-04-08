@@ -176,8 +176,6 @@ void fpLookAt(mat4 result, vec3 pos, vec3 look, vec3  up){
 
 
     fptranslatef(result, -pos[0], -pos[1], -pos[2]);
-
-
 }
 
 void fpOrtho( mat4 m, float xMin, float xMax, float yMin, float yMax, float zMin, float zMax){
@@ -187,10 +185,9 @@ void fpOrtho( mat4 m, float xMin, float xMax, float yMin, float yMax, float zMin
 	m[0] = 2.0f/(xMax - xMin);
     m[5] = 2.0f/(yMax - yMin);
 	m[10] = -2.0f /(zMax - zMin);
-	m[12] = -((xMax + xMin)/(xMax - xMin));
-	m[13] = -((yMax + yMin)/(yMax - yMin));
-	m[14] = -((zMax + zMin)/(zMax - zMin));
-	m[15] = 1.0f;
+	m[12] = -(xMax + xMin)/(xMax - xMin);
+	m[13] = -(yMax + yMin)/(yMax - yMin);
+	m[14] = -(zMax + zMin)/(zMax - zMin);
 }
 
 void fpNormalMatrix(mat3 normalmatrix, mat4 mv) {
