@@ -1,7 +1,11 @@
 #include "scene.h"
 #include <stdio.h>
 #include <string.h>
-#include <GL/gl.h>
+#ifdef __APPLE__
+	#include <OpenGL/gl.h>
+#else
+	#include <GL/gl.h>
+#endif
 #include "util/utlist.h"
 
 void addMesh(Scene* s, Mesh *m){

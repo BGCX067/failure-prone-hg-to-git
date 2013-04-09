@@ -24,7 +24,7 @@ Mesh* createBox(float x, float y, float z);
 
 void initializeGame(){
     menux = menuy = 0;
-    initializeGUI(800, 600);
+   // initializeGUI(800, 600);
     initCamera(&c, TRACKBALL);
    
     cena = initializeScene();
@@ -78,7 +78,7 @@ void initializeGame(){
     Mesh *shortBox = createBox(0.7, 0.56, 0.7);
     shortBox->material = colorMaterialPhong(khakiAmb, khakiDiff, khakiSpec, khakiShininess);
     fptranslatef(shortBox->transform, 0.4, -(1.0 - 0.28), 0.3);
-    fpRotatef(shortBox->transform, -3.14159265358979323846/12.0, 0.0, 1.0, 0.0);
+    fpRotatef(shortBox->transform, -3.14159/12.0, 0.0, 1.0, 0.0);
     addMesh(cena, shortBox);
     
     l.pos[0]= 0.0; l.pos[1] = 0.92; l.pos[2] = 0.0;
@@ -105,7 +105,7 @@ int Render(event *e, double* dt){
 
     int newRoom = prevRoom;
     rect r1,  r2, r3, r4, r5, r6, r7, r8, r9;
-    beginGUI(e);
+ /*   beginGUI(e);
 	r1.x = 10; r1.y = 575;
 	r2.x = 60; r2.y = 575;
 	r3.x = 120; r3.y = 575;
@@ -143,7 +143,7 @@ int Render(event *e, double* dt){
 		beginMenu(6, 285, 223, 250, 350, &menux1, &menux2, "Spells", NULL);
 		endMenu(6, 285, 223, 250, 150, &menux1, &menux2);
 	}
-    endGUI();
+    endGUI();*/
 
     if(currRoom != newRoom) {
         prevRoom = currRoom;

@@ -1,14 +1,21 @@
 #include "GL3/glew.h"
-#include "GL3/glext.h"
 #include "renderer.h"
 #include "math/matrix.h"
 #include "glapp.h"
 #include "util/image.h"
 #include "util/textfile.h"
-#include <GL/glu.h>
 #include <string.h>
 #include <stdlib.h>
 #include "util/utlist.h"
+#ifdef __APPLE__
+	#include <OpenGL/gl.h>
+	#include <OpenGL/glext.h>
+#else
+	#include <GL/gl.h>
+	#include <GL/glu.h>
+	#include "GL3/glext.h"
+#endif
+
 
 typedef struct TextureInfo {
 	char* filename;
@@ -153,7 +160,7 @@ renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy){
 	glClearColor( 0.5, 0.5, 0.5, 1.0 );
 	glClearDepth(1.0f);
 	glDepthFunc(GL_LEQUAL);
-
+	glEnable(GL_CULL_FACE); 
 	glClearStencil(0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

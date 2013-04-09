@@ -3,7 +3,11 @@
 #include "../math/matrix.h"
 #include <stdlib.h>
 #include <math.h>
-#include <GL/gl.h>
+#ifdef __APPLE__
+	#include <OpenGL/gl.h>
+#else
+	#include <GL/gl.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include "../glapp.h"

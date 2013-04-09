@@ -1,8 +1,12 @@
 #ifndef _RENDERER_H_
 #define _RENDERER_H_
 
-#include <GL/gl.h>
-#include <GL/glu.h>
+#ifdef __APPLE__
+	#include <OpenGL/gl.h>
+#else
+	#include <GL/gl.h>
+	#include <GL/glu.h>
+#endif
 #include "../math/matrix.h"
 #include "vertexattribute.h"
 
@@ -11,7 +15,7 @@ enum TextureTarget{
 	TEXTURE_2D = GL_TEXTURE_2D,
 	TEXTURE_3D = GL_TEXTURE_3D,
 	TEXTURE_CUBEMAP = GL_TEXTURE_CUBE_MAP,
-	TEXTURE_RECTANGLE = GL_TEXTURE_RECTANGLE_ARB
+	TEXTURE_RECTANGLE// = GL_TEXTURE_RECTANGLE_ARB
 
 };
 
@@ -23,10 +27,10 @@ enum TextureFormat{
 enum TextureInternalFormat{
 	RGB8 = GL_RGB8,
 	RGBA8 = GL_RGBA8,
-	RGB_DXT1 = GL_COMPRESSED_RGB_S3TC_DXT1_EXT,
-	RGBA_DXT1 = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
-	RGBA_DXT3 = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
-	RGBA_DXT5 = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
+	RGB_DXT1, //= GL_COMPRESSED_RGB_S3TC_DXT1_EXT,
+	RGBA_DXT1, //= GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
+	RGBA_DXT3, //= GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
+	RGBA_DXT5 //= GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
 };
 
 

@@ -2,7 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h> //malloc
 #include <string.h> //memset
-#include <GL/gl.h>
+#ifdef __APPLE__
+	#include <OpenGL/gl.h>
+#else
+	#include <GL/gl.h>
+#endif
 #include "renderer.h"
 //#include "glextensions.h"
 

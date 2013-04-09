@@ -43,5 +43,6 @@
 ^tools/shadowcornell/deps_optimized
 ^tools/shadowcornell/objs_optimized
 
+.*.*.DS_Store
 .*.*.swp
 .*.*.orig
