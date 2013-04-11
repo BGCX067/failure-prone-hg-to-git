@@ -13,66 +13,21 @@ renderer *mainrenderer;
 Camera c;
 Light l;
 
-Framebuffer *shadowfb;
 Shader *shdr;
+//Shadow-related
+Framebuffer *shadowfb;
 Shader *firstPassShader;
 
-mat4 lightView;
-mat4 lightProj;
-
-//GUI-related
-int menux, menuy;
-char* salasComboBox[] = {"Sala 1", "Sala 2", "Sala 3", "Sala 4"};
-int comboboxState = 0;
-int currRoom = 0;
-int prevRoom = 0;
-
 Mesh* createBox(float x, float y, float z);
-void firstPass();
-void secondPass();
+void drawFullscreenQuad(Texture *tex, Shader *shdr); 
 
-void drawFullscreenQuad(Texture *tex, Shader *shdr) {
-    static Mesh *m = NULL;
-    if(!m) {
-        printf("inicializando quad\n");
-        m = initMesh();
+void initializeShadowmap();
+void renderShadowmap(Mesh *casters, Mesh *recievers, vec3 lightPos, vec3 lightDir);
+void shadowFirstPass(Framebuffer *sfb, Mesh *casters, mat4 lightView, mat4 lightProj);
+void shadowSecondPass(Framebuffer *sfb, Mesh *recievers, mat4 lightMVP);
 
-        float *vertices = malloc(sizeof(float)*12);
-        vertices[0] = -1.0; vertices[1] = -1.0; vertices[2] = 0.0;
-        vertices[3] = 1.0; vertices[4] = -1.0; vertices[5] = 0.0;
-        vertices[6] = 1.0; vertices[7] = 1.0; vertices[8] = 0.0;
-        vertices[9] = -1.0; vertices[10] = 1.0; vertices[11] = 0.0;
-
-        float *texcoords = malloc(sizeof(float)*8);
-        texcoords[0] = 0.0; texcoords[1] = 0.0;
-        texcoords[2] = 1.0; texcoords[3] = 0.0;
-        texcoords[4] = 1.0; texcoords[5] = 1.0;
-        texcoords[6] = 0.0; texcoords[7] = 1.0;
-
-        unsigned int *indices = malloc(sizeof(unsigned int)*6);
-        indices[0] = 0;
-        indices[1] = 1;
-        indices[2] = 2;
-        indices[3] = 0;
-        indices[4] = 2;
-        indices[5] = 3;
-
-        addVertices(m, 12, 3, vertices);
-        addIndices(m, 6, indices);
-        addTexCoords(m, 8, 2, 0, texcoords);
-        prepareMesh(m);   
-
-    }
-    
-    bindSamplerState(tex->state, 0);
-    bindTexture(tex, 0);
-    bindShader(shdr);
-    drawIndexedVAO(m->vaoId, m->indicesCount, GL_TRIANGLES);
-}
 
 void initializeGame(){
-    menux = menuy = 0;
-    //initializeGUI(800, 600);
     initCamera(&c, TRACKBALL);
    
     cena = initializeScene();
@@ -130,92 +85,28 @@ void initializeGame(){
     addMesh(cena, shortBox);
     
     l.pos[0]= 0.0; l.pos[1] = 0.92; l.pos[2] = 0.0;
+    l.dir[0] = 0.0; l.dir[1] = -1.0; l.dir[2] = 0.0;
     l.color[0] = 1.0;
     l.color[1] = 1.0;
     l.color[2] = 1.0;
     l.color[3] = 1.0;
     camerafit(&c, cena->b, 75.0, 800.0f/600.0f, 1.0, 10.0);
     
-    
-    shadowfb = initializeFramebuffer(512, 512);
-    
+    initializeShadowmap(512, 512);
+
     char *vertshader = readTextFile("data/shaders/vertshader.vert");
     char *fragshader = readTextFile("data/shaders/fragshader.frag");
     shdr = initializeShader(vertshader, fragshader);
-    
-    firstPassShader = initializeShader(readTextFile("data/shaders/shadowfirstpass.vert"), 
-                            readTextFile("data/shaders/shadowfirstpass.frag"));
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
 }
 
-float menux1, menux2 = 0;
-int gamebutton = 0;
 int Render(event *e, double* dt){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    firstPass();
-
-    glFlush();
-
-    secondPass();
+    renderShadowmap(cena->meshList, cena->meshList, l.pos, l.dir);
     
     //drawFullscreenQuad(shadowfb->tex, shdr);
-    //Mesh *m;
-    //DL_FOREACH(cena->meshList, m) {
-    //    setModel(m->transform);
-    //    bindMaterial(m->material, &l);
-    //    bindShader(m->material->shdr);
-    //    drawIndexedVAO(m->vaoId, m->indicesCount, GL_TRIANGLES);
-    //}
-
-    /*int newRoom = prevRoom;
-    rect r1,  r2, r3, r4, r5, r6, r7, r8, r9;
-    beginGUI(e);
-	r1.x = 10; r1.y = 575;
-	r2.x = 60; r2.y = 575;
-	r3.x = 120; r3.y = 575;
-	r4.x = 220; r4.y = 575;
-	r5.x = 285; r5.y = 575;
-
-	doToggleButton(1, &r1, "Game", &gamebutton);
-	doToggleButton(2, &r2, "Tower", &gamebutton);
-	doToggleButton(3, &r3, "Characters", &gamebutton);
-	doToggleButton(4, &r4, "Agenda", &gamebutton);
-	doToggleButton(5, &r5, "Spells", &gamebutton);
-
-	if (gamebutton == 1 ) {
-		beginMenu(6, 10, 223, 250, 350, &menux1, &menux2, "Game", NULL);
-			r6.x = 100; r6.y = 540;
-        	if(doButton(1, &r6, "Save"))
-                printf("Save button pressed\n");
-			r2.x = 100; r2.y = 500;
-        	if(doButton(2, &r2, "Load"))
-                printf("Load button pressed\n");
-		endMenu(6, 10, 223, 250, 150, &menux1, &menux2);
-	}else if (gamebutton == 2 ) {
-        beginMenu(6, 60, 223, 250, 350, &menux1, &menux2, "Tower", NULL);
- 			doLabel(80, 543, "Sala");
-        	r7.x = 120; r7.y = 540;
-        	doComboBox(5, &r7, 4, salasComboBox, &newRoom, &comboboxState);
-		endMenu(6, 60, 223, 250, 150, &menux1, &menux2);
-	} else if (gamebutton == 3){
-		beginMenu(6, 120, 223, 250, 350, &menux1, &menux2, "Characters", NULL);
-		endMenu(6, 120, 223, 250, 150, &menux1, &menux2);
-	} else if (gamebutton == 4){
-		beginMenu(6, 220, 223, 250, 350, &menux1, &menux2, "Agenda", NULL);
-		endMenu(6, 220, 223, 250, 150, &menux1, &menux2);
-	} else if (gamebutton == 5){
-		beginMenu(6, 285, 223, 250, 350, &menux1, &menux2, "Spells", NULL);
-		endMenu(6, 285, 223, 250, 150, &menux1, &menux2);
-	}
-    endGUI();
-
-    if(currRoom != newRoom) {
-        prevRoom = currRoom;
-        currRoom = newRoom;
-        printf("prevRoom: %d\ncurrRoom: %d\n", prevRoom, currRoom);
-        prevRoom = currRoom;
-    }*/
-
     glFlush();
     return 1;
 }
@@ -294,58 +185,87 @@ Mesh* createBox(float w, float h, float l) {
     return m;
 }
 
-void firstPass() {
+
+void initializeShadowmap(unsigned int fbwidth, unsigned int fbheight) {
+    shadowfb = initializeFramebufferDepth(fbwidth, fbheight);
+    firstPassShader = initializeShader(readTextFile("data/shaders/shadowfirstpass.vert"), 
+                            readTextFile("data/shaders/shadowfirstpass.frag"));
+}
+
+void renderShadowmap(Mesh *casters, Mesh *recievers, vec3 lightPos, vec3 lightDir) {
+    mat4 lightView, lightProj, lightMVP;
+    //TODO calcular vetor up?
+    vec3 lightUp = {1.0f, 1.0f, 1.0f}; 
+    fpLookAt(lightView, lightPos, lightDir, lightUp);
+    //TODO near e far melhores
+    fpperspective(lightProj, 100.0f, (float)shadowfb->width/(float)shadowfb->height, 1.0f, 10.0f); 
+    //fpOrtho(lightProj, 4.0f, -4.0f, -10.0f, 10.0f, 0.1f, 7.0f);
+    shadowFirstPass(shadowfb, casters, lightView, lightProj);
+    fpMultMatrix(lightMVP, lightProj, lightView);
+    glFlush();
+    shadowSecondPass(shadowfb, recievers, lightMVP);
+}
+
+void shadowFirstPass(Framebuffer *sfb, Mesh *casters, mat4 lightView, mat4 lightProj) {
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
-
-    vec3 lightDir = {0.0f, -1.0f, 0.0f}; 
-    vec3 lightUp = {0.0f, 0.0f, -1.0f}; 
-    vec3 lightPos = {l.pos[0], l.pos[1], l.pos[2]};
-    vec3 center;
-    vecAdd(lightPos, lightDir, center);
-
-    bindFramebuffer(shadowfb);
-    fpLookAt(lightView, lightPos, lightDir, lightUp);
-    fpperspective(lightProj, 100.0f, 512.0f/512.0f, 1.0f, 100.0f); 
-    //fpOrtho(lightProj, 4.0f, -4.0f, -10.0f, 10.0f, 0.1f, 7.0f);
+    bindFramebuffer(sfb);
     setView(lightView);
     setProjection(lightProj);
     Mesh *m;
-    DL_FOREACH(cena->meshList, m) {
+    DL_FOREACH(casters, m) {
         setModel(m->transform);
         bindShader(firstPassShader);
         drawIndexedVAO(m->vaoId, m->indicesCount, GL_TRIANGLES);
     }
 
     bindFramebuffer(NULL);
-    //glDisable(GL_CULL_FACE);
     glCullFace(GL_BACK);   
 }
 
-void secondPass() {
+void shadowSecondPass(Framebuffer *sfb, Mesh *recievers, mat4 lightMVP) {
     setView(c.modelview);
-    setProjection(c.projection); //TODO isso so precisaria ser calculado/setado 1x
+    setProjection(c.projection);
     glClearColor(0.5, 0.5, 0.5, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    //TODO calcula shadow matrix S = bias*lproj*lview*model;
-    mat4 bias;
+    //shadow matrix S = bias*lproj*lview*model;
+    mat4 bias, bpv;
     fpIdentity(bias);
     bias[0] = bias[5] = bias[10] = bias[12] = bias[13] = bias[14] = 0.5;
-    mat4 lightMVP, bpv;
-    fpMultMatrix(lightMVP, lightProj, lightView);
     fpMultMatrix(bpv, bias, lightMVP);
     Mesh *m;
-    DL_FOREACH(cena->meshList, m) {
+    DL_FOREACH(recievers, m) {
         setModel(m->transform);
         bindMaterial(m->material, &l);
         mat4 shadowMatrix;
         fpMultMatrix(shadowMatrix, bpv, m->transform);
         setShaderConstant4x4f(m->material->shdr, "shadowMatrix", shadowMatrix);
-        bindSamplerState(shadowfb->tex->state, 0);
-        bindTexture(shadowfb->tex, 0);
+        bindSamplerState(sfb->tex->state, 0);
+        bindTexture(sfb->tex, 0);
         bindShader(m->material->shdr);
         drawIndexedVAO(m->vaoId, m->indicesCount, GL_TRIANGLES);
     }
+}
+
+void drawFullscreenQuad(Texture *tex, Shader *shdr) {
+    static Mesh *m = NULL;
+    if(!m) {
+        printf("inicializando quad\n");
+        m = initMesh();
+        float vertices[12] = {-1.0, -1.0, 0.0,
+                               1.0, -1.0, 0.0,
+                               1.0, 1.0, 0.0,
+                              -1.0, 1.0, 0.0};
+        float texcoords[8] = {0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0};
+        unsigned int indices[6] = {0, 1, 2, 0, 2, 3};
+        addVertices(m, 12, 3, vertices);
+        addIndices(m, 6, indices);
+        addTexCoords(m, 8, 2, 0, texcoords);
+        prepareMesh(m);   
+    }
+    bindSamplerState(tex->state, 0);
+    bindTexture(tex, 0);
+    bindShader(shdr);
+    drawIndexedVAO(m->vaoId, m->indicesCount, GL_TRIANGLES);
 }

@@ -86,13 +86,13 @@ LIBS		+= GLU GL X11 Xxf86vm rt
 
 
 # Additional locations for header files
-INCDIRS		+= ../../src ../../src/GL3 ../../src/math ../../src/renderer ../../src/util src/
+INCDIRS		+= ../../src ../../src/GL3 ../../src/math ../../src/renderer ../../src/util src/ ../../src/os/linux
 
 # Additional locations for library files
 LIBDIRS		+= 
 
 # Additional locations for source files
-SRCDIRS		= ../../src ../../src/GL3 ../../src/math ../../src/renderer ../../src/util src/
+SRCDIRS		= ../../src ../../src/GL3 ../../src/math ../../src/renderer ../../src/util src/ ../../src/os/linux
 
 # Object files and the target will be placed in this directory with an
 # underscore and the buildname appended (e.g., for the "debug" build: objs_debug/)

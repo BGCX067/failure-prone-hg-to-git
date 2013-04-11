@@ -189,7 +189,8 @@ void bindTexture(Texture* t, unsigned int slot);
 void destroyTexture(Texture* t);
 
 //framebuffers
-Framebuffer* initializeFramebuffer(int width, int height);
+Framebuffer* initializeFramebufferDepth(int width, int height);
+Framebuffer* initializeFramebufferColor(int width, int height);
 void bindFramebuffer(Framebuffer *fb);
 /*void bindMainFramebuffer();
 void bindFramebuffer(int id);

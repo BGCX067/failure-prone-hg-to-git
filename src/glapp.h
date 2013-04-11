@@ -92,7 +92,9 @@ enum {
 	KEY_w,
 	KEY_x,
 	KEY_y,
-	KEY_z
+	KEY_z,
+    KEY_minus = 45,     
+    KEY_period = 46,        
 };
 
 /* enum para button do evento */

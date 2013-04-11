@@ -836,16 +836,13 @@ int checkFramebufferStatus( int silent)
     return 1;
 }
 
-Framebuffer* initializeFramebuffer(int width, int height){
-
+Framebuffer* initializeFramebufferDepth(int width, int height){
     Framebuffer *fb = malloc(sizeof(Framebuffer));
     fb->width = width;
     fb->height = height;
     glGenFramebuffers(1, &fb->id);
     glBindFramebuffer(GL_FRAMEBUFFER, fb->id);
     
-    //fb->tex = initializeTextureFromMemory(0, width, height, TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE);
-
     fb->tex = malloc(sizeof(Texture));
     fb->tex->state = initializeSamplerState(CLAMP_TO_BORDER, GL_LINEAR, GL_LINEAR, 0);
     glActiveTexture(GL_TEXTURE0);
@@ -854,32 +851,45 @@ Framebuffer* initializeFramebuffer(int width, int height){
 
     fb->tex->target = TEXTURE_2D;
     glTexImage2D(TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
-    //glTexImage2D(TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, fb->tex->texid, 0);
-    //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb->tex->texid, 0);
-
-    //Cria o depth buffer
-    //glGenRenderbuffers(1, &fb->depthid);
-    //glBindRenderbuffer(GL_RENDERBUFFER, fb->depthid);
-    //glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
-    //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb->depthid);
-
-//    GLenum drawBufs[] = {GL_NONE};
-//    GLenum drawBufs[] = {GL_COLOR_ATTACHMENT0};
-
-    //glDrawBuffers(1, drawBufs);
 
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
-
     checkFramebufferStatus(0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    return fb;
+}
 
+Framebuffer* initializeFramebufferColor(int width, int height){
+    Framebuffer *fb = malloc(sizeof(Framebuffer));
+    fb->width = width;
+    fb->height = height;
+    glGenFramebuffers(1, &fb->id);
+    glBindFramebuffer(GL_FRAMEBUFFER, fb->id);
+    
+    fb->tex = malloc(sizeof(Texture));
+    fb->tex->state = initializeSamplerState(CLAMP, GL_LINEAR, GL_LINEAR, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glGenTextures(1, &fb->tex->texid);
+    glBindTexture(TEXTURE_2D, fb->tex->texid);
+    fb->tex->target = TEXTURE_2D;
+    glTexImage2D(TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb->tex->texid, 0);
+
+    //Cria o depth buffer
+    glGenRenderbuffers(1, &fb->depthid);
+    glBindRenderbuffer(GL_RENDERBUFFER, fb->depthid);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb->depthid);
+
+    GLenum drawBufs[] = {GL_COLOR_ATTACHMENT0};
+
+    glDrawBuffers(1, drawBufs);
+    checkFramebufferStatus(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
     return fb;
-
-
 }
 
 Framebuffer* initializeFramebuffer2(int width, int height) {
