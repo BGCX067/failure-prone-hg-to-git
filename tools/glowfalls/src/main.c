@@ -172,7 +172,7 @@ int loadStage(char* filename){
 	return 1;
 }
 
-void InitializeGame(){
+void initializeGame(){
     initCamera(&c, CAMERA_2D);
     fpOrtho(c.projection, -400, 400, -300, 300, -1.0, 1.0);
 
@@ -330,11 +330,11 @@ int Update( event* e, double* dt ){
 	int x = 0, y = 0;
 
 	if (e->keys[KEY_LEFT]){
-		spriteOrientation = 0;
+		spriteOrientation = FLIP_Y;
 		x -= 1;
 	}
 	if (e->keys[KEY_RIGHT]){
-		spriteOrientation = FLIP_Y;
+		spriteOrientation = 0;
 		x += 1;
 	}
 
@@ -405,7 +405,6 @@ drawObject(cpShape *shape, cpSpace *space)
 
 
 int Render(event *e, double* dt){
-
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	ElapsedTime = *dt;
@@ -464,7 +463,7 @@ int main(){
 	warpmouse(0);
 	mainrenderer  = initializeRenderer(800,  600, 0.1, 10000.0, 45.0);
 	initializeGUI(800, 600);
-	InitializeGame();
+	initializeGame();
 	MainLoop( );
     return 0;
 }

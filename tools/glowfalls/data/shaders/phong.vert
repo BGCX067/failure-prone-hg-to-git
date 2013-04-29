@@ -7,11 +7,11 @@ out vec2 texcoord;
 out vec3 pos;
 
 uniform mat4 mvp;
-uniform mat4 modelTransform;
+uniform mat4 modelview;
 
 void main(void)
 {
     texcoord = intexcoord;
-    pos = vec3(modelTransform*vec4(inpos, 1.0));
-	gl_Position = mvp*modelTransform*vec4(inpos, 1.0);
+    pos = vec3(modelview*vec4(inpos, 1.0));
+	gl_Position = mvp*vec4(inpos, 1.0);
 }

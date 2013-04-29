@@ -21,7 +21,7 @@ Shader *firstPassShader;
 Mesh* createBox(float x, float y, float z);
 void drawFullscreenQuad(Texture *tex, Shader *shdr); 
 
-void initializeShadowmap();
+void initializeShadowmap(unsigned int fbwidth, unsigned int fbheight); 
 void renderShadowmap(Mesh *casters, Mesh *recievers, vec3 lightPos, vec3 lightDir);
 void shadowFirstPass(Framebuffer *sfb, Mesh *casters, mat4 lightView, mat4 lightProj);
 void shadowSecondPass(Framebuffer *sfb, Mesh *recievers, mat4 lightMVP);
@@ -92,7 +92,7 @@ void initializeGame(){
     l.color[3] = 1.0;
     camerafit(&c, cena->b, 75.0, 800.0f/600.0f, 1.0, 10.0);
     
-    initializeShadowmap(512, 512);
+    initializeShadowmap(128, 128);
 
     char *vertshader = readTextFile("data/shaders/vertshader.vert");
     char *fragshader = readTextFile("data/shaders/fragshader.frag");

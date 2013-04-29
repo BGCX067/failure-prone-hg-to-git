@@ -93,11 +93,11 @@ sprite* initializeSprite(float x, float y, float sizex, float sizey, Shader *s){
 
     anim->m = initMesh();
     float vertices[] = {x, y, 0.0f,
-                        x, y + sizey, 0.0,
+                        x + sizex, y, 0.0,
                         x + sizex, y + sizey, 0.0,
-                        x + sizex, y, 0.0};
+                        x, y + sizey, 0.0};
 
-    float texcoords[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 };
+    float texcoords[] = {0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0 };
     unsigned int indices[] = {0, 1, 2, 0, 2, 3};
 
     addVertices(anim->m, 12, 3, vertices);
@@ -203,35 +203,27 @@ void drawSprite(sprite* s, float elapsedtime, int framenum, int flags){
 	}
     
     float *texcoords = mapVBO(s->m->texVBO[0], GL_WRITE_ONLY);
-    texcoords[0] = 1.0; texcoords[1] = 1.0; texcoords[2] = 1.0; texcoords[3] = 0.0;
-    texcoords[4] = 0.0; texcoords[5] = 0.0; texcoords[6] = 0.0; texcoords[7] = 1.0;  
+    texcoords[0] = 0.0; texcoords[1] = 1.0; texcoords[2] = 1.0; texcoords[3] = 1.0;
+    texcoords[4] = 1.0; texcoords[5] = 0.0; texcoords[6] = 0.0; texcoords[7] = 0.0;  
     if ( (flags & FLIP_Y) && (flags & FLIP_X) ){
-		texcoords[0] = 0.0;
-		texcoords[1] = 0.0;
-		texcoords[2] = 0.0;
-		texcoords[3] = 1.0;
-		texcoords[4] = 1.0;
-		texcoords[5] = 1.0;
-		texcoords[6] = 1.0;
-		texcoords[7] = 0.0;
-	}else if (flags & FLIP_Y){
-		texcoords[0] = 0.0;
-		texcoords[1] = 1.0;
-		texcoords[2] = 0.0;
-		texcoords[3] = 0.0;
-		texcoords[4] = 1.0;
-		texcoords[5] = 0.0;
-		texcoords[6] = 1.0;
-		texcoords[7] = 1.0;
-	}else if (flags & FLIP_X){
 		texcoords[0] = 1.0;
 		texcoords[1] = 0.0;
-		texcoords[2] = 1.0;
-		texcoords[3] = 1.0;
+		texcoords[2] = 0.0;
+		texcoords[3] = 0.0;
 		texcoords[4] = 0.0;
 		texcoords[5] = 1.0;
-		texcoords[6] = 0.0;
-		texcoords[7] = 0.0;
+		texcoords[6] = 1.0;
+		texcoords[7] = 1.0;
+	}else if (flags & FLIP_Y){
+		texcoords[0] = 1.0;
+		texcoords[2] = 0.0;
+		texcoords[4] = 0.0;
+		texcoords[6] = 1.0;
+	}else if (flags & FLIP_X){
+		texcoords[1] = 0.0;
+		texcoords[3] = 0.0;
+		texcoords[5] = 1.0;
+		texcoords[7] = 1.0;
 	}
     unmapVBO(s->m->texVBO[0]);
 
@@ -243,9 +235,7 @@ void drawSprite(sprite* s, float elapsedtime, int framenum, int flags){
         bindTexture( f->normal, 1);
     }
 	
-    extern Camera c;
-	setShaderConstant4x4f(s->shdr, "mvp", c.mvp);
-	setShaderConstant4x4f(s->shdr, "modelTransform", s->transform);
+    setModel(s->transform);
 	bindShader(s->shdr);
     drawIndexedVAO(s->m->vaoId, s->m->indicesCount, GL_TRIANGLES);
 	s->lastFrame = framenum;

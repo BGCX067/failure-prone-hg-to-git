@@ -179,7 +179,6 @@ void fpLookAt(mat4 result, vec3 pos, vec3 look, vec3  up){
 }
 
 void fpOrtho( mat4 m, float xMin, float xMax, float yMin, float yMax, float zMin, float zMax){
-
 	fpIdentity(m);
 
 	m[0] = 2.0f/(xMax - xMin);

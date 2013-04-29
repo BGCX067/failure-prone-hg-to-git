@@ -6,6 +6,7 @@ out vec4 outcolor;
 
 //uniform sampler2D normalmap;
 uniform sampler2D tex;
+uniform mat4 view;
 
 void main() {
     /* Material/Texture info */
@@ -38,7 +39,7 @@ void main() {
 
     /* FAIL LIGHT */
     vec3 lightintensity = vec3(0.7, 0.7, 0.7);
-    vec3 lightpos = vec3(450, 200, 0.0);
+    vec3 lightpos = vec3(view*vec4(450, 200, 0.0, 1.0));
     float radius = 500;
     float d = distance(pos, lightpos);
     
