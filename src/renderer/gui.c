@@ -131,10 +131,10 @@ int setFontSize(int size){
 int initializeGUI(int w, int h){
 
 	gui = malloc( sizeof(GUI));
-	gui->widgetShader  = initializeShader( WidgetVSSource, WidgetFSSource );
-	gui->colorShader = initializeShader( WidgetVSSource, fontfrag2);
-	gui->textureViewShader = initializeShader( WidgetVSSource, TexViewWidgetFSSource  );
-	gui->skinnedShader = initializeShader(WidgetVSSource, WidgetFSSkinned);
+	gui->widgetShader  = initializeShader( NULL, WidgetVSSource, WidgetFSSource );
+	gui->colorShader = initializeShader(NULL, WidgetVSSource, fontfrag2);
+	gui->textureViewShader = initializeShader(NULL, WidgetVSSource, TexViewWidgetFSSource  );
+	gui->skinnedShader = initializeShader( NULL, WidgetVSSource, WidgetFSSkinned);
 
 	gui->w = w;
 	gui->h = h;

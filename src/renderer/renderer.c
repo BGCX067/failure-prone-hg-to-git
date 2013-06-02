@@ -431,86 +431,87 @@ void bindTexture(Texture* t, unsigned int slot){
 ////////
 // SHADERS
 //////////
-Shader* initializeShader(const char* vertexSource, const char* fragmentSource){
-	if (!vertexSource && !fragmentSource)
+Shader* initializeShader(const char* geometrysource, const char* vertexsource, const char* fragmentsource){
+
+	if (!vertexsource && !fragmentsource)
 		return 0;
 
-	int shaderProgram = glCreateProgram();
-	if (!shaderProgram)
+	int shaderprogram = glCreateProgram();
+	if (!shaderprogram)
 		return 0;
 
-	int vertexShader = 0;
-	if (vertexSource){
+	int vertexshader = 0;
+	if (vertexsource){
 
-		vertexShader = glCreateShader(GL_VERTEX_SHADER);
+		vertexshader = glCreateShader(GL_VERTEX_SHADER);
 
-		if (vertexShader == 0)
+		if (vertexshader == 0)
 			return 0;
 
-		glShaderSource(vertexShader, 1, &vertexSource, 0);
-		glCompileShader(vertexShader);
+		glShaderSource(vertexshader, 1, &vertexsource, 0);
+		glCompileShader(vertexshader);
 
-		if (printShaderCompilerLog(vertexShader)){
-			glDeleteShader(vertexShader);
+		if (printShaderCompilerLog(vertexshader)){
+			glDeleteShader(vertexshader);
 			return 0;
 		}
 
-		glAttachShader(shaderProgram, vertexShader);
+		glAttachShader(shaderprogram, vertexshader);
 	}
 
-	int fragmentShader = 0;
-	if (fragmentSource){
-		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	int fragmentshader = 0;
+	if (fragmentsource){
+		fragmentshader = glCreateShader(GL_FRAGMENT_SHADER);
 
-		if (fragmentShader == 0)
+		if (fragmentshader == 0)
 			return 0;
 
-		glShaderSource(fragmentShader, 1, &fragmentSource, 0);
-		glCompileShader(fragmentShader);
+		glShaderSource(fragmentshader, 1, &fragmentsource, 0);
+		glCompileShader(fragmentshader);
 
-		if (printShaderCompilerLog(fragmentShader)){
-			glDeleteShader(fragmentShader);
+		if (printShaderCompilerLog(fragmentshader)){
+			glDeleteShader(fragmentshader);
 			return 0;
 		}
 
-		glAttachShader(shaderProgram, fragmentShader);
+		glAttachShader(shaderprogram, fragmentshader);
 	}
 
-	glLinkProgram(shaderProgram);
-	if (printShaderLinkerLog(shaderProgram)){
-		glDeleteShader(vertexShader);
-		glDeleteShader(fragmentShader);
-		glDeleteProgram(shaderProgram);
+	glLinkProgram(shaderprogram);
+	if (printShaderLinkerLog(shaderprogram)){
+		glDeleteShader(vertexshader);
+		glDeleteShader(fragmentshader);
+		glDeleteProgram(shaderprogram);
 		return 0;
 	}
 
-	glUseProgram(shaderProgram);
+	glUseProgram(shaderprogram);
 
-	int uniformCount, maxLength;
-	int attributeCount, maxAttrLength;
-	glGetProgramiv(shaderProgram, GL_ACTIVE_UNIFORMS, &uniformCount);
-	glGetProgramiv(shaderProgram, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxLength);
-	glGetProgramiv(shaderProgram, GL_ACTIVE_ATTRIBUTES, &attributeCount);
-	glGetProgramiv(shaderProgram, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxAttrLength);
+	int uniformcount, maxlength;
+	int attributecount, maxattrlength;
+	glGetProgramiv(shaderprogram, GL_ACTIVE_UNIFORMS, &uniformcount);
+	glGetProgramiv(shaderprogram, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxlength);
+	glGetProgramiv(shaderprogram, GL_ACTIVE_ATTRIBUTES, &attributecount);
+	glGetProgramiv(shaderprogram, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxattrlength);
 
-	Shader* newShader =  (Shader*) malloc( sizeof(Shader));
-    newShader->progid = shaderProgram;
-	newShader->numUniforms = newShader->numSamplers = 0;
+	Shader* newshader =  (Shader*) malloc( sizeof(Shader));
+    newshader->progid = shaderprogram;
+	newshader->numUniforms = newshader->numSamplers = 0;
 	//conta quantas uniforms sao samplers ou variaveis uniforms
-	char* name = (char*) malloc (sizeof(char)*maxLength);
+	char* name = (char*) malloc (sizeof(char)*maxlength);
 	//char* attrName = (char*) malloc(sizeof(char)*maxAttrLength);
-	for (int  i = 0; i < uniformCount; i++){
+	for (int  i = 0; i < uniformcount; i++){
 		GLenum type;
 		GLint length, size;
-		glGetActiveUniform(shaderProgram, i, maxLength, &length, &size, &type, name);
+		glGetActiveUniform(shaderprogram, i, maxlength, &length, &size, &type, name);
 		if (type >= GL_SAMPLER_1D  &&  type <=  GL_SAMPLER_2D_RECT_SHADOW_ARB)
-			newShader->numSamplers++;
+			newshader->numSamplers++;
 		else
 			if (strncmp(name, "gl_", 3) != 0)
-				newShader->numUniforms++;
+				newshader->numUniforms++;
 	}
-	newShader->uniforms = (Uniform**)malloc(sizeof(Uniform*)*newShader->numUniforms);
-	newShader->samplers = (Sampler**)malloc(sizeof(Sampler*)*newShader->numSamplers);
+	newshader->uniforms = (Uniform**)malloc(sizeof(Uniform*)*newshader->numUniforms);
+	newshader->samplers = (Sampler**)malloc(sizeof(Sampler*)*newshader->numSamplers);
 	int samplers = 0;
 	/*for (int i = 0; i < attributeCount; i++){
 		GLenum type;
@@ -521,34 +522,34 @@ Shader* initializeShader(const char* vertexSource, const char* fragmentSource){
 		if ( strcmp(name, "Binormal") == 0 )
 			glBindAttribLocation(shaderProgram, ATTR_BINORMAL, "Binormal");
 	}*/
-	int numUniforms = 0;
-	int numSamplers = 0;
-	for(int i = 0; i < uniformCount; i++){
+	int numuniforms = 0;
+	int numsamplers = 0;
+	for(int i = 0; i < uniformcount; i++){
 		GLenum type;
 		GLint length, size;
-		glGetActiveUniform(shaderProgram, i, maxLength, &length, &size, &type, name);
+		glGetActiveUniform(shaderprogram, i, maxlength, &length, &size, &type, name);
 		if (type >= GL_SAMPLER_1D && type <= GL_SAMPLER_2D_RECT_SHADOW_ARB){
-			GLint location = glGetUniformLocation(shaderProgram, name);
+			GLint location = glGetUniformLocation(shaderprogram, name);
 			glUniform1i(location, samplers); //informa o shader a texunit
 			Sampler* sam = (Sampler*) malloc( sizeof(Sampler));
 			sam->name = (char*) malloc( sizeof( char)*(length + 1));
 			sam->index = samplers;
 			sam->location = location;
 			strcpy(sam->name, name);
-			newShader->samplers[numSamplers] = sam;
+			newshader->samplers[numsamplers] = sam;
 			samplers++;
-			numSamplers++;
+			numsamplers++;
 		}else{
 			if (strncmp(name, "gl_", 3) != 0){
 				Uniform* uni = (Uniform*) malloc(sizeof(Uniform));
 				uni->name = (char*) malloc( sizeof(char)*(length + 1));
-				uni->location = glGetUniformLocation(shaderProgram, name);
+				uni->location = glGetUniformLocation(shaderprogram, name);
 				uni->type = getConstantType(type);
 				uni->size = size;
 				strcpy(uni->name, name);
-				int constantSize = constantTypeSizes[uni->type] * uni->size;
-				uni->data =  malloc(sizeof(unsigned char) * constantSize);
-				memset(uni->data, 0, constantSize);
+				int constantsize = constantTypeSizes[uni->type] * uni->size;
+				uni->data =  malloc(sizeof(unsigned char) * constantsize);
+				memset(uni->data, 0, constantsize);
 				uni->dirty = 0;
 				if (strcmp(uni->name, "lightPosition") == 0)
 					uni->semantic = LIGHTPOS;
@@ -570,14 +571,14 @@ Shader* initializeShader(const char* vertexSource, const char* fragmentSource){
 					uni->semantic = INVMODELVIEW;
 				if (strcmp(uni->name,"normalmatrix") == 0)
 					uni->semantic = NORMALMATRIX;
-				newShader->uniforms[numUniforms] = uni;
-				numUniforms++;
+				newshader->uniforms[numuniforms] = uni;
+				numuniforms++;
 			}
 		}
 	}
 
 	free(name);
-	return newShader;
+	return newshader;
 }
 
 //bug

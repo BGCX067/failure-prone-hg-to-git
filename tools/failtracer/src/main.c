@@ -71,7 +71,6 @@ int Render(event *e, double *dt){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	time += *dt;
-	printf("%f cos %f \n ", time, cos(time/1.0));
     drawFullscreenQuad();
 
     glFlush();
