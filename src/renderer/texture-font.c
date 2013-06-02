@@ -31,11 +31,15 @@
  * policies, either expressed or implied, of Nicolas P. Rougier.
  * ============================================================================
  */
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_STROKER_H
+//#include <ft2build.h>
+//#include FT_FREETYPE_H
+//#include FT_STROKER_H
 // #include FT_ADVANCES_H
-#include FT_LCD_FILTER_H
+//#include FT_LCD_FILTER_H
+#include <freetype/config/ftheader.h>
+#include <freetype/freetype.h>
+#include <freetype/ftstroke.h>
+#include <freetype/ftlcdfil.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
