@@ -477,11 +477,32 @@ Shader* initializeShader(const char* geometrysource, const char* vertexsource, c
 		glAttachShader(shaderprogram, fragmentshader);
 	}
 
+	int geometryshader = 0;
+	if (geometrysource){
+		geometryshader = glCreateShader(GL_GEOMETRY_SHADER);
+
+		if (geometryshader == 0)
+			return 0;
+
+		glShaderSource(geometryshader, 1, &geometrysource, 0);
+		glCompileShader(geometryshader);
+
+		if (printShaderCompilerLog(geometryshader)){
+			glDeleteShader(geometryshader);
+			return 0;
+		}
+
+		glAttachShader(shaderprogram, geometryshader);
+	}
+
+
 	glLinkProgram(shaderprogram);
 	if (printShaderLinkerLog(shaderprogram)){
 		glDeleteShader(vertexshader);
 		glDeleteShader(fragmentshader);
 		glDeleteProgram(shaderprogram);
+		if (geometryshader)
+			glDeleteProgram(geometryshader);
 		return 0;
 	}
 
