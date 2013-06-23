@@ -31,140 +31,87 @@ Mesh* tMesh;
 
 
 void changeTerrain(){
-
     int sizex, sizey;
     sizex = sizey = 512;
 
-    for( int i = 0; i < sizex; i++)
-	for(int j = 0; j < sizey; j++)
+    for(int j = 0; j < sizey; j++)
+	for(int i = 0; i < sizex; i++)
 		terrain[j + i*sizex] = fbm2( (float) (i),  (float) (j), frequency/1.0, lacunarity*10.0, persistence/10.0, (int)(octaves*10))*10;
 
-    float* vertices = malloc( sizeof(float)*sizex*sizey*6*3 ); //cada tile sao 2 triangulos, com 3 vertices cada com 3 componentes
+    float* vertices = malloc(sizeof(float)*sizex*sizey*3);
+    for(int j = 0; j < sizey; j++)
+        for(int i = 0; i < sizex; i++) {
+            vertices[3*i + 3*j*sizex] = (float) i;
+            vertices[3*i + 3*j*sizex + 1] = terrain[i + j*sizex];
+            vertices[3*i + 3*j*sizex + 2] = (float) j;
+        }
 
-    int index = 0;
-    for (int i = 0; i < sizex; i++){
-	for(int j = 0; j < sizey; j++){
-		//index = i + j*512;
-        
-        //Vert 1
-		vertices[index] = (float)i;
-		vertices[index+1] = terrain[j + i*sizex];
-		//vertices[index+1] = 0.0;
-		vertices[index+2] = (float)j;
-
-        //Vert 3
-		vertices[index+3] = (float)i;
-		vertices[index+4] = terrain[(j+1) + i*sizex];
-		//vertices[index+4] = 0.0; 
-		vertices[index+5] = (float)(j+1.0);
-
-        //Vert 2
-		vertices[index+6] = (float)(i+1.0);
-		vertices[index+7] = terrain[j+(i+1)*sizex];
-		//vertices[index+7] = 0.0;
-		vertices[index+8] = (float)j;
-
-        //Vert 4
-		vertices[index+9] = (float)i;
-		vertices[index+10] = terrain[(j+1) + i*sizex];
-		//vertices[index+10] = 0.0;
-		vertices[index+11] = (float)(j+1.0);
-
-        //Vert 6
-		vertices[index+12] = (float)(i+1.0);
-		vertices[index+13] = terrain[(j+1) + (i+1)*sizex];
-		//vertices[index+13] = 0.0;
-		vertices[index+14] = (float)(j+1.0);
-
-        //Vert 5
-		vertices[index+15] = (float)(i+1.0);
-		vertices[index+16] = terrain[j+(i+1)*sizex];
-		//vertices[index+16] = 0.0;
-		vertices[index+17] = (float)j;
-
-
-		index += 18;
-	}
-    }
-
-    float* normals = malloc(sizeof(float)*sizex*sizey*6*3);
-
-    setNormals(indices, vertices, normals, sizex*sizey*2, sizex*sizey*6);
+    float* normals = calloc(sizex*sizey*3,sizeof(float));
+    setNormals(indices, vertices, normals, (sizex - 1)*(sizey - 1)*2, sizex*sizey);
 
     updateMeshNormals(tMesh, normals);
     updateMeshVertices(tMesh, vertices);
 
     free(normals);
     free(vertices);
-
 }
 
+//TODO receber um intervalo que diz o tamanho em cada dimensão
+//sizex e sizey representam o número de vertices nos eixos X e Z
+//logo o menor valor será 2 para estes argumentos
 void generateTerrain(int sizex, int sizey){
-
-
-    for( int i = 0; i < sizex; i++)
-	for(int j = 0; j < sizey; j++)
-		terrain[j + i*sizex] = fbm2( (float) (i),  (float) (j), frequency/1.0, lacunarity*10.0, persistence/10.0, (int)(octaves*10))*10;
+    for(int j = 0; j < sizey; j++)
+	for(int i = 0; i < sizex; i++)
+		terrain[i + j*sizex] = fbm2( (float) (i),  (float) (j), frequency/1.0, lacunarity*10.0, persistence/10.0, (int)(octaves*10))*10;
 //		  terrain[j + i*sizex] = ridgedMulti( (float) (i),  (float) (j), 20.0, 0.09, 2.0, 1.0, 1.0, 6)*10;
 
-    indices = malloc( sizeof(unsigned int)*sizex*sizey*2*3 );
-    float* vertices = malloc( sizeof(float)*sizex*sizey*6*3 ); //cada tile sao 2 triangulos, com 3 vertices cada com 3 componentes
-
-    for (int i = 0; i < sizex*sizey*6; i++)
-	indices[i] = i;
-
-    int index = 0;
-    for (int i = 0; i < sizex; i++){
-	for(int j = 0; j < sizey; j++){
-		//index = i + j*512;
-        
-        //Vert 1
-		vertices[index] = (float)i;
-		vertices[index+1] = terrain[j + i*sizex];
-		//vertices[index+1] = 0.0;
-		vertices[index+2] = (float)j;
-
-        //Vert 3
-		vertices[index+3] = (float)i;
-		vertices[index+4] = terrain[(j+1) + i*sizex];
-		//vertices[index+4] = 0.0; 
-		vertices[index+5] = (float)(j+1.0);
-
-        //Vert 2
-		vertices[index+6] = (float)(i+1.0);
-		vertices[index+7] = terrain[j+(i+1)*sizex];
-		//vertices[index+7] = 0.0;
-		vertices[index+8] = (float)j;
-
-        //Vert 4
-		vertices[index+9] = (float)i;
-		vertices[index+10] = terrain[(j+1) + i*sizex];
-		//vertices[index+10] = 0.0;
-		vertices[index+11] = (float)(j+1.0);
-
-        //Vert 6
-		vertices[index+12] = (float)(i+1.0);
-		vertices[index+13] = terrain[(j+1) + (i+1)*sizex];
-		//vertices[index+13] = 0.0;
-		vertices[index+14] = (float)(j+1.0);
-
-        //Vert 5
-		vertices[index+15] = (float)(i+1.0);
-		vertices[index+16] = terrain[j+(i+1)*sizex];
-		//vertices[index+16] = 0.0;
-		vertices[index+17] = (float)j;
-
-
-		index += 18;
-	}
-    }
-
-    float* normals = malloc(sizeof(float)*sizex*sizey*6*3);
-
-    setNormals(indices, vertices, normals, sizex*sizey*2, sizex*sizey*6);
-    addVertices(tMesh, sizex*sizey*6*3, 3, vertices);
-    addIndices(tMesh, sizex*sizey*6, indices);
-    addNormals(tMesh, sizex*sizey*6*3, 3, normals);
+    indices = malloc(sizeof(unsigned int)*(sizex - 1)*(sizey - 1)*2*3);
+    float* vertices = malloc(sizeof(float)*sizex*sizey*3);
+    
+    for(int j = 0; j < sizey; j++)
+        for(int i = 0; i < sizex; i++) {
+            vertices[3*i + 3*j*sizex] = (float) i;
+            vertices[3*i + 3*j*sizex + 1] = terrain[i + j*sizex];
+            vertices[3*i + 3*j*sizex + 2] = (float) j;
+        }
+    //indices analisando cada tile
+    //0--1
+    //| /|
+    //|/ |
+    //2--3
+    //
+    // .-----> i
+    // |     
+    // |
+    //\|/
+    // V
+    // j      
+    for(int j = 0, index = 0; j < sizey - 1; j++)
+        for(int i = 0; i < sizex - 1; i++) {
+            int vertIndex = i + j*sizex;
+            //First tri
+            //0--1
+            //| /
+            //|/  
+            //2
+            indices[index] = vertIndex;
+            indices[index + 1] = vertIndex + sizex;
+            indices[index + 2] = vertIndex + 1;
+            //Second tri
+            //   1
+            //  /|
+            // / |
+            //2--3
+            indices[index + 3] = vertIndex + 1;
+            indices[index + 4] = vertIndex + sizex;
+            indices[index + 5] = vertIndex + sizex + 1;
+            index += 6;
+        }
+    float* normals = calloc(sizex*sizey*3,sizeof(float));
+    setNormals(indices, vertices, normals, (sizex - 1)*(sizey - 1)*2, sizex*sizey);
+    addVertices(tMesh, sizex*sizey*3, 3, vertices);
+    addIndices(tMesh, (sizex - 1)*(sizey - 1)*2*3, indices);
+    addNormals(tMesh, sizex*sizey*3, 3, normals);
     prepareMesh(tMesh);
     addMesh(cena, tMesh);
 

@@ -108,9 +108,9 @@ SkeletalAnim* getCurrentAnim(AnimatedMesh *m) {
 //Função auxiliar pra calcular normais, dados os índices e os vértices
 //baseado no código do iq
 void setNormals(unsigned int *tIndices, float *tVerts, float *tNormals, 
-                int indicesCount, int verticesCount) 
+                int trisCount, int verticesCount) 
 {
-    for(int j = 0; j < indicesCount; j++) {
+    for(int j = 0; j < trisCount; j++) {
         const int ia = tIndices[3*j];
         const int ib = tIndices[3*j + 1];
         const int ic = tIndices[3*j + 2];
@@ -126,15 +126,15 @@ void setNormals(unsigned int *tIndices, float *tVerts, float *tNormals,
         vec3 no;
         cross(e2, e1, no);
 
-        tNormals[3*ia] = no[0];
-        tNormals[3*ia + 1] = no[1];
-        tNormals[3*ia + 2] = no[2];
-        tNormals[3*ib] = no[0];
-        tNormals[3*ib + 1] = no[1];
-        tNormals[3*ib + 2] = no[2];
-        tNormals[3*ic] = no[0];
-        tNormals[3*ic + 1] = no[1];
-        tNormals[3*ic + 2] = no[2];
+        tNormals[3*ia] += no[0];
+        tNormals[3*ia + 1] += no[1];
+        tNormals[3*ia + 2] += no[2];
+        tNormals[3*ib] += no[0];
+        tNormals[3*ib + 1] += no[1];
+        tNormals[3*ib + 2] += no[2];
+        tNormals[3*ic] += no[0];
+        tNormals[3*ic + 1] += no[1];
+        tNormals[3*ic + 2] += no[2];
     }
     for(int j = 0; j < verticesCount; j++) {
         vec3 n = { tNormals[3*j], tNormals[3*j + 1], tNormals[3*j + 2] };
