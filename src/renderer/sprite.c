@@ -74,7 +74,7 @@ void initializeSpriteShaders(){
     "};
 
 
-    spriteShader = initializeShader( SpriteVSSource, SpriteFSSource );
+    spriteShader = initializeShader( NULL, SpriteVSSource, SpriteFSSource );
     //spriteShader = initializeShader(readTextFile("data/shaders/phong.vert"), 
         //                            readTextFile("data/shaders/phong.frag"));
 

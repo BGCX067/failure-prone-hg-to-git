@@ -217,7 +217,7 @@ void destroyVAO(unsigned int vaoid);
 
 
 //shaders
-Shader* initializeShader(const char* vertexSource, const char* fragmentSource);
+Shader* initializeShader(const char *geometrysource, const char* vertexsource, const char* fragmentsource);
 void bindShader(Shader* program);
 int printShaderCompilerLog(unsigned int shader);
 int printShaderLinkerLog(unsigned int program);
