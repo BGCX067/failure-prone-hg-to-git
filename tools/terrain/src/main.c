@@ -230,7 +230,7 @@ void initializeGame(){
     
     char *vertshader = readTextFile("data/shaders/phong.vert");
     char *fragshader = readTextFile("data/shaders/phong.frag");
-    shdr = initializeShader(vertshader, fragshader); 
+    shdr = initializeShader(NULL, vertshader, fragshader); 
 
     bbox.pmin[0] = 0.0;
     bbox.pmin[1] = 0.0;
