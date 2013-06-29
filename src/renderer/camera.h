@@ -23,9 +23,10 @@ typedef struct {
     mat4 mvp;
     mat3 normalmatrix;
     CameraType type;
+    int w, h;
 } Camera;
 
-void initCamera(Camera *c, CameraType t);
+void initCamera(Camera *c, CameraType t, int w, int h);
 void cameraHandleEvent(Camera *c, event *e);
 void setupViewMatrix(Camera *c);
 void camerafit(Camera *c, BoundingBox b, float fovy, float ratio, float znear, float zfar);

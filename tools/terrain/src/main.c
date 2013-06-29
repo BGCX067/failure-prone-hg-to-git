@@ -226,7 +226,7 @@ void initializeGame(){
 
   //  stbi_write_tga("noise.tga", 512, 512, 1, terrainbmp );
 
-    initCamera(&c, TRACKBALL);
+    initCamera(&c, TRACKBALL, 1280, 960);
     
     char *vertshader = readTextFile("data/shaders/phong.vert");
     char *fragshader = readTextFile("data/shaders/phong.frag");
@@ -238,7 +238,7 @@ void initializeGame(){
     bbox.pmax[0] = 512.0;
     bbox.pmax[1] = 0.0;
     bbox.pmax[2] = 512.0;
-    camerafit(&c, bbox, 45.0, 1280/960, 0.1, 10000.0);
+    camerafit(&c, bbox, 45.0, 1280.0f/960.0f, 0.1, 10000.0);
 
     l.pos[0]= 256.0; l.pos[1] = 10.0; l.pos[2] = 256.0;
     l.color[0] = 1.0;

@@ -14,7 +14,7 @@ void resettrackball() {
     VEC3_ZERO(currpos);
 }
 
-void initCamera(Camera *c, CameraType t) {
+void initCamera(Camera *c, CameraType t, int w, int h) {
     QUAT_IDENTITY(c->orientation);
     VEC3_ZERO(c->pos);
     c->up[0] = 0.0;
@@ -29,6 +29,8 @@ void initCamera(Camera *c, CameraType t) {
 
     c->type = t;
     resettrackball();
+    c->w = w;
+    c->h = h;
 }
 
 //FIXME fazer um setupViewMatrix de verdade
@@ -59,8 +61,8 @@ void cameraHandleEvent(Camera *c, event *e) {
     if(c->type == FIRSTPERSON) {
         if(e->type & MOUSE_MOTION_EVENT) {
             //FIXME tamanho da janela hardcoded
-            float dx = 400 - e->x;
-            float dy = 300 - e->y;
+            float dx = c->w - e->x;
+            float dy = c->h - e->y;
 
 
             float mouseSensitivity = 0.001;
@@ -110,8 +112,8 @@ void cameraHandleEvent(Camera *c, event *e) {
                 //Mapeia de coordenadas de janela para a trackball [-1, 1]
                 //FIXME hardcoded o tamanho da janela (800, 600)
                 //printf("\tinicializando trackball, escrevendo em lastpos\n");
-                float x = e->x/400.0 - 1.0;
-                float y = 1.0 - e->y/300.0;
+                float x = e->x/(float)c->w - 1.0;
+                float y = 1.0 - e->y/(float)c->h;
                 float z = sqrt(1.0 - x*x - y*y);
                 lastpos[0] = x;
                 lastpos[1] = y;
@@ -122,8 +124,8 @@ void cameraHandleEvent(Camera *c, event *e) {
                 //Mapeia de coordenadas de janela para a trackball [-1, 1]
                 //FIXME hardcoded o tamanho da janela (800, 600)
                 //printf("\ttrackball inicializada, arrastando mouse\n");
-                float x = e->x/400.0 - 1.0;
-                float y = 1.0 - e->y/300.0;
+                float x = e->x/(float)c->w - 1.0;
+                float y = 1.0 - e->y/(float)c->h;
                 float z = sqrt(1.0 - x*x - y*y);
                 currpos[0] = x;
                 currpos[1] = y;
