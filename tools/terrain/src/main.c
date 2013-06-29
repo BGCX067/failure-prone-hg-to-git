@@ -215,7 +215,7 @@ void initializeGame(){
 
     menux = menuy = 0;
     tMesh = initMesh();
-    initializeGUI(800, 600);
+    initializeGUI(1280, 960);
 
     terrain = malloc(512*512*sizeof(float));
 
@@ -238,7 +238,7 @@ void initializeGame(){
     bbox.pmax[0] = 512.0;
     bbox.pmax[1] = 0.0;
     bbox.pmax[2] = 512.0;
-    camerafit(&c, bbox, 45.0, 800/600, 0.1, 10000.0);
+    camerafit(&c, bbox, 45.0, 1280/960, 0.1, 10000.0);
 
     l.pos[0]= 256.0; l.pos[1] = 10.0; l.pos[2] = 256.0;
     l.color[0] = 1.0;
@@ -305,10 +305,10 @@ int Render(event *e, double* dt){
 
 
 int main(){
-	setVideoMode(800, 600, 0);
+	setVideoMode(1280, 960, 0);
 	warpmouse(0);
 	setWindowTitle("Terra");
-	initializeRenderer(800, 600, 0.1, 10000.0, 45.0);
+	initializeRenderer(1280, 960, 0.1, 10000.0, 45.0);
 	initializeGame();
 	MainLoop();
 
