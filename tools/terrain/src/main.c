@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "glapp.h"
 #include "math/vec3.h"
+#include "math/util.h"
 #include "renderer/renderer.h"
 #include "renderer/scene.h"
 #include "renderer/mesh.h"
@@ -11,6 +12,8 @@
 #include "util/sdnoise1234.h"
 #include "util/image.h"
 #include "util/utlist.h"
+#include "terrasys.h"
+#include "terragui.h"
 #include <stdlib.h>
 
 Scene* cena;
@@ -29,6 +32,7 @@ float octaves = 6.0/10.0;
 
 Mesh* tMesh;
 
+TerrainParam* root;
 
 void changeTerrain(){
     int sizex, sizey;
@@ -59,11 +63,11 @@ void changeTerrain(){
 //TODO receber um intervalo que diz o tamanho em cada dimensão
 //sizex e sizey representam o número de vertices nos eixos X e Z
 //logo o menor valor será 2 para estes argumentos
-void generateTerrain(int sizex, int sizey){
-    for(int j = 0; j < sizey; j++)
-	for(int i = 0; i < sizex; i++)
-		terrain[i + j*sizex] = fbm2( (float) (i),  (float) (j), frequency/1.0, lacunarity*10.0, persistence/10.0, (int)(octaves*10))*10;
-//		  terrain[j + i*sizex] = ridgedMulti( (float) (i),  (float) (j), 20.0, 0.09, 2.0, 1.0, 1.0, 6)*10;
+void generateTerrain(TerrainParam* root, int sizex, int sizey){
+
+   ParseTerrainNodes(root);
+
+    terrain = root->inputs[0]->terrain;
 
     indices = malloc(sizeof(unsigned int)*(sizex - 1)*(sizey - 1)*2*3);
     float* vertices = malloc(sizeof(float)*sizex*sizey*3);
@@ -221,7 +225,7 @@ void initializeGame(){
 
     cena = initializeScene();
     
-    generateTerrain(512, 512);
+    //generateTerrain(512, 512);
     generateSkyDome(5, 1024);
 
   //  stbi_write_tga("noise.tga", 512, 512, 1, terrainbmp );
@@ -256,8 +260,8 @@ int Update(event* e, double* dt){
 
 }
 
-
 int Render(event *e, double* dt){
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     vec3 bboxcenter;
@@ -279,25 +283,9 @@ int Render(event *e, double* dt){
         drawIndexedVAO(it->vaoId, it->indicesCount, GL_TRIANGLES);
     }
 
-    rect r5, r6, r7, r8, r9;
     beginGUI(e);
-	beginMenu(1, 200, 300, 250, 150, &menux, &menuy, "Noise", NULL);
-		doLabel(210, 430, "Persistence");
-		r6.x = 310; r6.y = 430;
-		doHorizontalSlider(3, &r6, &persistence);
-		doLabel(210, 410, "Lacunarity");
-		r7.x = 310; r7.y = 410;
-		doHorizontalSlider(4, &r7, &lacunarity);
-		doLabel(210, 390, "Frequency");
-		r8.x = 310; r8.y = 390;
-		doHorizontalSlider(5, &r8, &frequency);
-		doLabel(210, 370, "Octaves");
-		r9.x = 310; r9.y = 370;
-		doHorizontalSlider(6, &r9, &octaves);
-		r5.x = 260; r5.y = 330;
-		if (doButton(2, &r5, "Apply"))
-			changeTerrain();
-	endMenu(1, 200, 300, 200, 150, &menux, &menuy);
+	DrawGUINode();
+
     endGUI();
 
     glFlush();

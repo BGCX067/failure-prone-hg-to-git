@@ -1,5 +1,19 @@
 #include "util.h"
 
+float max(float a, float b){
+	if (a>b)
+		return a;
+	else
+		return b;
+}
+
+float min(float a, float b){
+	if (a<b)
+		return a;
+	else
+		return b;
+}
+
 int rayTriangleIntersection(vec3 ro, vec3 rd, vec3 va, vec3 vb, vec3 vc, float *t) {
     vec3 edge1, edge2, tvec, pvec, qvec;
     

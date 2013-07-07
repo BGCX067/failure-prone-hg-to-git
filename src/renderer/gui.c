@@ -45,7 +45,7 @@ const char* FSColorSource = {
     out vec4 outcolor; \n\
     void main() \n\
     { \n\
-        outcolor = color; \n\
+        outcolor = vec4(1.0, 0.0, 0.0, 1.0); \n\
     } \n\
 "};
     
@@ -133,6 +133,7 @@ int initializeGUI(int w, int h){
 	gui = malloc( sizeof(GUI));
 	gui->widgetShader  = initializeShader( NULL, WidgetVSSource, WidgetFSSource );
 	gui->colorShader = initializeShader(NULL, WidgetVSSource, fontfrag2);
+	gui->fontshader = initializeShader(NULL, WidgetVSSource, FSColorSource);
 	gui->textureViewShader = initializeShader(NULL, WidgetVSSource, TexViewWidgetFSSource  );
 	gui->skinnedShader = initializeShader( NULL, WidgetVSSource, WidgetFSSkinned);
 
@@ -409,9 +410,10 @@ void drawDownArrow( rect* rect, int width, int fillColorId, int borderColorId ){
 }
 
 void doLine(int x1, int y1, int x2, int y2){
-
+	float color[4] = { 1.0, 0.0, 0.0, 1.0};
+	setShaderConstant4f(gui->fontshader, "color", color );
+	bindShader(gui->fontshader);
 	glDisable(GL_BLEND);
-	//printf("x1 %d y1 %d x2 %d y2 %d \n", x1, y1, x2, y2 );
 	glBegin(GL_LINES);
 		glVertex2f((float)x1,  (float)y1);
 		glVertex2f((float)x2,  (float)y2);
@@ -702,13 +704,11 @@ int doButton(int  id, rect* r, char* text){
 	r->h = textRect.h + 2*BORDER_SIZE;
 	r->w = textRect.w + 2*BORDER_SIZE;
 
+	int hover = isHover(r);
 	if (gui->drawingMenu){
 		r->x += gui->menuoffsetx;
 		r->y += gui->menuoffsety;
 	}
-
-
-	int hover = isHover(r);
 	if (hover){
 		gui->hotitem = id;
 		if (guiEv->buttonLeft && (gui->activeitem == 0)){
@@ -751,13 +751,11 @@ int doToggleButton(int  id, rect* r, char* text, int* state){
 	r->h = textRect.h + 2*BORDER_SIZE;
 	r->w = textRect.w + 2*BORDER_SIZE;
 
+	int hover = isHover(r);
 	if (gui->drawingMenu){
 		r->x += gui->menuoffsetx;
 		r->y += gui->menuoffsety;
 	}
-
-
-	int hover = isHover(r);
 	if (hover){
 		gui->hotitem = id;
 		if (guiEv->buttonLeft && (gui->activeitem == 0)){
@@ -808,13 +806,14 @@ int doCheckButton(int id, rect  *r, char* text, int * state){
 	p.x = rCheck.w/6;
 	p.y = rCheck.h/6;
 
+	
+
+
+	int hover = isHover(r);
 	if (gui->drawingMenu){
 		r->x += gui->menuoffsetx;
 		r->y += gui->menuoffsety;
 	}
-
-
-	int hover = isHover(r);
 	if (hover){
 		gui->hotitem = id;
 		if ( (guiEv->buttonLeft) && (gui->activeitem == 0)){
@@ -855,13 +854,11 @@ int doRadioButton(int id, rect* r, char* text, int *state){
 	p.x = rCheck.w/6;
 	p.y = rCheck.h/6;
 
+	int hover = isHover(r);
 	if (gui->drawingMenu){
 		r->x += gui->menuoffsetx;
 		r->y += gui->menuoffsety;
 	}
-
-
-	int hover = isHover(r);
 	if (hover)
 		gui->hotitem = id;
 
@@ -886,11 +883,6 @@ int doRadioButton(int id, rect* r, char* text, int *state){
 }
 
 void doHorizontalSlider(int id, rect* r, float* value){
-
-	if (gui->drawingMenu){
-		r->x += gui->menuoffsetx;
-		r->y += gui->menuoffsety;
-	}
 
 	float min = 0;
 	float max = 1.0;
@@ -917,6 +909,10 @@ void doHorizontalSlider(int id, rect* r, float* value){
 	
 
 	int hover = isHover(r);
+	if (gui->drawingMenu){
+		r->x += gui->menuoffsetx;
+		r->y += gui->menuoffsety;
+	}
 	if (hover)
 		gui->hotitem = id;
 
@@ -968,11 +964,6 @@ void doHorizontalSlider(int id, rect* r, float* value){
 
 void doVerticalSlider(int id, rect* r, float* value){
 
-	if (gui->drawingMenu){
-		r->x += gui->menuoffsetx;
-		r->y += gui->menuoffsety;
-	}
-
 	float min = 0;
 	float max = 1.0;
 
@@ -998,6 +989,10 @@ void doVerticalSlider(int id, rect* r, float* value){
 	
 
 	int hover = isHover(r);
+	if (gui->drawingMenu){
+		r->x += gui->menuoffsetx;
+		r->y += gui->menuoffsety;
+	}	
 	if (hover)
 		gui->hotitem = id;
 

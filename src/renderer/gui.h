@@ -9,8 +9,8 @@ typedef struct _GUI{
 	Shader* widgetShader;
 	Shader* textureViewShader;
 	Shader* colorShader;
-	Shader* fontShader;
 	Shader* skinnedShader;
+	Shader* fontshader;
 
 	unsigned int  setupList;
 	unsigned int  restoreList;
