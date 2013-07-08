@@ -24,6 +24,14 @@ int inputid = 0;
 int outputid = 0;
 GUINode* nodes[100];
 
+void getInputPosition( int *x, int* y, int i){
+
+	if (nodes[i]->n->type == ROOT){
+		*x = (int)(nodes[i]->r.x+10+nodes[i]->r.w/2) + nodes[i]->menux;
+		*y = (int)(nodes[i]->r.y+100+5) + nodes[i]->menuy;
+	}
+
+}
 
 void DrawGUINode(){
 
@@ -79,7 +87,13 @@ void DrawGUINode(){
 	for (int i = 0; i < 100; i++){
 		if (nodes[i] != NULL){
 			if (nodes[i]->inputs[0] != NULL){
-				doLine( (int)(nodes[i]->r.x) + nodes[i]->menux, (int)(nodes[i]->r.y) + nodes[i]->menuy, (int)(nodes[i]->inputs[0]->r.x) + nodes[i]->inputs[0]->menux, (int)(nodes[i]->inputs[0]->r.y) + nodes[i]->inputs[0]->menuy );
+				int x1, y1, x2, y2;
+					getInputPosition(&x1, &y1, i);
+					if ( nodes[i]->inputs[0]->n->type == NOISE){
+						x2 = (int)(nodes[i]->inputs[0]->r.x+190+10) + nodes[i]->inputs[0]->menux;
+						y2 = (int)(nodes[i]->inputs[0]->r.y+10+5) + nodes[i]->inputs[0]->menuy;
+					}
+				doLine(x1, y1, x2, y2);
 			}
 		}
 	}
