@@ -12,4 +12,5 @@ int rayTriangleIntersection(vec3 ro, vec3 rd, vec3 va, vec3 vb, vec3 vc, float *
 int rayMeshIntersection(vec3 ro, vec3 rd, Mesh *m, int *indices);
 int picking(int mouseX, int mouseY, mat4 modelviewMatrix, mat4 projectionMatrix, int viewPort[4], Mesh *m, int *indices);
 
+float DegToRad(float angle);
 #endif

@@ -283,13 +283,39 @@ void bindMaterial(Material* m, Light* l ){
 	ambient[3] = 0.1;
 	setShaderConstant4f(m->shdr, "globalAmbient", ambient);
 
-    if(m->diffsource == TEXTURE) {
-        bindSamplerState(m->diffmap->state, 0);
-        bindTexture(m->diffmap, 0);
+    //if(m->diffsource == TEXTURE) {
+    //    bindSamplerState(m->diffmap->state, 0);
+    //    bindTexture(m->diffmap, 0);
+    //}
+
+    for(unsigned int i = 0; i < m->texCount; i++) {
+        //printf("binding texture: %d/%d\n", i, m->texCount);
+        bindSamplerState(m->textures[i]->state, i);
+        bindTexture(m->textures[i], i);
     }
 
-    if(m->transfermap) {
-        bindSamplerState(m->transfermap->state, 1);
-        bindTexture(m->transfermap, 1);
+    //if(m->transfermap) {
+    //    bindSamplerState(m->transfermap->state, 1);
+    //    bindTexture(m->transfermap, 1);
+    //}
+}
+
+Material *materialInit() {
+    Material *m = malloc(sizeof(Material));
+    m->texCount = 0;
+
+    return m;
+}
+
+//FIXME: retornar erro
+void materialAddTex(Material *m, Texture *t) {
+    if(m->texCount < 8) {
+        m->textures[m->texCount] = t;
+        m->texCount++;
     }
 }
+
+void materialSetShader(Material *m, Shader *s) {
+    m->shdr = s; 
+}
+

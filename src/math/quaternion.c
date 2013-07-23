@@ -22,10 +22,12 @@ void quatConjugate(quaternion q, quaternion conj) {
 }
 
 void quatMult(quaternion q2, quaternion q1, quaternion res) {
-    res[0] = q2[1]*q1[2] - q2[2]*q1[1] + q2[3]*q1[0] + q2[0]*q1[3];
-	res[1] = q2[2]*q1[0] - q2[0]*q1[2] + q2[3]*q1[1] + q2[1]*q1[3];
-	res[2] = q2[0]*q1[1] - q2[1]*q1[0] + q2[3]*q1[2] + q2[2]*q1[3];
-	res[3] = q2[3]*q1[3] - q2[0]*q1[0] - q2[1]*q1[1] - q2[2]*q1[2];
+    quaternion temp;
+    temp[0] = q2[1]*q1[2] - q2[2]*q1[1] + q2[3]*q1[0] + q2[0]*q1[3];
+	temp[1] = q2[2]*q1[0] - q2[0]*q1[2] + q2[3]*q1[1] + q2[1]*q1[3];
+	temp[2] = q2[0]*q1[1] - q2[1]*q1[0] + q2[3]*q1[2] + q2[2]*q1[3];
+	temp[3] = q2[3]*q1[3] - q2[0]*q1[0] - q2[1]*q1[1] - q2[2]*q1[2];
+    memcpy(res, temp, sizeof(quaternion));
 }
 
 
@@ -66,7 +68,6 @@ void quatToMatrix(quaternion q, mat4 m) {
     
     m[15] = 1.0;
 	m[3] = m[7] = m[11] =  m[12] = m[13] = m[14] = 0.0;
-	//m[15] = 1.0;
 }
 
 void rotateVec(vec3 v, quaternion q, vec3 res) {

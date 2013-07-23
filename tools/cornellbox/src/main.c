@@ -13,20 +13,16 @@ renderer *mainrenderer;
 Camera c;
 Light l; 
 
-//GUI-related
-int menux, menuy;
-char* salasComboBox[] = {"Sala 1", "Sala 2", "Sala 3", "Sala 4"};
-int comboboxState = 0;
-int currRoom = 0;
-int prevRoom = 0;
-
 Mesh* createBox(float x, float y, float z);
 
 void initializeGame(){
-    menux = menuy = 0;
-   // initializeGUI(800, 600);
-    initCamera(&c, TRACKBALL);
-   
+    //CamInit(&c, GetScreenW(), GetScreenH(), FPS, PERSPECTIVE); 
+    CamInit(&c, GetScreenW(), GetScreenH(), TRACKBALL, PERSPECTIVE); 
+
+    setProjection(c.mprojection);
+
+    vecSetf(c.pos, 0.0, 0.0, 5.0);
+
     cena = initializeScene();
 
     vec3 halveRedAmb = { 0.082, 0.0, 0.0 };
@@ -86,12 +82,9 @@ void initializeGame(){
     l.color[1] = 1.0;
     l.color[2] = 1.0;
     l.color[3] = 1.0;
-    camerafit(&c, cena->b, 45.0, 800.0f/600.0f, 0.1, 1000.0);
     //glPolygonMode(GL_BACK, GL_LINE);
 }
 
-float menux1, menux2 = 0;
-int gamebutton = 0;
 int Render(event *e, double* dt){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
@@ -103,68 +96,14 @@ int Render(event *e, double* dt){
         drawIndexedVAO(m->vaoId, m->indicesCount, GL_TRIANGLES);
     }
 
-    int newRoom = prevRoom;
-    rect r1,  r2, r3, r4, r5, r6, r7, r8, r9;
- /*   beginGUI(e);
-	r1.x = 10; r1.y = 575;
-	r2.x = 60; r2.y = 575;
-	r3.x = 120; r3.y = 575;
-	r4.x = 220; r4.y = 575;
-	r5.x = 285; r5.y = 575;
-
-	doToggleButton(1, &r1, "Game", &gamebutton);
-	doToggleButton(2, &r2, "Tower", &gamebutton);
-	doToggleButton(3, &r3, "Characters", &gamebutton);
-	doToggleButton(4, &r4, "Agenda", &gamebutton);
-	doToggleButton(5, &r5, "Spells", &gamebutton);
-
-	if (gamebutton == 1 ) {
-		beginMenu(6, 10, 223, 250, 350, &menux1, &menux2, "Game", NULL);
-			r6.x = 100; r6.y = 540;
-        	if(doButton(1, &r6, "Save"))
-                printf("Save button pressed\n");
-			r2.x = 100; r2.y = 500;
-        	if(doButton(2, &r2, "Load"))
-                printf("Load button pressed\n");
-		endMenu(6, 10, 223, 250, 150, &menux1, &menux2);
-	}else if (gamebutton == 2 ) {
-        beginMenu(6, 60, 223, 250, 350, &menux1, &menux2, "Tower", NULL);
- 			doLabel(80, 543, "Sala");
-        	r7.x = 120; r7.y = 540;
-        	doComboBox(5, &r7, 4, salasComboBox, &newRoom, &comboboxState);
-		endMenu(6, 60, 223, 250, 150, &menux1, &menux2);
-	} else if (gamebutton == 3){
-		beginMenu(6, 120, 223, 250, 350, &menux1, &menux2, "Characters", NULL);
-		endMenu(6, 120, 223, 250, 150, &menux1, &menux2);
-	} else if (gamebutton == 4){
-		beginMenu(6, 220, 223, 250, 350, &menux1, &menux2, "Agenda", NULL);
-		endMenu(6, 220, 223, 250, 150, &menux1, &menux2);
-	} else if (gamebutton == 5){
-		beginMenu(6, 285, 223, 250, 350, &menux1, &menux2, "Spells", NULL);
-		endMenu(6, 285, 223, 250, 150, &menux1, &menux2);
-	}
-    endGUI();*/
-
-    if(currRoom != newRoom) {
-        prevRoom = currRoom;
-        currRoom = newRoom;
-        printf("prevRoom: %d\ncurrRoom: %d\n", prevRoom, currRoom);
-        prevRoom = currRoom;
-    }
-
     glFlush();
     return 1;
 }
 
+//TODO automatizar o uso da camera
 int Update(event* e, double *dt){
-    cameraHandleEvent(&c, e);
-    setupViewMatrix(&c);
-    vec3 bboxcenter;
-    bbcenter(cena->b, bboxcenter);
-    //translada para o centro
-    fptranslatef(c.modelview, -bboxcenter[0], -bboxcenter[1], -bboxcenter[2]);
-    setView(c.modelview);
-    setProjection(c.projection); //TODO isso so precisaria ser calculado/setado 1x
+    c.update(&c, e, dt);
+    setView(c.mview);
     return 1;
 }
 
@@ -179,7 +118,6 @@ int main(){
 	closeVideo();
 	return 0;
 }
-
 
 Mesh* createBox(float w, float h, float l) {
     Mesh *m = initMesh();

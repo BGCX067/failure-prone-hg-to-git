@@ -1,4 +1,12 @@
 #include "util.h"
+#include <math.h>
+
+/* Por algum motivo M_PI nao aparece definido em math.h */
+#ifndef M_PI
+#define M_PI	3.14159265358979323846
+#endif
+
+
 
 float max(float a, float b){
 	if (a>b)
@@ -84,3 +92,10 @@ int picking(int mouseX, int mouseY, mat4 modelviewMatrix, mat4 projectionMatrix,
 
     return rayMeshIntersection(rayOrigin, rayDir, m, indices);
 }
+
+
+float DegToRad(float angle) {
+    return M_PI*angle/180.0f;
+}
+
+

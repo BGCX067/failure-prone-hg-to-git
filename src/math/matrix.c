@@ -14,22 +14,24 @@ void fpIdentity(mat4 m) {
 }
 
 void fpMultMatrix(mat4 res, const mat4 a, const mat4 b) {
-    res[0] = a[0]*b[0] + a[4]*b[1] + a[8]*b[2] + a[12]*b[3];
-    res[1] = a[1]*b[0] + a[5]*b[1] + a[9]*b[2] + a[13]*b[3];
-    res[2] = a[2]*b[0] + a[6]*b[1] + a[10]*b[2] + a[14]*b[3];
-    res[3] = a[3]*b[0] + a[7]*b[1] + a[11]*b[2] + a[15]*b[3];
-    res[4] = a[0]*b[4] + a[4]*b[5] + a[8]*b[6] + a[12]*b[7];
-    res[5] = a[1]*b[4] + a[5]*b[5] + a[9]*b[6] + a[13]*b[7];
-    res[6] = a[2]*b[4] + a[6]*b[5] + a[10]*b[6] + a[14]*b[7];
-    res[7] = a[3]*b[4] + a[7]*b[5] + a[11]*b[6] + a[15]*b[7];
-    res[8] = a[0]*b[8] + a[4]*b[9] + a[8]*b[10] + a[12]*b[11];
-    res[9] = a[1]*b[8] + a[5]*b[9] + a[9]*b[10] + a[13]*b[11];
-    res[10] = a[2]*b[8] + a[6]*b[9] + a[10]*b[10] + a[14]*b[11];
-    res[11] = a[3]*b[8] + a[7]*b[9] + a[11]*b[10] + a[15]*b[11];
-    res[12] = a[0]*b[12] + a[4]*b[13] + a[8]*b[14] + a[12]*b[15];
-    res[13] = a[1]*b[12] + a[5]*b[13] + a[9]*b[14] + a[13]*b[15];
-    res[14] = a[2]*b[12] + a[6]*b[13] + a[10]*b[14] + a[14]*b[15];
-    res[15] = a[3]*b[12] + a[7]*b[13] + a[11]*b[14] + a[15]*b[15];
+    mat4 tmp;
+    tmp[0] = a[0]*b[0] + a[4]*b[1] + a[8]*b[2] + a[12]*b[3];
+    tmp[1] = a[1]*b[0] + a[5]*b[1] + a[9]*b[2] + a[13]*b[3];
+    tmp[2] = a[2]*b[0] + a[6]*b[1] + a[10]*b[2] + a[14]*b[3];
+    tmp[3] = a[3]*b[0] + a[7]*b[1] + a[11]*b[2] + a[15]*b[3];
+    tmp[4] = a[0]*b[4] + a[4]*b[5] + a[8]*b[6] + a[12]*b[7];
+    tmp[5] = a[1]*b[4] + a[5]*b[5] + a[9]*b[6] + a[13]*b[7];
+    tmp[6] = a[2]*b[4] + a[6]*b[5] + a[10]*b[6] + a[14]*b[7];
+    tmp[7] = a[3]*b[4] + a[7]*b[5] + a[11]*b[6] + a[15]*b[7];
+    tmp[8] = a[0]*b[8] + a[4]*b[9] + a[8]*b[10] + a[12]*b[11];
+    tmp[9] = a[1]*b[8] + a[5]*b[9] + a[9]*b[10] + a[13]*b[11];
+    tmp[10] = a[2]*b[8] + a[6]*b[9] + a[10]*b[10] + a[14]*b[11];
+    tmp[11] = a[3]*b[8] + a[7]*b[9] + a[11]*b[10] + a[15]*b[11];
+    tmp[12] = a[0]*b[12] + a[4]*b[13] + a[8]*b[14] + a[12]*b[15];
+    tmp[13] = a[1]*b[12] + a[5]*b[13] + a[9]*b[14] + a[13]*b[15];
+    tmp[14] = a[2]*b[12] + a[6]*b[13] + a[10]*b[14] + a[14]*b[15];
+    tmp[15] = a[3]*b[12] + a[7]*b[13] + a[11]*b[14] + a[15]*b[15];
+    memcpy(res, tmp, sizeof(mat4));
 }
 
 
@@ -147,9 +149,11 @@ void fpperspective(mat4 m, float fovy, float ratio, float znear, float zfar) {
     m[11] = -1.0f;
     m[14] = -(zfar*doubleznear) * one_deltaz;
 }
-
+ 
+//Possiveis problemas do lookat:
+//1 - Concatenar o resultado em result (?) (Existe alguma aplicação)
+//2 - Parar de usar o tipos definidos pela Engine e usar tipos basicos
 void fpLookAt(mat4 result, vec3 pos, vec3 look, vec3  up){
-
     vec3 right;
     cross(look, up, right);
     vecNormalize(right);

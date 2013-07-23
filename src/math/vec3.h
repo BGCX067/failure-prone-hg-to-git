@@ -17,4 +17,7 @@ void vecNormalize(vec3 v);
 
 float vecAngle(vec3 v1, vec3 v2);
 
+void vecSetv(vec3 dest, vec3 src);
+void vecSetf(vec3 dest, float x, float y, float z);
+
 #endif

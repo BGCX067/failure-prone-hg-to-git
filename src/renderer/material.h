@@ -19,7 +19,8 @@ typedef struct Material{
     Texture *diffmap;
     int diffsource;
     Texture *transfermap;
-
+    Texture *textures[8];
+    unsigned int texCount;
 
     //FIXME so precisa pra hora de ler do arquivo também
     char *id;
@@ -44,6 +45,15 @@ Material* texturedMaterialDir(Texture *t);
 
 Material* volumeMaterial(Texture* t);
 Material* volumeMaterialTransfer(Texture* volData, Texture* transferData);
+
+
+
+//---------------------------------------
+// API LOW LEVEL
+
+Material* materialInit();
+void materialAddTex(Material *m, Texture *t);
+void materialSetShader(Material *m, Shader *s);
 
 
 #endif

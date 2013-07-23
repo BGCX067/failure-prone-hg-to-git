@@ -46,3 +46,15 @@ void vecNormalize(vec3 v) {
 float vecAngle(vec3 v1, vec3 v2) {
     return acos(dot(v1, v2)/(vecLength(v1)*vecLength(v2)));
 }
+
+
+void vecSetv(vec3 dest, vec3 src) {
+    memcpy(dest, src, sizeof(vec3));
+}
+
+void vecSetf(vec3 dest, float x, float y, float z) {
+    dest[0] = x;
+    dest[1] = y;
+    dest[2] = z;
+}
+

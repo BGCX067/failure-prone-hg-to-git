@@ -217,7 +217,8 @@ double getTime(){
 int getKeyCode(int key){
 
 	int ret = 0;
-
+    
+    //TODO ordenar alfabeticamente as teclas pra facilitar a leitura
 	switch(key){
 		case XK_Escape: ret = KEY_ESC; break;
 		case XK_Left: 	ret = KEY_LEFT; break;
@@ -238,6 +239,7 @@ int getKeyCode(int key){
 		case XK_i:	ret = KEY_i; break;
 		case XK_o:	ret = KEY_o; break;
 		case XK_p:	ret = KEY_p; break;
+		case XK_q:	ret = KEY_q; break;
 		case XK_f:	ret = KEY_f; break;
 		case XK_g:	ret = KEY_g; break;
 		case XK_h:	ret = KEY_h; break;
@@ -319,7 +321,9 @@ void MainLoop( ){
 					break;
 				case ButtonPress:
 					evt.button |= 1 << (event.xbutton.button - 1);
-       					evt.type |= MOUSE_BUTTON_PRESS;
+                    evt.type |= MOUSE_BUTTON_PRESS;
+                    evt.x = event.xbutton.x;
+                    evt.y = event.xbutton.y;
 					if (event.xbutton.button == 1)
 						evt.buttonLeft = 1;
 					else if (event.xbutton.button == 3)
@@ -330,6 +334,8 @@ void MainLoop( ){
 					evt.type |= MOUSE_BUTTON_RELEASE;
 					evt.buttonLeft = 0;
 					evt.buttonRight = 0;
+                    evt.x = event.xbutton.x;
+                    evt.y = event.xbutton.y;
 					break;
 			}
 
@@ -359,21 +365,28 @@ void MainLoop( ){
 		evt.button &= ~(BUTTON_UP | BUTTON_DOWN);
 
 		if (warpmouse_)
-	        	setMouse(app->width/2, app->height/2);
+            setMouse(app->width/2, app->height/2);
 	}
 }
 
 
 void warpmouse( int i){
-
 	warpmouse_ = i;
-
 }
 
 
 void swapBuffers() {
     glXSwapBuffers(display, window);    
 }
+
+unsigned int GetScreenW() {
+    return app->width;
+}
+
+unsigned int GetScreenH() {
+    return app->height;
+}
+
 
 //#endif
 

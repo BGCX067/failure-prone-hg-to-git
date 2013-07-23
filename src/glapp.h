@@ -19,7 +19,7 @@ enum {
     MOUSE_MOTION_EVENT = 1 << 2,
     MOUSE_BUTTON_EVENT = 1 << 3,
     MOUSE_BUTTON_PRESS = 1 << 4,
-    MOUSE_BUTTON_RELEASE = 1 << 4
+    MOUSE_BUTTON_RELEASE = 1 << 5
 };
 
 /* enum para as keys do evento */
@@ -129,6 +129,8 @@ void MainLoop();
 
 void swapBuffers();
 
+unsigned int GetScreenW();
+unsigned int GetScreenH();
 
 //int Update( event* e, float* dt );
 //int Render(event *e, float* dt);
