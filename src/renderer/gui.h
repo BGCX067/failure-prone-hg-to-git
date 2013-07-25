@@ -5,7 +5,6 @@
 #include "renderer.h"
 
 typedef struct _GUI{
-
 	Shader* widgetShader;
 	Shader* textureViewShader;
 	Shader* colorShader;
@@ -39,35 +38,34 @@ typedef struct _GUI{
 }GUI;
 
 //necessary GUI system functions 
-int initializeGUI(int w, int h);
-void beginGUI(event *e);
-void endGUI();
+int InitializeGUI(int w, int h);
+void BeginGUI(event *e);
+void EndGUI();
 
 //widgets
-void doLabel(float posx, float posy, char* text);
-int  doButton(int id, rect* r, char* text);
-int  doToggleButton(int id, rect* r, char* text, int* state);
-void doHorizontalSlider(int id, rect* r, float* value);
-void doVerticalSlider(int id, rect* r, float* value);
-int  doRadioButton(int id, rect* r, char* text, int* state);
-int  doCheckButton(int id, rect* r, char* text, int* state);
-void doImage(int id, float x, float y, float sizex, float sizey, Texture* t);
-int  doComboBox(int id, rect* r, int numOptions, char* options[], int* selected, int * state);
+void DoLabel(float posx, float posy, char* text);
+int  DoButton(int id, Rect* r, char* text);
+int  DoToggleButton(int id, Rect* r, char* text, int* state);
+void DoHorizontalSlider(int id, Rect* r, float* value);
+void DoVerticalSlider(int id, Rect* r, float* value);
+int  DoRadioButton(int id, Rect* r, char* text, int* state);
+int  DoCheckButton(int id, Rect* r, char* text, int* state);
+void DoImage(int id, float x, float y, float sizex, float sizey, Texture* t);
+int  DoComboBox(int id, Rect* r, int numOptions, char* options[], int* selected, int * state);
 
-int beginMenu(int id, int x, int y, int w, int h, float* xoffset, float* yoffset, char* text, Texture* t);
-void endMenu(int id, int x, int y, int w, int h, float* xoffset, float* yoffset);
+int BeginMenu(int id, int x, int y, int w, int h, float* xoffset, float* yoffset, char* text, Texture* t);
+void EndMenu(int id, int x, int y, int w, int h, float* xoffset, float* yoffset);
 
-int doTooltip(int id, float x, float y, float w, float h);
-int doLineEdit(int id,  rect* r, char* text, int maxTextLength );
+int DoTooltip(int id, float x, float y, float w, float h);
+int DoLineEdit(int id,  Rect* r, char* text, int maxTextLength );
 
 
 //aux functions
-void setFontColor(float r, float g, float b, float a);
-int setFontSize(int size);
+void SetFontColor(float r, float g, float b, float a);
+int SetFontSize(int size);
 
 /// PLOT
 typedef struct _matrix{
-
 	int sizex;
 	int sizey;
 	float* data;
@@ -76,9 +74,9 @@ typedef struct _matrix{
 
 }MatrixData;
 
-int doMatrix(MatrixData* a, float x, float y, float size);
-void doLine(int x1, int y1, int x2, int y2);
-void plot1d(float* serie, int num, int x, int y, int w, int h, int r, int g, int b);
+int DoMatrix(MatrixData* a, float x, float y, float size);
+void DoLine(int x1, int y1, int x2, int y2);
+void Plot1d(float* serie, int num, int x, int y, int w, int h, int r, int g, int b);
 
 #endif
 

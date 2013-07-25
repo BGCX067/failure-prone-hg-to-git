@@ -3,21 +3,16 @@
 
 typedef float vec3[3];
 
-#define VEC3_ZERO(v) {v[0] = 0.0; v[1] = 0.0; v[2] = 0.0;}
+void Addv(vec3 v1, vec3 v2, vec3 res);
+void Subv(vec3 v1, vec3 v2, vec3 res);
+void Multv(vec3 v, float s, vec3 res);
+float Dot(vec3 v1, vec3 v2);
+void Cross(vec3 v1, vec3 v2, vec3 res);
+float Lengthv(vec3 v);
+void Normalizev(vec3 v);
+float Anglev(vec3 v1, vec3 v2);
 
-void vecAdd(vec3 v1, vec3 v2, vec3 res);
-void vecSub(vec3 v1, vec3 v2, vec3 res);
-void vecMult(vec3 v, float s, vec3 res);
-
-float dot(vec3 v1, vec3 v2);
-void cross(vec3 v1, vec3 v2, vec3 res);
-
-float vecLength(vec3 v);
-void vecNormalize(vec3 v);
-
-float vecAngle(vec3 v1, vec3 v2);
-
-void vecSetv(vec3 dest, vec3 src);
-void vecSetf(vec3 dest, float x, float y, float z);
+void Setv(vec3 dest, vec3 src);
+void Setvf(vec3 dest, float x, float y, float z);
 
 #endif

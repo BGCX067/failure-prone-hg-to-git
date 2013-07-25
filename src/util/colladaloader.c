@@ -32,20 +32,20 @@ typedef struct _vertex {
     float s,t;
 } vertex_t;
 
-void removefirstchar(char *string) {
+static void removefirstchar(char *string) {
     for(unsigned int k = 1; k < strlen(string); k++)
         string[k - 1] = string[k];
     string[strlen(string) - 1] = '\0';
 }
 
-int findsourceid(source_t *sources, int numsources, const char *id) {
+static int findsourceid(source_t *sources, int numsources, const char *id) {
    for(int i = 0; i < numsources; i++)
         if(strcmp(sources[i].id, id) == 0)
             return i;
     return -1;
 }
 
-void getFloatArray(float **array, char *float_array, int count) {
+static void getFloatArray(float **array, char *float_array, int count) {
     *array = malloc(sizeof(float)*count);
     char *tok = strtok(float_array, " ");
     int k = 0;
@@ -56,20 +56,20 @@ void getFloatArray(float **array, char *float_array, int count) {
     }
 }
 
-void readMaterialComponent(float* component, char *floatarray) {
+static void readMaterialComponent(float* component, char *floatarray) {
     float *componentarray;
     getFloatArray(&componentarray, floatarray, 4);
     memcpy(component, componentarray, 4*sizeof(float));
     free(componentarray);
 }
 
-void readMaterial(ezxml_t collada, Scene *s) {
+static void readMaterial(ezxml_t collada, Scene *s) {
     //Começar lendo a <library_images>
     ezxml_t library_images = ezxml_child(collada, "library_images");
     
     for(ezxml_t imagetag = ezxml_child(library_images, "image"); imagetag; imagetag = imagetag->next) {
         char *file = ezxml_child(imagetag, "init_from")->txt;
-        Texture *t = initialize2DTexture(file);
+        Texture *t = Initialize2DTexture(file);
         t->id = (char*)ezxml_attr(imagetag, "id");
         //FIXME corrigir isso
         //addTexture(s, t);
@@ -135,11 +135,11 @@ void readMaterial(ezxml_t collada, Scene *s) {
         mat->shininess = atof(ezxml_child(shininess, "float")->txt);
 
         //Adiciona o material na lista de materials da cena
-        addMaterial(s, mat);
+        AddMaterial(s, mat);
     }
 }
 
-void readLibraryGeometries(ezxml_t library_geometries, Scene *s) {
+static void readLibraryGeometries(ezxml_t library_geometries, Scene *s) {
     for(ezxml_t geometry = ezxml_child(library_geometries, "geometry"); geometry; geometry = geometry->next) {
         //m->id = ezxml_attr(geometry, "id");
         //Lê tag mesh
@@ -202,7 +202,7 @@ void readLibraryGeometries(ezxml_t library_geometries, Scene *s) {
             //Lê p
             ezxml_t ptag = ezxml_child(trianglestag, "p");
 
-            Mesh *m = initMesh();//addTris(m); //malloc(sizeof(Triangles));
+            Mesh *m = InitMesh();//addTris(m); //malloc(sizeof(Triangles));
 
             //Lê material - procura na lista de materials o material com o id lido
             char *matlabel = (char*)ezxml_attr(trianglestag, "material");
@@ -260,7 +260,7 @@ void readLibraryGeometries(ezxml_t library_geometries, Scene *s) {
             unsigned int *tIndices = malloc(sizeof(unsigned int)*3*numtriangles);
             for(unsigned int i = 0; i < 3*numtriangles; i++)
                 tIndices[i] = i;
-            addIndices(m, 3*numtriangles, tIndices);
+            AddIndices(m, 3*numtriangles, tIndices);
             
             float *tVerts = malloc(sizeof(float)*3*3*numtriangles);
             for(unsigned int i = 0, k = 0; i < 3*numtriangles; i++, k+=3) {
@@ -268,8 +268,8 @@ void readLibraryGeometries(ezxml_t library_geometries, Scene *s) {
                 tVerts[k + 1] = vertices[i].pos[1];
                 tVerts[k + 2] = vertices[i].pos[2];
             }
-            setboundingbox(&m->b, tVerts, 3*numtriangles);
-            addVertices(m, 3*3*numtriangles, 3, tVerts);
+            CalcBBox(&m->b, tVerts, 3*numtriangles);
+            AddVertices(m, 3*3*numtriangles, 3, tVerts);
 
             float *tNormals = malloc(sizeof(float)*3*3*numtriangles);
             for(unsigned int i = 0, k = 0; i < 3*numtriangles; i++, k+=3) {
@@ -277,22 +277,22 @@ void readLibraryGeometries(ezxml_t library_geometries, Scene *s) {
                 tNormals[k + 1] = vertices[i].normal[1];
                 tNormals[k + 2] = vertices[i].normal[2];
             }
-            addNormals(m, 3*3*numtriangles, 3, tNormals);
+            AddNormals(m, 3*3*numtriangles, 3, tNormals);
 
             float *tTexCoords = malloc(sizeof(float)*2*3*numtriangles);
             for(unsigned int i = 0, k = 0; i < 3*numtriangles; i++, k+=2) {
                 tTexCoords[k] = vertices[i].s;
                 tTexCoords[k + 1] = vertices[i].t;
             }
-            addTexCoords(m, 2*3*numtriangles, 2, 0, tTexCoords);
-            prepareMesh(m);
-            addMesh(s, m);
+            AddTexCoords(m, 2*3*numtriangles, 2, 0, tTexCoords);
+            PrepareMesh(m);
+            AddMesh(s, m);
         }
     }
-    sceneSetBoundingBox(s);
+    CalcBBoxs(s);
 }
 
-void readLight(ezxml_t library_lights, Scene *s) {
+static void readLight(ezxml_t library_lights, Scene *s) {
     //ler cada light
     for(ezxml_t lighttag = ezxml_child(library_lights, "light"); lighttag; lighttag = lighttag->next) {
         //Cria luz
@@ -306,7 +306,7 @@ void readLight(ezxml_t library_lights, Scene *s) {
         l->color[2] = 1.0;
         l->color[3] = 1.0;
 
-        addLight(s, l);
+        AddLight(s, l);
  /*       ezxml_t technique_common = ezxml_child(lighttag, "technique_common");
         //Directional
         ezxml_t directional = ezxml_child(technique_common, "directional");
@@ -336,7 +336,7 @@ void readLight(ezxml_t library_lights, Scene *s) {
 
 
 enum { CAMERA_NODE, LIGHT_NODE, GEOMETRY_NODE };
-int getNodeType(ezxml_t nodetag) {
+static int getNodeType(ezxml_t nodetag) {
     if(ezxml_child(nodetag, "instance_camera"))
         return CAMERA_NODE;
     else if(ezxml_child(nodetag, "instance_light"))
@@ -424,14 +424,14 @@ void readScene(ezxml_t library_visual_scenes, scene* s) {
     }
 }*/
 
-Scene* readColladaFile(const char *filename) {
+Scene* ReadColladaFile(const char *filename) {
     ezxml_t collada  = ezxml_parse_file(filename);
 
     if(!collada) {
         printf("Invalid file: %s\n", filename);
         return NULL;
     }
-    Scene *s = initializeScene();
+    Scene *s = InitializeScene();
     //Read material
     readMaterial(collada, s);
     //Read geometry

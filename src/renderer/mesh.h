@@ -1,7 +1,7 @@
 #ifndef _MESH_H_
 #define _MESH_H_
 
-#include "math/boundingbox.h"
+#include "math/mathutil.h"
 #include "math/quaternion.h"
 #include "math/matrix.h"
 #include "material.h"
@@ -19,7 +19,7 @@ typedef struct _texcoord{
 typedef struct _joint {
     int parent;
     vec3 pos;
-    quaternion orientation;
+    quat orientation;
 }Joint;
 
 //TODO armazenar boundingbox
@@ -63,7 +63,7 @@ typedef struct Mesh{
 
     Material *material;
 
-    BoundingBox b;
+    BBox b;
 
     unsigned int numweights;
     Weight *weights;
@@ -76,45 +76,33 @@ typedef struct Mesh{
     struct Mesh *prev, *next;
 }Mesh;
 
-
 //FIXME tem que fazer um initialize pro AnimatedMesh que pelo menos faça animList = NULL;
 typedef struct _mesh{
     int animated, currAnim;
     SkeletalAnim *animList;
-    BoundingBox b;
+    BBox b;
 }AnimatedMesh;
 
-
-//TODO encapsular melhor usando struct auxiliar
-typedef struct MeshElem {
-    struct MeshElem *prev, *next;
-    Mesh *m;
-}MeshElem;
-
-int meshElemCmp(MeshElem *el1, MeshElem *el2);
-
-void setMeshBoundingBox(Mesh *m);
-
-Mesh* initMesh();
-void addVertices(Mesh *m, int num, int comp, float *vertices);
-void addNormals(Mesh *m, int num, int comp, float *normals);
-void addTexCoords(Mesh *m, int num, int comp, int texset, float *texcoords);
-void addIndices(Mesh *m, int count, unsigned int *indices);
-void addColors(Mesh *m, int count, float *colors);
-void prepareMesh(Mesh *m);
+Mesh* InitMesh();
+void AddVertices(Mesh *m, int num, int comp, float *vertices);
+void AddNormals(Mesh *m, int num, int comp, float *normals);
+void AddTexCoords(Mesh *m, int num, int comp, int texset, float *texcoords);
+void AddIndices(Mesh *m, int count, unsigned int *indices);
+void AddColors(Mesh *m, int count, float *colors);
+void PrepareMesh(Mesh *m);
 
 // API pra updatear arrays de geometria do mesh. 
 // TODO talvez fosse bom poder updatear somente parte do array
 // TODO fazer pra texcoords e indices
-void updateMeshNormals(Mesh* m, float* normals);
-void updateMeshVertices(Mesh* m, float* vertices);
-void updateMeshColors(Mesh* t, float* colors);
+void UpdateMeshNormals(Mesh* m, float* normals);
+void UpdateMeshVertices(Mesh* m, float* vertices);
+void UpdateMeshColors(Mesh* t, float* colors);
 
-void addAnim(AnimatedMesh *m, SkeletalAnim *anim);
-SkeletalAnim* getCurrentAnim(AnimatedMesh *m);
+void AddAnim(AnimatedMesh *m, SkeletalAnim *anim);
+SkeletalAnim* GetCurrentAnim(AnimatedMesh *m);
 
 //Calcula normais assumindo que índices e vértices são dados
-void setNormals(unsigned int *tIndices, float *tVerts, float *tNormals, 
+void SetNormals(unsigned int *tIndices, float *tVerts, float *tNormals, 
                 int indicesCount, int verticesCount);
 
 //Calcula as novas posições do vértices e normais do mesh
@@ -122,6 +110,10 @@ void setNormals(unsigned int *tIndices, float *tVerts, float *tNormals,
 //void updateMesh(Mesh* m, Joint *skeleton);
 
 //Interpola de 2 Skeletons
-void interpolateSkeletons(const Joint *skelA, const Joint *skelB,
+void InterpolateSkeletons(const Joint *skelA, const Joint *skelB,
                           int numJoints, float interp, Joint *out);
+
+int RayMeshIntersection(vec3 ro, vec3 rd, Mesh *m, int *indices);
+int Picking(int mouseX, int mouseY, mat4 modelviewMatrix, mat4 projectionMatrix, int viewPort[4], Mesh *m, int *indices);
+
 #endif

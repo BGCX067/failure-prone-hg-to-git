@@ -7,13 +7,13 @@
 #define M_PI	3.14159265358979323846
 #endif
 
-void fpIdentity(mat4 m) {
+void Identity(mat4 m) {
     for(int i = 0; i < 16; i++)
         m[i] = 0.0;
     m[0] = m[5] = m[10] = m[15] = 1.0;
 }
 
-void fpMultMatrix(mat4 res, const mat4 a, const mat4 b) {
+void Multm(mat4 res, const mat4 a, const mat4 b) {
     mat4 tmp;
     tmp[0] = a[0]*b[0] + a[4]*b[1] + a[8]*b[2] + a[12]*b[3];
     tmp[1] = a[1]*b[0] + a[5]*b[1] + a[9]*b[2] + a[13]*b[3];
@@ -35,14 +35,14 @@ void fpMultMatrix(mat4 res, const mat4 a, const mat4 b) {
 }
 
 
-void fpTranspose(mat4 t, mat4 m) {
+void Transpose(mat4 t, mat4 m) {
     for(int i = 0; i < 4; i++)
         for(int j = 0; j < 4; j++)
             t[i + 4*j] = m[j + 4*i];
 }
 
 //FIXME conferir determinante
-float fpDeterminant(mat4 m) {
+float Determinant(mat4 m) {
     return m[12]*m[9]*m[6]*m[3] - m[8]*m[13]*m[6]*m[3] - m[12]*m[5]*m[10]*m[3] +  
            m[4]*m[13]*m[10]*m[3] + m[8]*m[5]*m[14]*m[3] - m[4]*m[9]*m[14]*m[3] -
            m[12]*m[9]*m[2]*m[7] + m[8]*m[13]*m[2]*m[7] + m[12]*m[1]*m[10]*m[7] -
@@ -53,7 +53,7 @@ float fpDeterminant(mat4 m) {
            m[0]*m[9]*m[6]*m[15] - m[4]*m[1]*m[10]*m[15] + m[0]*m[5]*m[10]*m[15];
 }
 
-void fpInverse(mat4 inv, const mat4 m) {
+void Inverse(mat4 inv, const mat4 m) {
     inv[0] = m[9]*m[14]*m[7] - m[13]*m[10]*m[7] + m[13]*m[6]*m[11] - 
              m[5]*m[14]*m[11] - m[9]*m[6]*m[15] + m[5]*m[10]*m[15];
 
@@ -107,26 +107,36 @@ void fpInverse(mat4 inv, const mat4 m) {
     for(int i = 0; i < 16; i++) 
         inv[i] *= det;
 
-    //float invdet = 1.0/fpDeterminant(m);
+    //float invdet = 1.0/Determinant(m);
     //for(int i = 0; i < 16; i++) 
     //    inv[i] /= invdet;
 }
 
-void fptranslatefv(mat4 m, vec3 v) {
+//FIXME fora do padrão
+void Multmv(const float matrix[16], const float in[4], float out[4]) {
+    for(unsigned int i = 0; i < 4; i++) {
+        out[i] = in[0] * matrix[0*4+i] +
+                 in[1] * matrix[1*4+i] +
+                 in[2] * matrix[2*4+i] +
+                 in[3] * matrix[3*4+i];
+    }
+}
+
+void Translatefv(mat4 m, vec3 v) {
     m[12]= v[0]*m[0] + v[1]*m[4] + v[2]*m[8] + m[12];
 	m[13]= v[0]*m[1] + v[1]*m[5] + v[2]*m[9] + m[13]; 
     m[14]= v[0]*m[2] + v[1]*m[6] + v[2]*m[10] + m[14];
     m[15]= v[0]*m[3] + v[1]*m[7] + v[2]*m[11] + m[15];
 } 
 
-void fptranslatef(mat4 m, float x, float y, float z) {
+void Translatef(mat4 m, float x, float y, float z) {
     m[12]= x*m[0] + y*m[4] + z*m[8] + m[12];
 	m[13]= x*m[1] + y*m[5] + z*m[9] + m[13]; 
     m[14]= x*m[2] + y*m[6] + z*m[10] + m[14];
     m[15]= x*m[3] + y*m[7] + z*m[11] + m[15];
 }
 
-void fpperspective(mat4 m, float fovy, float ratio, float znear, float zfar) {
+void Perspective(mat4 m, float fovy, float ratio, float znear, float zfar) {
     float xmax = znear*tan(0.5*fovy*M_PI/180.0);
     float xmin = -xmax;
 
@@ -153,14 +163,14 @@ void fpperspective(mat4 m, float fovy, float ratio, float znear, float zfar) {
 //Possiveis problemas do lookat:
 //1 - Concatenar o resultado em result (?) (Existe alguma aplicação)
 //2 - Parar de usar o tipos definidos pela Engine e usar tipos basicos
-void fpLookAt(mat4 result, vec3 pos, vec3 look, vec3  up){
+void LookAt(mat4 result, vec3 pos, vec3 look, vec3  up){
     vec3 right;
-    cross(look, up, right);
-    vecNormalize(right);
+    Cross(look, up, right);
+    Normalizev(right);
     
     vec3 newup;
-    cross(right, look, newup);
-    vecNormalize(newup);
+    Cross(right, look, newup);
+    Normalizev(newup);
 
     result[0] = right[0];
     result[4] = right[1];
@@ -178,12 +188,11 @@ void fpLookAt(mat4 result, vec3 pos, vec3 look, vec3  up){
     result[12] = result[13] = result[14] = 0.0; 
     result[15] = 1.0;
 
-
-    fptranslatef(result, -pos[0], -pos[1], -pos[2]);
+    Translatef(result, -pos[0], -pos[1], -pos[2]);
 }
 
-void fpOrtho( mat4 m, float xMin, float xMax, float yMin, float yMax, float zMin, float zMax){
-	fpIdentity(m);
+void Ortho( mat4 m, float xMin, float xMax, float yMin, float yMax, float zMin, float zMax){
+	Identity(m);
 
 	m[0] = 2.0f/(xMax - xMin);
     m[5] = 2.0f/(yMax - yMin);
@@ -193,7 +202,7 @@ void fpOrtho( mat4 m, float xMin, float xMax, float yMin, float yMax, float zMin
 	m[14] = -(zMax + zMin)/(zMax - zMin);
 }
 
-void fpNormalMatrix(mat3 normalmatrix, mat4 mv) {
+void NormalMatrix(mat3 normalmatrix, mat4 mv) {
     vec3 x0;
     x0[0] = mv[0];
     x0[1] = mv[1];
@@ -210,14 +219,13 @@ void fpNormalMatrix(mat3 normalmatrix, mat4 mv) {
     x2[2] = mv[10];
 
     vec3 x1crossx2;
-    cross(x1, x2, x1crossx2);
+    Cross(x1, x2, x1crossx2);
     vec3 x0crossx1;
-    cross(x0, x1, x0crossx1);
+    Cross(x0, x1, x0crossx1);
     vec3 x2crossx0;
-    cross(x2, x0, x2crossx0);
+    Cross(x2, x0, x2crossx0);
     
-     
-    float invdet = 1.0/dot(x0, x1crossx2);
+    float invdet = 1.0/Dot(x0, x1crossx2);
     normalmatrix[0] = invdet*x1crossx2[0];
     normalmatrix[1] = invdet*x1crossx2[1];
     normalmatrix[2] = invdet*x1crossx2[2];
@@ -231,25 +239,16 @@ void fpNormalMatrix(mat3 normalmatrix, mat4 mv) {
     normalmatrix[8] = invdet*x0crossx1[2];
 }
 
-void fpMultMatrixVecf(const float matrix[16], const float in[4], float out[4]) {
-    for(unsigned int i = 0; i < 4; i++) {
-        out[i] = in[0] * matrix[0*4+i] +
-                 in[1] * matrix[1*4+i] +
-                 in[2] * matrix[2*4+i] +
-                 in[3] * matrix[3*4+i];
-    }
-}
-
-void fpUnproject(float winx, float winy, float winz, 
-                 const mat4 modelMatrix,
-                 const mat4 projMatrix,
-                 const int viewport[4],
-                 float *x, float *y, float *z) {
+void Unproject(float winx, float winy, float winz, 
+               const mat4 modelMatrix,
+               const mat4 projMatrix,
+               const int viewport[4],
+               float *x, float *y, float *z) {
     mat4 modelViewProj, finalMatrix;
     float in[4];
     float out[4];
-    fpMultMatrix(modelViewProj, projMatrix, modelMatrix);
-    fpInverse(finalMatrix, modelViewProj);
+    Multm(modelViewProj, projMatrix, modelMatrix);
+    Inverse(finalMatrix, modelViewProj);
     
     in[0] = winx; 
     in[1] = winy; 
@@ -265,7 +264,7 @@ void fpUnproject(float winx, float winy, float winz,
     in[1] = in[1]*2.0f - 1.0;
     in[2] = in[2]*2.0f - 1.0;
 
-    fpMultMatrixVecf(finalMatrix, in, out);
+    Multmv(finalMatrix, in, out);
     //if (out[3] == 0.0)
     //{
     //    return(GL_FALSE);
@@ -279,17 +278,15 @@ void fpUnproject(float winx, float winy, float winz,
     *z = out[2];
 }
 
-
-void fpGetPosFromMatrix(const mat4 matrix, vec3 pos) {
+void PosFromMatrix(const mat4 matrix, vec3 pos) {
     mat4 invertedMatrix;
-    fpInverse(invertedMatrix, matrix);
+    Inverse(invertedMatrix, matrix);
     pos[0] = invertedMatrix[12];
     pos[1] = invertedMatrix[13];
     pos[2] = invertedMatrix[14];
 }
 
-
-void fpRotatef(mat4 matrix, float angleInRadians, float x, float y, float z) {
+void Rotatef(mat4 matrix, float angleInRadians, float x, float y, float z) {
     	//See page 191 of Elementary Linear Algebra by Howard Anton
 	//GLfloat m[16], rotate[16];
     mat4 m, rotate;

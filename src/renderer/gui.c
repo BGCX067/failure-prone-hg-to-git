@@ -137,19 +137,18 @@ void main(void) \n\
 }\n\
 "};
 
-int setFontSize(int size){
+int SetFontSize(int size){
 	gui->fontsize = size;
 	return 0;
 }
 
-int initializeGUI(int w, int h){
-
+int InitializeGUI(int w, int h){
 	gui = malloc( sizeof(GUI));
-	gui->widgetShader  = initializeShader( NULL, WidgetVSSource, WidgetFSSource );
-	gui->colorShader = initializeShader(NULL, WidgetVSSource, fontfrag2);
-	gui->fontshader = initializeShader(NULL, WidgetVSSource2, FSColorSource);
-	gui->textureViewShader = initializeShader(NULL, WidgetVSSource, TexViewWidgetFSSource  );
-	gui->skinnedShader = initializeShader( NULL, WidgetVSSource, WidgetFSSkinned);
+	gui->widgetShader  = InitializeShader( NULL, WidgetVSSource, WidgetFSSource );
+	gui->colorShader = InitializeShader(NULL, WidgetVSSource, fontfrag2);
+	gui->fontshader = InitializeShader(NULL, WidgetVSSource2, FSColorSource);
+	gui->textureViewShader = InitializeShader(NULL, WidgetVSSource, TexViewWidgetFSSource  );
+	gui->skinnedShader = InitializeShader( NULL, WidgetVSSource, WidgetFSSkinned);
 
 	gui->w = w;
 	gui->h = h;
@@ -181,55 +180,51 @@ int initializeGUI(int w, int h){
 	return 1;
 }
 
-void beginGUI(event* e){
-
+void BeginGUI(event* e){
 	gui->hotitem = 0;
 	gui->kbditem = 0;
 	gui->lastwidget = 0;
 
 	guiEv = e;
 
-	begin2d();
-	fpOrtho(ortho, 0, gui->w, 0, gui->h, -1.0, 1.0);
-
+	Begin2d();
+	Ortho(ortho, 0, gui->w, 0, gui->h, -1.0, 1.0);
 }
 
-void endGUI(){
+void EndGUI(){
 	prevx = guiEv->x;
 	prevy = guiEv->y;
-	end2d();
+	End2d();
 }
 
-//testa se um ponto ta dentro de um rect
-int insideRect(rect* r, int x, int y){
+//testa se um ponto ta dentro de um Rect
+static int insideRect(Rect* r, int x, int y){
 	y = gui->h -y;
 	return (x  >= r->x) && (x < r->x + r->w) && (y >= r->y) && (y < r->y + r->h );
 }
 
 //verifica se esta na area do widget
-int isHover(rect *r){
-
+static int isHover(Rect *r){
 	if (gui->twophase) return  insideRect(r, gui->focusx, gui->focusy );
 	return insideRect(r, guiEv->x, guiEv->y);
 
 }
 
-void drawRect(rect* r, int fillColor, int borderColor, Texture* t){
-
+static void drawRect(Rect* r, int fillColor, int borderColor, Texture* t){
 	if (!t){
-		bindShader(gui->widgetShader);	
-		setShaderConstant4f(gui->widgetShader, "fillColor", gui->widgetColor[fillColor]);
-		setShaderConstant4f(gui->widgetShader, "borderColor", gui->borderColor[borderColor] );
+		BindShader(gui->widgetShader);	
+		SetShaderConstant4f(gui->widgetShader, "fillColor", gui->widgetColor[fillColor]);
+		SetShaderConstant4f(gui->widgetShader, "borderColor", gui->borderColor[borderColor] );
 		float zones[] = {0.0, 0.0};
-		setShaderConstant2f(gui->widgetShader, "zones", zones);
-		setShaderConstant4x4f(gui->widgetShader, "ortho", ortho);
+		SetShaderConstant2f(gui->widgetShader, "zones", zones);
+		SetShaderConstant4x4f(gui->widgetShader, "ortho", ortho);
 	}else{
-		bindShader(gui->skinnedShader);
+		BindShader(gui->skinnedShader);
 		float color[] = {1.0, 1.0, 1.0, 1.0}; 
-		setShaderConstant4f(gui->skinnedShader, "color", color);
-		setShaderConstant4x4f(gui->skinnedShader, "ortho", ortho);
-		bindSamplerState(t->state, 0);
-		bindTexture(t, 0);
+		SetShaderConstant4f(gui->skinnedShader, "color", color);
+		SetShaderConstant4x4f(gui->skinnedShader, "ortho", ortho);
+		BindSamplerState(t->state, 0);
+		BindTexture(t, 0);
 	}
 	
 	float x0 = r->x;
@@ -259,18 +254,16 @@ void drawRect(rect* r, int fillColor, int borderColor, Texture* t){
 		glEnd();
 	}
 
-	bindShader(0);
+	BindShader(0);
 }
 
-void drawRoundedRect( rect* rect,  point* corner, int fillColorId, int borderColorId ){
-
-	setShaderConstant4f(gui->widgetShader, "fillColor",  gui->widgetColor[fillColorId]);
-	setShaderConstant4f(gui->widgetShader, "borderColor", gui->borderColor[borderColorId] );
-	setShaderConstant4x4f(gui->widgetShader, "ortho", ortho);
+static void drawRoundedRect( Rect* rect,  Point* corner, int fillColorId, int borderColorId ){
+	SetShaderConstant4f(gui->widgetShader, "fillColor",  gui->widgetColor[fillColorId]);
+	SetShaderConstant4f(gui->widgetShader, "borderColor", gui->borderColor[borderColorId] );
+	SetShaderConstant4x4f(gui->widgetShader, "ortho", ortho);
 	float zones[2]; zones[0] = corner->x - 1; zones[1] = corner->x-2;
-	setShaderConstant2f(gui->widgetShader, "zones", zones);
-	bindShader(gui->widgetShader);
-
+	SetShaderConstant2f(gui->widgetShader, "zones", zones);
+	BindShader(gui->widgetShader);
 
     float xb = corner->x;
     float yb = corner->y;
@@ -282,7 +275,6 @@ void drawRoundedRect( rect* rect,  point* corner, int fillColorId, int borderCol
     float y1 = rect->y + corner->y;
     float y2 = rect->y + rect->h - corner->y;
     float y3 = rect->y + rect->h;
-
 
     glBegin(GL_TRIANGLE_STRIP);
         glTexCoord2f(xb, yb);
@@ -350,12 +342,10 @@ void drawRoundedRect( rect* rect,  point* corner, int fillColorId, int borderCol
         glVertex2f( x2, y3);
     glEnd();
 
-	bindShader(0);
-
+	BindShader(0);
 }
 
-void drawDownArrow( rect* rect, int width, int fillColorId, int borderColorId ){
-
+void drawDownArrow( Rect* rect, int width, int fillColorId, int borderColorId ){
     float offset = sqrt(2.0)/2.0 ;
    
     float xb = width;
@@ -374,12 +364,12 @@ void drawDownArrow( rect* rect, int width, int fillColorId, int borderColorId ){
     float y1 = rect->y + rect->h * 0.6;
 
     
-	setShaderConstant4f(gui->widgetShader, "fillColor", gui->widgetColor[fillColorId] );
-	setShaderConstant4f(gui->widgetShader, "borderColor", gui->borderColor[borderColorId] );
-	setShaderConstant4x4f(gui->widgetShader, "ortho", ortho);
+	SetShaderConstant4f(gui->widgetShader, "fillColor", gui->widgetColor[fillColorId] );
+	SetShaderConstant4f(gui->widgetShader, "borderColor", gui->borderColor[borderColorId] );
+	SetShaderConstant4x4f(gui->widgetShader, "ortho", ortho);
 	float zones[2]; zones[0] = xb - 1; zones[1] = xb-2;
-	setShaderConstant2f(gui->widgetShader, "zones", zones);
-	    bindShader(gui->widgetShader);
+	SetShaderConstant2f(gui->widgetShader, "zones", zones);
+    BindShader(gui->widgetShader);
 
    glBegin(GL_TRIANGLE_STRIP);
         glTexCoord3f(-xb, -yb, 0);
@@ -422,13 +412,13 @@ void drawDownArrow( rect* rect, int width, int fillColorId, int borderColorId ){
 
     glEnd();
 
-    bindShader(0);
+    BindShader(0);
 }
 
-void doLine(int x1, int y1, int x2, int y2){
+void DoLine(int x1, int y1, int x2, int y2){
 	float color[4] = { 1.0, 0.0, 0.0, 1.0};
-	setShaderConstant4f(gui->fontshader, "color", color );
-	bindShader(gui->colorShader);
+	SetShaderConstant4f(gui->fontshader, "color", color );
+	BindShader(gui->colorShader);
 	printf("%d %d %d %d \n", x1, y1, x2, y2);
 	glDisable(GL_BLEND);
 	glBegin(GL_LINES);
@@ -439,12 +429,12 @@ void doLine(int x1, int y1, int x2, int y2){
 	
 }
 
-void doCircle(int x, int y, int radius){
-	rect r;
+static void doCircle(int x, int y, int radius){
+	Rect r;
 	r.x = (int)x;
 	r.y = (int)y;
 	r.w = r.h = radius*2;
-	point p;
+	Point p;
 	p.x = (int) radius;
 	p.y = (int) radius;
 	printf("doCircle %d %d \n ", r.x, r.y);
@@ -456,9 +446,7 @@ void doCircle(int x, int y, int radius){
 }
 
 //TODO fazer funcionar
-void plot1d(float* serie, int num, int x, int y, int width, int h, int r, int g, int b){
-
-	
+void Plot1d(float* serie, int num, int x, int y, int width, int h, int r, int g, int b){
 	glLineWidth(1.0);
 	if (serie == NULL)
 		return;
@@ -498,18 +486,16 @@ void plot1d(float* serie, int num, int x, int y, int width, int h, int r, int g,
 
 }
 
-void drawFrame(rect* rect, point corner, int isHover, int  isDown){
-
+static void drawFrame(Rect* rect, Point corner, int isHover, int  isDown){
 	int color =  (isHover) + (isDown << 1);
 
 	if (corner.x + corner.y == 0)
         	drawRect( rect , color, 0, NULL);
 	else
-		drawRoundedRect( rect, &corner , color, 0);
-
+		drawRoundedRect(rect, &corner , color, 0);
 }
 
-float getTextLineWidth(char* text){
+static float getTextLineWidth(char* text){
    	size_t i,j;
     	size_t strsize = strlen(text);
 
@@ -529,7 +515,7 @@ float getTextLineWidth(char* text){
 	return posx;
 }
 
-float getFontHeight(char *text){
+static float getFontHeight(char *text){
   	size_t i,j;
     	size_t strsize = strlen(text);
 
@@ -545,9 +531,8 @@ float getFontHeight(char *text){
 }
 
 int toolTipId = 0;
-int doTooltip(int id, float x, float y, float w, float h){
-
-	rect r;
+static int doTooltip(int id, float x, float y, float w, float h){
+	Rect r;
 	r.x = x; r.h = h; r.w = w; r.y = y;
 
 	if (insideRect(&r, guiEv->x, guiEv->y) && toolTipId == 0)
@@ -574,54 +559,51 @@ int doTooltip(int id, float x, float y, float w, float h){
 
 }
 
-void doImage(int id, float x, float y, float w, float h, Texture* t){
-
+void DoImage(int id, float x, float y, float w, float h, Texture* t){
 	if (gui->drawingMenu){
 		x += gui->menuoffsetx;
 		y += gui->menuoffsety;
 	}
 
-	rect r;
+	Rect r;
 	r.x = x;
 	r.y = y;
 	r.w = w;
 	r.h = h;
 	drawRect(&r, 0, 0, t);
-
 }
 
-void doLabel( float posx, float posy, char* text ){
+void DoLabel( float posx, float posy, char* text ){
+    size_t i,j;
+    size_t strsize = strlen(text);
 
-   	size_t i,j;
-    	size_t strsize = strlen(text);
+    BindSamplerState(atlas->tex->state, 0);
+    BindTexture( atlas->tex, 0);
+    SetShaderConstant4x4f(gui->colorShader, "ortho", ortho);
+    SetShaderConstant4f(gui->colorShader, "color", gui->fontColor );
+    BindShader(gui->colorShader);
 
-	bindSamplerState(atlas->tex->state, 0);
-	bindTexture( atlas->tex, 0);
-	setShaderConstant4x4f(gui->colorShader, "ortho", ortho);
-	setShaderConstant4f(gui->colorShader, "color", gui->fontColor );
-	bindShader(gui->colorShader);
+    if (gui->drawingMenu){
+        posx += gui->menuoffsetx;
+        posy += gui->menuoffsety;
+    }
 
-	if (gui->drawingMenu){
-		posx += gui->menuoffsetx;
-		posy += gui->menuoffsety;
-	}
-
-    	for( i=0; i< strsize; ++i ){
-                texture_glyph_t *glyph =  texture_font_get_glyph( fonts[gui->fontsize-7], text[i] );
-	if( glyph != NULL ){
-			int kerning = 0;
-            		if( i > 0){
-                		kerning = texture_glyph_get_kerning( glyph, text[i-1] );
-            		}
-            		posx += kerning;
-	}
+    for( i=0; i< strsize; ++i ){
+        texture_glyph_t *glyph =  texture_font_get_glyph( fonts[gui->fontsize-7], text[i] );
+        if( glyph != NULL ){
+            int kerning = 0;
+            if( i > 0){
+                kerning = texture_glyph_get_kerning( glyph, text[i-1] );
+            }
+            posx += kerning;
+        }
         int x = posx + glyph->offset_x;
         int y = posy + glyph->offset_y;
         int w  = glyph->width;
         int h  = glyph->height;
         glBegin( GL_TRIANGLES );
         {
-	    glTexCoord2f( glyph->s0, glyph->t0 ); glVertex2i( x,   y   );
+            glTexCoord2f( glyph->s0, glyph->t0 ); glVertex2i( x,   y   );
             glTexCoord2f( glyph->s0, glyph->t1 ); glVertex2i( x,   y-h );
             glTexCoord2f( glyph->s1, glyph->t1 ); glVertex2i( x+w, y-h );
             glTexCoord2f( glyph->s0, glyph->t0 ); glVertex2i( x,   y   );
@@ -631,21 +613,20 @@ void doLabel( float posx, float posy, char* text ){
         glEnd();
         posx += glyph->advance_x;
         posy += glyph->advance_y;
-    
+
     }
-bindShader(0);
+    BindShader(0);
 }
 
-int beginMenu(int id, int x, int y, int w, int h, float* xoffset, float* yoffset, char* text, Texture* t){
-
+int BeginMenu(int id, int x, int y, int w, int h, float* xoffset, float* yoffset, char* text, Texture* t){
 	gui->drawingMenu = 1;
 	
-	rect r;
+	Rect r;
 	r.x = x + (*xoffset);
 	r.y = y + (*yoffset);
 	r.w = w;
 	r.h = h;
-	point corner;
+	Point corner;
 	corner.x = 8;
 	corner.y = 8;
 
@@ -661,9 +642,8 @@ int beginMenu(int id, int x, int y, int w, int h, float* xoffset, float* yoffset
 	return 1;
 }
 
-void endMenu(int id, int x, int y, int w, int h, float* xoffset, float* yoffset){
-
-	rect r;
+void EndMenu(int id, int x, int y, int w, int h, float* xoffset, float* yoffset){
+	Rect r;
 	r.x = x + (*xoffset);
 	r.y = y + (*yoffset);
 	r.w = w;
@@ -678,7 +658,6 @@ void endMenu(int id, int x, int y, int w, int h, float* xoffset, float* yoffset)
 	}
 
 	if ( (guiEv->buttonLeft) && hover && gui->hotitem == id && gui->activeitem == id){
-
 	//	if (gui->activeitem == 0){
 	//		gui->activeitem = id;
 	//	} human brain project
@@ -703,11 +682,9 @@ void endMenu(int id, int x, int y, int w, int h, float* xoffset, float* yoffset)
 	gui->menuoffsetx = gui->menuoffsety = 0;
 }
 
-int doButton(int  id, rect* r, char* text){
-
-
+int DoButton(int  id, Rect* r, char* text){
 	//calcula a posicao do textRect baseado na fonte e na posicao inicial do rect
-	rect textRect;
+	Rect textRect;
 	textRect.x = r->x + BORDER_SIZE;
 	textRect.y = r->y + BORDER_SIZE + 3;
 	textRect.w = getTextLineWidth(text) + BORDER_SIZE*2;
@@ -730,12 +707,12 @@ int doButton(int  id, rect* r, char* text){
 		}
 	}
 
-	point p;
+	Point p;
 	p.x = 4;
 	p.y = 4;
 
 	drawFrame(r, p, hover, (gui->activeitem == id));
-	doLabel(textRect.x, textRect.y, text);
+	DoLabel(textRect.x, textRect.y, text);
 
 //	se o mouse ta up mas o item da hot e active entao o cara clicou
 	if( !guiEv->buttonLeft && (gui->hotitem == id) && (gui->activeitem == id) ){
@@ -746,16 +723,15 @@ int doButton(int  id, rect* r, char* text){
 	return 0;
 }
 
-void drawBoolFrame( rect* r, point* p, int isHover, int isDown){
+static void drawBoolFrame(Rect* r, Point* p, int isHover, int isDown){
 	int color =  (isHover) + (isDown << 1);
 	drawRoundedRect( r, p , color, 0 );
 
 }
 
-int doToggleButton(int  id, rect* r, char* text, int* state){
-
-	//calcula a posicao do textRect baseado na fonte e na posicao inicial do rect
-	rect textRect;
+int DoToggleButton(int  id, Rect* r, char* text, int* state){
+	//calcula a posicao do textrect baseado na fonte e na posicao inicial do rect
+	Rect textRect;
 	textRect.x = r->x + BORDER_SIZE;
 	textRect.y = r->y + BORDER_SIZE + 3;
 	textRect.w = getTextLineWidth(text) + BORDER_SIZE*2;
@@ -776,12 +752,12 @@ int doToggleButton(int  id, rect* r, char* text, int* state){
 		}
 	}
 
-	point p;
+	Point p;
 	p.x = 4;
 	p.y = 4;
 
 	drawFrame(r, p, hover, (state) && (*state == id));//(gui->activeitem == id));
-	doLabel(textRect.x, textRect.y, text);
+	DoLabel(textRect.x, textRect.y, text);
 
 //	se o mouse ta up mas o item da hot e active entao o cara clicou
 	if( !guiEv->buttonLeft && (gui->hotitem == id) && (gui->activeitem == id) ){
@@ -800,9 +776,9 @@ int doToggleButton(int  id, rect* r, char* text, int* state){
 
 //state eh passado por referencia, caso o botao seja clicado ele fica em 1, caso o contrario em 0
 // cada checkbutton precisa do seu proprio state
-int doCheckButton(int id, rect  *r, char* text, int * state){
+int DoCheckButton(int id, Rect  *r, char* text, int * state){
 
-	rect rText, rCheck;
+	Rect rText, rCheck;
 
 	int rcOffset = (int) 0.125*16;
 	rCheck.h = 16 - 2*rcOffset;
@@ -815,7 +791,7 @@ int doCheckButton(int id, rect  *r, char* text, int * state){
 	rText.w = getTextLineWidth(text) + 2*BORDER_SIZE;
 	rText.h = getFontHeight(text) + BORDER_SIZE; 
 
-	point p;
+	Point p;
 	p.x = rCheck.w/6;
 	p.y = rCheck.h/6;
 
@@ -833,7 +809,7 @@ int doCheckButton(int id, rect  *r, char* text, int * state){
 	}
 
 	drawBoolFrame(&rCheck, &p, hover, (state) && (*state));
-	doLabel(rText.x, rText.y, text);
+	DoLabel(rText.x, rText.y, text);
 
 	if( !guiEv->buttonLeft && (gui->hotitem == id) && (gui->activeitem == id) ){
 		gui->activeitem = 0;
@@ -846,9 +822,8 @@ int doCheckButton(int id, rect  *r, char* text, int * state){
 }
 
 //no radiobutton os N botoes precisam do mesmo *state
-int doRadioButton(int id, rect* r, char* text, int *state){
-
-	rect rText, rCheck;
+int DoRadioButton(int id, Rect* r, char* text, int *state){
+	Rect rText, rCheck;
 
 	int rcOffset = (int) 0.125*16;
 	rCheck.h = 16 - 2*rcOffset;
@@ -861,7 +836,7 @@ int doRadioButton(int id, rect* r, char* text, int *state){
 	rText.w = getTextLineWidth(text) + 2*BORDER_SIZE;
 	rText.h = getFontHeight(text) + BORDER_SIZE; 
 
-	point p;
+	Point p;
 	p.x = rCheck.w/6;
 	p.y = rCheck.h/6;
 
@@ -881,7 +856,7 @@ int doRadioButton(int id, rect* r, char* text, int *state){
 	}
 
 	drawBoolFrame(&rCheck, &p, hover, (state) && (*state == id));// diferente do checkbox
-	doLabel(rText.x, rText.y, text);
+	DoLabel(rText.x, rText.y, text);
 
 	if( !guiEv->buttonLeft && (gui->hotitem == id) && (gui->activeitem == id) ){
 		gui->activeitem = 0;
@@ -894,8 +869,7 @@ int doRadioButton(int id, rect* r, char* text, int *state){
 	return 0;
 }
 
-void doHorizontalSlider(int id, rect* r, float* value){
-
+void DoHorizontalSlider(int id, Rect* r, float* value){
 	float min = 0;
 	float max = 1.0;
 
@@ -904,7 +878,7 @@ void doHorizontalSlider(int id, rect* r, float* value){
 	if (f < 0.0) f = 0.0;
 	else if (f > 1.0) f = 1.0;
 
-	rect rScroll, rCircle;
+	Rect rScroll, rCircle;
 
 	r->w = 100 + 2*BORDER_SIZE + 12 ; //100 = tamanho base do scroll, 12 = tamanho do circulo
 	r->h = 4 + 2*BORDER_SIZE;
@@ -959,7 +933,7 @@ void doHorizontalSlider(int id, rect* r, float* value){
 	rScroll.x += r->x;	
 	rScroll.y += r->y;
 	rScroll.w += 6; // meio circulo
-	point p;
+	Point p;
 	p.x = 2;
 	p.y = 2;
 
@@ -977,7 +951,7 @@ void doHorizontalSlider(int id, rect* r, float* value){
 
 }
 
-void doVerticalSlider(int id, rect* r, float* value){
+void DoVerticalSlider(int id, Rect* r, float* value){
 
 	float min = 0;
 	float max = 1.0;
@@ -987,7 +961,7 @@ void doVerticalSlider(int id, rect* r, float* value){
 	if (f < 0.0) f = 0.0;
 	else if (f > 1.0) f = 1.0;
 
-	rect rScroll, rCircle;
+	Rect rScroll, rCircle;
 
 	r->h = 100 + 2*BORDER_SIZE + 12 ; //100 = tamanho base do scroll, 12 = tamanho do circulo
 	r->w = 4 + 2*BORDER_SIZE;
@@ -1039,7 +1013,7 @@ void doVerticalSlider(int id, rect* r, float* value){
 	rScroll.x += r->x;	
 	rScroll.y += r->y;
 	rScroll.h += 6; // meio circulo
-	point p;
+	Point p;
 	p.x = 2;
 	p.y = 2;
 
@@ -1059,8 +1033,7 @@ void doVerticalSlider(int id, rect* r, float* value){
 }
 
 
-void calculateComboRect(rect* r, int numOptions, char* options[], int selected, rect* rt, rect* rd){
-
+static void calculateComboRect(Rect* r, int numOptions, char* options[], int selected, Rect* rt, Rect* rd){
 	rt->x = 3;
 	rt->y = 3;
 
@@ -1086,35 +1059,31 @@ void calculateComboRect(rect* r, int numOptions, char* options[], int selected, 
 	//espaco pra seta
 	r->w += rd->w + rt->x;
 	rd->x = 2*rt->x + rt->w;
-
 }
 
-void drawComboBox(rect* r, int numOptions, char* options[], rect* rt, rect* ra, int selected, int isHover, int isDown ){
-
-	point p;
+void drawComboBox(Rect* r, int numOptions, char* options[], Rect* rt, Rect* ra, int selected, int isHover, int isDown ){
+	Point p;
 	p.x = rt->x;
 	p.y = rt->y;
 	drawFrame(r, p, isHover, 0);
 
 	rt->x += r->x;
 	rt->y += r->y;
-	doLabel(rt->x, rt->y, options[selected]);
+	DoLabel(rt->x, rt->y, options[selected]);
 
 	ra->x += r->x;
 	ra->y += r->y;
 	drawDownArrow(ra, ra->h*0.15,  (!isHover) + (isDown << 2), 0 );
-
 }
 
-void drawListBox(rect* r, int numOptions, char* options[], rect* ri, rect* rt, int selected, int hovered){
-
-	point p;
+void drawListBox(Rect* r, int numOptions, char* options[], Rect* ri, Rect* rt, int selected, int hovered){
+	Point p;
 	p.x = ri->x;
 	p.y = ri->y;
 //	printf("RECT %d %d %d %d \n", r->x, r->y, r->w, r->h );
 	drawFrame(r, p, 0, 0);
 
-	rect ir;
+	Rect ir;
 	ir.x = r->x +ri->x;
 	ir.y = r->y + r->h - ri->y -ri->h;
 	ir.w = ri->w;
@@ -1129,13 +1098,13 @@ void drawListBox(rect* r, int numOptions, char* options[], rect* ri, rect* rt, i
 
 		}
 
-		rect rtext;
+		Rect rtext;
 
 		rtext.x = ir.x + rt->x;
 		rtext.y = ir.y + rt->y;
 		rtext.h = rt->h;
 		rtext.w = rt->w;
-		doLabel(rtext.x, rtext.y, options[i]);
+		DoLabel(rtext.x, rtext.y, options[i]);
 
 		ir.y -= ir.h;
 	}
@@ -1143,8 +1112,7 @@ void drawListBox(rect* r, int numOptions, char* options[], rect* ri, rect* rt, i
 
 }
 
-void calculateListRect(rect* r, int numOptions, char* options[], rect* ri, rect* rt){
-
+void calculateListRect(Rect* r, int numOptions, char* options[], Rect* ri, Rect* rt){
 	ri->x = 3;
 	ri->y = 3;
 	rt->x = 3;
@@ -1164,9 +1132,8 @@ void calculateListRect(rect* r, int numOptions, char* options[], rect* ri, rect*
 	r->h = numOptions*ri->h + 2*ri->y;
 }
 
-int doComboBox(int id, rect* r, int numOptions, char* options[], int* selected, int * state){
-
-	rect rt, rd;
+int DoComboBox(int id, Rect* r, int numOptions, char* options[], int* selected, int * state){
+	Rect rt, rd;
 	calculateComboRect(r, numOptions, options, *selected, &rt, &rd);
 
 	int hover = isHover(r);
@@ -1181,8 +1148,8 @@ int doComboBox(int id, rect* r, int numOptions, char* options[], int* selected, 
 	}
 
 	if (*state == 1){
-		rect ro, ri, rit;//ele retorna em ro e nao em r, apenas nesse caso
-		rect nullrect;
+		Rect ro, ri, rit;//ele retorna em ro e nao em r, apenas nesse caso
+		Rect nullrect;
 		calculateListRect(&nullrect, numOptions, options, &ri, &rit );
 		ro.x = r->x;
 		ro.y = r->y - nullrect.h;
@@ -1198,7 +1165,6 @@ int doComboBox(int id, rect* r, int numOptions, char* options[], int* selected, 
 		drawComboBox(r, numOptions, options, &rt, &rd, *selected, hover, 0 );
 		drawListBox(&ro, numOptions, options, &ri, &rit, *selected, hovered);
 
-
 		if ((!isHover(&ro) || !isHover(&r)) && !guiEv->buttonLeft){
 			*state = 0;
 			gui->activeitem = 0;
@@ -1213,13 +1179,11 @@ int doComboBox(int id, rect* r, int numOptions, char* options[], int* selected, 
 	}else{
 		drawComboBox(r, numOptions, options, &rt, &rd, *selected, hover, 0 );
 	}
-
-
 }
 
-int doListBox(int id, rect* r, int numOptions, char* options[], int* selected){
-
-	rect ri, rt;
+//FIXME função não declarada no gui.h nem usada no gui.c
+int DoListBox(int id, Rect* r, int numOptions, char* options[], int* selected){
+	Rect ri, rt;
 	calculateListRect(r, numOptions, options, &ri, &rt);
 
 	int hover = isHover(r);
@@ -1246,12 +1210,9 @@ int doListBox(int id, rect* r, int numOptions, char* options[], int* selected){
 			*selected = hovered;
 		return 1;
 	}
-
-
 }
 
-void getLineEditRect(rect* r, char* text, rect* rt, int maxTextLength){
-
+static void getLineEditRect(Rect* r, char* text, Rect* rt, int maxTextLength){
 	rt->x = 3;
 	rt->y = 3;
 	rt->w = 100;
@@ -1259,20 +1220,19 @@ void getLineEditRect(rect* r, char* text, rect* rt, int maxTextLength){
 
 	r->w = rt->w + 2*rt->x;
 	r->h = rt->h + 2*rt->y;
-
 }
 
-void drawLineEdit(rect* r, char* text, rect* rt, int hover ){
-	point p;
+static void drawLineEdit(Rect* r, char* text, Rect* rt, int hover ){
+	Point p;
 	p.x = rt->x; p.y = rt->y;
 	drawFrame(r, p, hover, 0);
 	rt->x = r->x + rt->x;
 	rt->y = r->y + rt->y + 3;
-	doLabel(rt->x, rt->y, text);
+	DoLabel(rt->x, rt->y, text);
 }
 
-int doLineEdit(int id,  rect* r, char* text, int maxTextLength ){
-	rect rt;
+int DoLineEdit(int id,  Rect* r, char* text, int maxTextLength ){
+	Rect rt;
 	int len = strlen(text);
 	int changed = 0;
 	getLineEditRect(r, text, &rt, maxTextLength);
@@ -1286,7 +1246,6 @@ int doLineEdit(int id,  rect* r, char* text, int maxTextLength ){
 			gui->activeitem = id;
 		}	
 	}
-
 
 	drawLineEdit(r, text, &rt, hover);
 	if (gui->activeitem == id) {
@@ -1316,7 +1275,6 @@ int doLineEdit(int id,  rect* r, char* text, int maxTextLength ){
 //		printf("nao ta hover e clicou fora do lineedit \n");
 		gui->activeitem = 0;
 	}
-
 	return changed;
 }
 

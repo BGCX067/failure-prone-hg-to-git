@@ -68,7 +68,8 @@ enum GeometryType{
 
 enum Type{
 	UNSIGNED_BYTE = GL_UNSIGNED_BYTE,
-	FLOAT = GL_FLOAT
+	FLOAT = GL_FLOAT,
+    INT = GL_INT
 };
 
 typedef struct _framebuffer{
@@ -96,7 +97,8 @@ typedef struct _uniform{
 
 	int location;
 	char* name;
-	unsigned char* data;
+	//unsigned char* data;
+    void *data;
 	int size;
 	int type;
 	int semantic;
@@ -134,64 +136,64 @@ typedef struct _renderer{
    
    	//int prevVAO;
 
-}renderer;
+}Renderer;
 
 //Primitivas mais high level do renderer FIXME: colocar em outro file?
 
 typedef struct _point{
 	int x, y;
-}point;
+}Point;
 
 typedef struct _rect{
 	int x, y, w, h;
-}rect;
+}Rect;
 
-renderer* initializeRenderer(int w, int h, float znear, float zfar, float fovy);
+Renderer* InitializeRenderer(int w, int h, float znear, float zfar, float fovy);
 
 //int render(float ifps, event *e, Scene* s);
-void begin2d();
-void end2d();
+void Begin2d();
+void End2d();
 
-void disableDepth();
-void enableDepth();
+void DisableDepth();
+void EnableDepth();
 
-VertexAttribute** initializeVertexFormat();
-void setVertexAttribute(VertexAttribute** attr, int type, unsigned int count, unsigned int size, unsigned int offset, unsigned int comp, unsigned int vboid);
+VertexAttribute** InitializeVertexFormat();
+void SetVertexAttribute(VertexAttribute** attr, int type, unsigned int count, unsigned int size, unsigned int offset, unsigned int comp, unsigned int vboid);
 
 /////////////////////////
 // MATRICES
 //////////////////
-void setModel(mat4 m );
-void setView(mat4 m);
-void setProjection(mat4 m);
+void SetModel(mat4 m );
+void SetView(mat4 m);
+void SetProjection(mat4 m);
 
-void getModel(mat4 m);
-void getView(mat4 m);
-void getProjection(mat4 m);
+void GetModel(mat4 m);
+void GetView(mat4 m);
+void GetProjection(mat4 m);
 
-void setEyepos(vec3 pos);
+void SetEyepos(vec3 pos);
 //////////
 //TEXTURE SAMPLERS
 /////////
 //TODO destroy sampler
-SamplerState* initializeSamplerState(int wrapmode, int minfilter, int magfilter, int anisotropy);
-void bindSamplerState(SamplerState* s, unsigned int slot);
+SamplerState* InitializeSamplerState(int wrapmode, int minfilter, int magfilter, int anisotropy);
+void BindSamplerState(SamplerState* s, unsigned int slot);
 
 //////////////////////
 //TEXTURES OBJECTS
 /////////////////////
 // TODO destroy texture
-Texture* initialize2DTexture(char *filename);
-Texture* initializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type);
-Texture* initializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type);
-Texture* initialize3DTexture(void* data, int xdim, int ydim, int zdim,int imageFormat, int internalFormat, int type);
-void bindTexture(Texture* t, unsigned int slot);
-void destroyTexture(Texture* t);
+Texture* Initialize2DTexture(char *filename);
+Texture* InitializeTexture(char* filename, int target, int imageFormat, int internalFormat, int type);
+Texture* InitializeTextureFromMemory(void* data, int x, int y, int target, int imageFormat, int internalFormat, int type);
+Texture* Initialize3DTexture(void* data, int xdim, int ydim, int zdim,int imageFormat, int internalFormat, int type);
+void BindTexture(Texture* t, unsigned int slot);
+void DestroyTexture(Texture* t);
 
 //framebuffers
-Framebuffer* initializeFramebufferDepth(int width, int height);
-Framebuffer* initializeFramebufferColor(int width, int height);
-void bindFramebuffer(Framebuffer *fb);
+Framebuffer* InitializeFramebufferDepth(int width, int height);
+Framebuffer* InitializeFramebufferColor(int width, int height);
+void BindFramebuffer(Framebuffer *fb);
 /*void bindMainFramebuffer();
 void bindFramebuffer(int id);
 unsigned int initializeFramebuffer(void* data, int width, int height, int format, int internalFormat, int type );*/
@@ -200,45 +202,45 @@ unsigned int initializeFramebuffer(void* data, int width, int height, int format
 /////////////////////
 //VBOS
 /////////////////////
-unsigned int initializeVBO(unsigned int size, int mode, const void* data);
-void* mapVBO(unsigned int id,  int mode);
-void unmapVBO(unsigned int id);
-void destroyVBO(unsigned int id);
+unsigned int InitializeVBO(unsigned int size, int mode, const void* data);
+void* MapVBO(unsigned int id,  int mode);
+void UnmapVBO(unsigned int id);
+void DestroyVBO(unsigned int id);
 
 /////////////////////
 //VAO
 ////////////////////
-void drawArraysVAO(unsigned int vaoID, int type, int numVerts);
-void drawIndexedVAO(unsigned int  vaoID,  unsigned int triCount, int geometryType);
-unsigned int initEmptyVAO();
-void configureVAO(unsigned int vaoid, VertexAttribute** attrs);
-void configureIndexedVAO(unsigned int vaoid, unsigned int indicesid, VertexAttribute** attrs);
-void destroyVAO(unsigned int vaoid);
+void DrawArraysVAO(unsigned int vaoID, int type, int numVerts);
+void DrawIndexedVAO(unsigned int  vaoID,  unsigned int triCount, int geometryType);
+unsigned int InitEmptyVAO();
+void ConfigureVAO(unsigned int vaoid, VertexAttribute** attrs);
+void ConfigureIndexedVAO(unsigned int vaoid, unsigned int indicesid, VertexAttribute** attrs);
+void DestroyVAO(unsigned int vaoid);
 
 
 //shaders
-Shader* initializeShader(const char *geometrysource, const char* vertexsource, const char* fragmentsource);
-void bindShader(Shader* program);
-int printShaderCompilerLog(unsigned int shader);
-int printShaderLinkerLog(unsigned int program);
-void setShaderConstant1i(Shader* s, const char *name, const int constant);
-void setShaderConstant1f(Shader* s, const char *name, const float constant);
-void setShaderConstant2f(Shader* s, const char *name, const float constant[]);
-void setShaderConstant3f(Shader* s, const char *name, const float constant[]);
-void setShaderConstant4f(Shader* s, const char *name, const float constant[]);
-void setShaderConstant3x3f(Shader* s, const char *name, const float constant[]);
-void setShaderConstant4x4f(Shader* s, const char *name, const float constant[]);
+Shader* InitializeShader(const char *geometrysource, const char* vertexsource, const char* fragmentsource);
+void BindShader(Shader* program);
+int PrintShaderCompilerLog(unsigned int shader);
+int PrintShaderLinkerLog(unsigned int program);
+void SetShaderConstant1i(Shader* s, const char *name, const int constant);
+void SetShaderConstant1f(Shader* s, const char *name, const float constant);
+void SetShaderConstant2f(Shader* s, const char *name, const float constant[]);
+void SetShaderConstant3f(Shader* s, const char *name, const float constant[]);
+void SetShaderConstant4f(Shader* s, const char *name, const float constant[]);
+void SetShaderConstant3x3f(Shader* s, const char *name, const float constant[]);
+void SetShaderConstant4x4f(Shader* s, const char *name, const float constant[]);
 /*void setShaderConstantArray1f(const char *name, const float *constant, const uint count);
 void setShaderConstantArray2f(const char *name, const vec2  *constant, const uint count);
 void setShaderConstantArray3f(const char *name, const vec3  *constant, const uint count);
 void setShaderConstantArray4f(const char *name, const vec4  *constant, const uint count);
 void setShaderConstantArray4x4f(const char *name, const mat4 *constant, const uint count);*/
-void setShaderConstantRaw(Shader* s, const char *name, const void *data, const int size);
+void SetShaderConstantRaw(Shader* s, const char *name, const void *data, const int size);
 
 /////////
 // Util
 /////////
-void printGPUMemoryInfo();
-void screenshot(char* filename);
+void PrintGPUMemoryInfo();
+void Screenshot(char* filename);
 
 #endif

@@ -3,7 +3,7 @@
 
 #include "mesh.h"
 #include "material.h"
-#include "math/boundingbox.h"
+#include "math/mathutil.h"
 #include "light.h"
 #include "math/matrix.h"
 
@@ -26,24 +26,21 @@ typedef struct _scene{
     //fplist* texList;
     //fplist* nodes;
 
-    BoundingBox b;
+    BBox b;
 }Scene;
 
 //void initializeTriangles(Triangles* tri);
 //int scaddTris(Scene *s, Triangles *t);
-void addMesh(Scene *s, Mesh *m);
-void addLight(Scene *s, Light *l);
-void addMaterial(Scene *s, Material *m);
+void AddMesh(Scene *s, Mesh *m);
+void AddLight(Scene *s, Light *l);
+void AddMaterial(Scene *s, Material *m);
 //int addTexture(Scene *s, Texture *t);
 //int addNode(Scene *s, Node *m);
-
-void rmMesh(Scene *s, Mesh *m);
-
-void sceneSetBoundingBox(Scene *s);
+void RmMesh(Scene *s, Mesh *m);
+void CalcBBoxs(Scene *s);
 //Scene* initializeDae(char* filename);
+Scene* InitializeScene();
 
-Scene* initializeScene();
-
-void drawScene(Scene* s);
+void DrawScene(Scene* s);
 
 #endif

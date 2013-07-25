@@ -11,6 +11,6 @@
  * 3- Ainda não lê scenegraph
  */
 
-Scene* readColladaFile(const char *filename);
+Scene* ReadColladaFile(const char *filename);
 
 #endif

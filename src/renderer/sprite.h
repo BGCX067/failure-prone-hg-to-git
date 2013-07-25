@@ -13,17 +13,6 @@ enum {
 	REPEAT_LAST = 1 << 3
 };
 
-typedef struct frames_{
-    Texture **images;
-    Texture *normal;
-	float delay;
-	int numImages;
-
-	float timeCounter;
-	int currentImage;
-} frames;
-
-
 typedef struct sprite_{
     UT_array *frames;
 	int lastFrame;
@@ -36,17 +25,16 @@ typedef struct sprite_{
 
     Shader *shdr;
 
-} sprite;
+} Sprite;
 
-void framesDtor(void *frame);
 
-sprite* initializeSprite(float x, float y, float sizex, float sizey, Shader *s);
+Sprite* InitializeSprite(float x, float y, float sizex, float sizey, Shader *s);
 //adiciona varios sprites de uma vez
-void addSprites(sprite* s, char* path, int numframes, float delay);
+void AddSprites(Sprite* s, char* path, int numframes, float delay);
 //adiciona 1 frame composto por 1 imagem
-void addSprite(sprite* s, char* filename, int nrm, float delay);
-void drawSprite(sprite* s, float elapsedtime, int framenum, int flags);
+void AddSprite(Sprite* s, char* filename, int nrm, float delay);
+void DrawSprite(Sprite* s, float elapsedtime, int framenum, int flags);
 
-void translateSprite(sprite *s, float tx, float ty);
+void TranslateSprite(Sprite *s, float tx, float ty);
 
 #endif

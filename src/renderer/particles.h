@@ -8,12 +8,12 @@ typedef struct _particles{
     vec3 v;
     float lifetime;
     float size;
-} particles;
+} Particles;
 
 typedef struct _particlesystem {
     
     unsigned int n;
-    particles* p;
+    Particles* p;
     float time;
 
     vec3 pos;
@@ -21,10 +21,10 @@ typedef struct _particlesystem {
     float initialSpeed;
 
     vec3 force;
-}particlesystem;
+}ParticleSystem;
 
-particlesystem* initparticles(unsigned int numparticles, vec3 pos, float maxLife, float speed, vec3 force);
-void updateparticles(particlesystem* ps, float elapsedtime);
-void renderparticles(particlesystem* ps);
+ParticleSystem* InitParticles(unsigned int numparticles, vec3 pos, float maxLife, float speed, vec3 force);
+void UpdateParticles(ParticleSystem* ps, float elapsedtime);
+void RenderParticles(ParticleSystem* ps);
 
 #endif

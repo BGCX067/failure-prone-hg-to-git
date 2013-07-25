@@ -115,19 +115,17 @@ typedef struct _event {
     int x, y;
 }event;
 
-void setVideoMode(int w, int h, int fullscreen);
-void closeVideo();
+void SetVideoMode(int w, int h, int fullscreen);
+void CloseVideo();
 
-void setWindowTitle(char* title);
-void setMouse(int x, int y);
+void SetWindowTitle(char* title);
+void SetMouse(int x, int y);
+void WarpMouse( int yesno);
 
-void warpmouse( int yesno);
-
-double getTime();
+double GetTime();
 
 void MainLoop();
-
-void swapBuffers();
+void SwapBuffers();
 
 unsigned int GetScreenW();
 unsigned int GetScreenH();

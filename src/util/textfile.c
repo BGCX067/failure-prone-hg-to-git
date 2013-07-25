@@ -2,8 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h> //malloc
 
-char* readTextFile(char* filename){
-
+char* ReadTextFile(char* filename){
 	FILE *f;
 	long result;
 	f = fopen(filename,"r");

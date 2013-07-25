@@ -10,24 +10,35 @@
 static Shader* spriteShader = NULL;
 mat4 ortho;
 
-static UT_icd framesicd = {sizeof(frames), NULL, NULL, framesDtor};
+typedef struct frames_{
+    Texture **images;
+    Texture *normal;
+	float delay;
+	int numImages;
 
-void framesDtor(void *frame)  {
-    frames *f = (frames*)frame;
+	float timeCounter;
+	int currentImage;
+} Frames;
+
+void FramesDtor(void *frame);
+
+static UT_icd framesicd = {sizeof(Frames), NULL, NULL, FramesDtor};
+
+void FramesDtor(void *frame)  {
+    Frames *f = (Frames*)frame;
     if(f->normal) {
-        destroyTexture(f->normal);
+        DestroyTexture(f->normal);
         //free(f->normal); ?
     }
     for(int i = 0; i < f->numImages; i++) {
-        destroyTexture(f->images[i]);
+        DestroyTexture(f->images[i]);
         free(f->images[i]);
     }
     free(f->images);
     free(f);
 }
 
-void initializeSpriteShaders(){
-
+static void initializeSpriteShaders(){
 /*    const char* SpriteVSSource = {
     "#version 120\n\
     \n\
@@ -77,11 +88,10 @@ void initializeSpriteShaders(){
     spriteShader = initializeShader( NULL, SpriteVSSource, SpriteFSSource );
     //spriteShader = initializeShader(readTextFile("data/shaders/phong.vert"), 
         //                            readTextFile("data/shaders/phong.frag"));
-
 }
 
-sprite* initializeSprite(float x, float y, float sizex, float sizey, Shader *s){
-	sprite* anim = malloc(sizeof(sprite));
+Sprite* InitializeSprite(float x, float y, float sizex, float sizey, Shader *s){
+	Sprite* anim = malloc(sizeof(Sprite));
     utarray_new(anim->frames, &framesicd);
 	anim->lastFrame = -1;
 
@@ -91,7 +101,7 @@ sprite* initializeSprite(float x, float y, float sizex, float sizey, Shader *s){
     anim->h = sizey;
     anim->w = sizex;
 
-    anim->m = initMesh();
+    anim->m = InitMesh();
     float vertices[] = {x, y, 0.0f,
                         x + sizex, y, 0.0,
                         x + sizex, y + sizey, 0.0,
@@ -100,24 +110,24 @@ sprite* initializeSprite(float x, float y, float sizex, float sizey, Shader *s){
     float texcoords[] = {0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0 };
     unsigned int indices[] = {0, 1, 2, 0, 2, 3};
 
-    addVertices(anim->m, 12, 3, vertices);
-    addIndices(anim->m, 6, indices);
-    addTexCoords(anim->m, 8, 2, 0, texcoords);
-    prepareMesh(anim->m);
+    AddVertices(anim->m, 12, 3, vertices);
+    AddIndices(anim->m, 6, indices);
+    AddTexCoords(anim->m, 8, 2, 0, texcoords);
+    PrepareMesh(anim->m);
 
-    fpIdentity(anim->transform);
+    Identity(anim->transform);
 
     anim->shdr = s;
 	
     return anim;
 }
 
-void addSprite(sprite* s, char* filename, int nrm, float delay){
+void AddSprite(Sprite* s, char* filename, int nrm, float delay){
 	if (s == NULL || filename == NULL)
 		return;
 
 	//frames* frame = malloc(sizeof(frames));
-    frames frame;
+    Frames frame;
 	frame.delay = delay;
 	frame.images = malloc(sizeof(Texture*)*1);
 	frame.numImages = 1;
@@ -125,7 +135,7 @@ void addSprite(sprite* s, char* filename, int nrm, float delay){
 	frame.currentImage = 0;
     frame.normal = NULL;
 
-	frame.images[0] = initialize2DTexture(filename);
+	frame.images[0] = Initialize2DTexture(filename);
 	if (frame.images[0] == NULL){
 		//free(frame);
 		printf("File not found: %s \n", filename);
@@ -141,14 +151,14 @@ void addSprite(sprite* s, char* filename, int nrm, float delay){
         char nrmFilename[strlen(nrmExt) + strlen(origfilename) + 1];
         strcat(nrmFilename, origfilename);
         strcat(nrmFilename, nrmExt);
-        frame.normal = initializeTexture(nrmFilename, TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
+        frame.normal = InitializeTexture(nrmFilename, TEXTURE_2D, RGB, RGB8, UNSIGNED_BYTE);
     }
     utarray_push_back(s->frames, &frame); 
 }
 
-void addSprites(sprite* s, char* path, int numframes, float delay){
+void AddSprites(Sprite* s, char* path, int numframes, float delay){
 	//frames* frame = malloc(sizeof(frames));
-    frames frame;
+    Frames frame;
 	frame.delay = delay;
     frame.images = malloc(sizeof(Texture*)*numframes);
 	frame.numImages = numframes;
@@ -161,7 +171,7 @@ void addSprites(sprite* s, char* path, int numframes, float delay){
 		sprintf(filename, path, i);
 		//printf("filename: %s \n", filename);
 		//checar o initialize
-		frame.images[i-1] = initializeTexture(filename, TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE );
+		frame.images[i-1] = InitializeTexture(filename, TEXTURE_2D, RGBA, RGBA8, UNSIGNED_BYTE );
 		if (frame.images[i-1] == NULL){
 			//free(frame);
 			return;
@@ -176,8 +186,8 @@ void addSprites(sprite* s, char* path, int numframes, float delay){
 }
 
 //enum pode ser negativo ou maior que o numero de frames
-void drawSprite(sprite* s, float elapsedtime, int framenum, int flags){
-    frames *f = utarray_eltptr(s->frames, framenum);
+void DrawSprite(Sprite* s, float elapsedtime, int framenum, int flags){
+    Frames *f = utarray_eltptr(s->frames, framenum);
 	if (f == NULL){
 	//	printf("Frame not found: %d \n", s->frames->size);
 		return;
@@ -202,7 +212,7 @@ void drawSprite(sprite* s, float elapsedtime, int framenum, int flags){
 			f->currentImage = 0;
 	}
     
-    float *texcoords = mapVBO(s->m->texVBO[0], GL_WRITE_ONLY);
+    float *texcoords = MapVBO(s->m->texVBO[0], GL_WRITE_ONLY);
     texcoords[0] = 0.0; texcoords[1] = 1.0; texcoords[2] = 1.0; texcoords[3] = 1.0;
     texcoords[4] = 1.0; texcoords[5] = 0.0; texcoords[6] = 0.0; texcoords[7] = 0.0;  
     if ( (flags & FLIP_Y) && (flags & FLIP_X) ){
@@ -225,27 +235,26 @@ void drawSprite(sprite* s, float elapsedtime, int framenum, int flags){
 		texcoords[5] = 1.0;
 		texcoords[7] = 1.0;
 	}
-    unmapVBO(s->m->texVBO[0]);
-
-	bindSamplerState(f->images[f->currentImage]->state, 0);
-	bindTexture( f->images[f->currentImage], 0);
+    UnmapVBO(s->m->texVBO[0]);
+	BindSamplerState(f->images[f->currentImage]->state, 0);
+	BindTexture( f->images[f->currentImage], 0);
 
     if(f->normal) {
-        bindSamplerState(f->normal->state, 1);
-        bindTexture( f->normal, 1);
+        BindSamplerState(f->normal->state, 1);
+        BindTexture( f->normal, 1);
     }
 	
-    setModel(s->transform);
-	bindShader(s->shdr);
-    drawIndexedVAO(s->m->vaoId, s->m->indicesCount, GL_TRIANGLES);
+    SetModel(s->transform);
+	BindShader(s->shdr);
+    DrawIndexedVAO(s->m->vaoId, s->m->indicesCount, GL_TRIANGLES);
 	s->lastFrame = framenum;
-    bindShader(0);
+    BindShader(0);
 }
 
 
-void translateSprite(sprite *s, float tx, float ty) {
-    fpIdentity(s->transform);
-    fptranslatef(s->transform, tx, ty, 0.0f);
+void TranslateSprite(Sprite *s, float tx, float ty) {
+    Identity(s->transform);
+    Translatef(s->transform, tx, ty, 0.0f);
     s->pos[0] = tx;
     s->pos[1] = ty;
 }

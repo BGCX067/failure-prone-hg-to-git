@@ -108,7 +108,7 @@ void main() { \n\
 }\n\
 "};
 
-Material* colorMaterialDir(){
+Material* ColorMaterialDir(){
 	Material *m = malloc(sizeof(Material));
     memset(m, 0, sizeof(Material));
     
@@ -120,12 +120,12 @@ Material* colorMaterialDir(){
 	m->kd[0] = 0.2; m->kd[1] = 0.7; m->kd[2] = 0.2; m->kd[3] = 1.0;
 	m->ke[0] = 0.0; m->ke[1] = 0.0; m->ke[2] = 0.0; m->ke[3] = 1.0;
 
-	m->shdr = initializeShader( NULL, colorDirVertex, colorDirFrag);
+	m->shdr = InitializeShader( NULL, colorDirVertex, colorDirFrag);
 
 	return m;
 }
 
-Material* colorMaterialDir2(){
+Material* ColorMaterialDir2(){
 	Material *m = malloc(sizeof(Material));
     memset(m, 0, sizeof(Material));
 
@@ -137,15 +137,15 @@ Material* colorMaterialDir2(){
 	m->kd[0] = 0.0; m->kd[1] = 0.0; m->kd[2] = 0.8; m->kd[3] = 1.0;
 	m->ke[0] = 0.0; m->ke[1] = 0.0; m->ke[2] = 0.0; m->ke[3] = 1.0;
     
-    char *vertshader = readTextFile("data/shaders/skyfromatmosphere.vert");
-    char *fragshader = readTextFile("data/shaders/skyfromatmosphere.frag");
-    m->shdr = initializeShader( NULL, vertshader, fragshader); 
+    char *vertshader = ReadTextFile("data/shaders/skyfromatmosphere.vert");
+    char *fragshader = ReadTextFile("data/shaders/skyfromatmosphere.frag");
+    m->shdr = InitializeShader( NULL, vertshader, fragshader); 
 	//m->shdr = initializeShader(colorDirVertex, colorDirFrag);
 
 	return m;
 }
 
-Material* colorMaterialPhong(vec3 ka, vec3 kd, vec3 ks, float shininess) {
+Material* ColorMaterialPhong(vec3 ka, vec3 kd, vec3 ks, float shininess) {
     Material *m = malloc(sizeof(Material));
     memset(m, 0, sizeof(Material));
 
@@ -156,13 +156,13 @@ Material* colorMaterialPhong(vec3 ka, vec3 kd, vec3 ks, float shininess) {
 	memcpy(m->ks, ks, sizeof(vec3));
 //	memcpy(m->ke, ke, sizeof(vec3));
     
-    char *vertshader = readTextFile("data/shaders/phong.vert");
-    char *fragshader = readTextFile("data/shaders/phong.frag");
-    m->shdr = initializeShader( NULL, vertshader, fragshader); 
+    char *vertshader = ReadTextFile("data/shaders/phong.vert");
+    char *fragshader = ReadTextFile("data/shaders/phong.frag");
+    m->shdr = InitializeShader( NULL, vertshader, fragshader); 
 	return m;
 }
 
-Material* colorMaterialShadowPhong(vec3 ka, vec3 kd, vec3 ks, float shininess) {
+Material* ColorMaterialShadowPhong(vec3 ka, vec3 kd, vec3 ks, float shininess) {
     Material *m = malloc(sizeof(Material));
     memset(m, 0, sizeof(Material));
 
@@ -173,33 +173,31 @@ Material* colorMaterialShadowPhong(vec3 ka, vec3 kd, vec3 ks, float shininess) {
 	memcpy(m->ks, ks, sizeof(vec3));
 //	memcpy(m->ke, ke, sizeof(vec3));
     
-    char *vertshader = readTextFile("data/shaders/shadowsecondpass.vert");
-    char *fragshader = readTextFile("data/shaders/shadowsecondpass.frag");
-    m->shdr = initializeShader( NULL,vertshader, fragshader); 
+    char *vertshader = ReadTextFile("data/shaders/shadowsecondpass.vert");
+    char *fragshader = ReadTextFile("data/shaders/shadowsecondpass.frag");
+    m->shdr = InitializeShader( NULL,vertshader, fragshader); 
 	return m;
 }
 
 
-Material* colorMaterialNoLight() {
+Material* ColorMaterialNoLight() {
     Material *m = malloc(sizeof(Material));
     memset(m, 0, sizeof(Material));
-	m->shdr = initializeShader( NULL, colorNoLightVertex, colorNoLightFrag);
+	m->shdr = InitializeShader( NULL, colorNoLightVertex, colorNoLightFrag);
 
     return m;
 }
 
-Material* colorMaterialLightSimple() {
+Material* ColorMaterialLightSimple() {
     Material *m = malloc(sizeof(Material));
     memset(m, 0, sizeof(Material));
-	m->shdr = initializeShader( NULL, colorLightSVertex, colorLightSFrag);
+	m->shdr = InitializeShader( NULL, colorLightSVertex, colorLightSFrag);
 
     return m;
 }
-
-
 
 //
-Material* texturedMaterialDir(Texture *t) {
+Material* TexturedMaterialDir(Texture *t) {
     Material *m = malloc(sizeof(Material));
 
     m->diffsource = TEXTURE;
@@ -212,16 +210,14 @@ Material* texturedMaterialDir(Texture *t) {
 	m->kd[0] = 0.0; m->kd[1] = 0.0; m->kd[2] = 0.0; m->kd[3] = 1.0;
 	m->ke[0] = 0.0; m->ke[1] = 0.0; m->ke[2] = 0.0; m->ke[3] = 1.0;
 
-    char *vertshader = readTextFile("data/shaders/vertshader.vert");
-    char *fragshader = readTextFile("data/shaders/fragshader.frag");
-    m->shdr = initializeShader( NULL, vertshader, fragshader); 
+    char *vertshader = ReadTextFile("data/shaders/vertshader.vert");
+    char *fragshader = ReadTextFile("data/shaders/fragshader.frag");
+    m->shdr = InitializeShader( NULL, vertshader, fragshader); 
 
     return m;
 }
 
-
-
-Material *volumeMaterial(Texture *t) {
+Material *VolumeMaterial(Texture *t) {
     Material *m = malloc(sizeof(Material));
 
     m->diffsource = TEXTURE;
@@ -234,15 +230,15 @@ Material *volumeMaterial(Texture *t) {
 	m->kd[0] = 0.0; m->kd[1] = 0.0; m->kd[2] = 0.0; m->kd[3] = 1.0;
 	m->ke[0] = 0.0; m->ke[1] = 0.0; m->ke[2] = 0.0; m->ke[3] = 1.0;
     
-    char *vertshader = readTextFile("data/shaders/volume.vert");
-    char *fragshader = readTextFile("data/shaders/volume.frag");
-    m->shdr = initializeShader( NULL, vertshader, fragshader); 
+    char *vertshader = ReadTextFile("data/shaders/volume.vert");
+    char *fragshader = ReadTextFile("data/shaders/volume.frag");
+    m->shdr = InitializeShader( NULL, vertshader, fragshader); 
 
     return m;
 }
 
 
-Material* volumeMaterialTransfer(Texture* volData, Texture* transferData) {
+Material* VolumeMaterialTransfer(Texture* volData, Texture* transferData) {
     Material *m = malloc(sizeof(Material));
 
     m->diffsource = TEXTURE;
@@ -256,32 +252,35 @@ Material* volumeMaterialTransfer(Texture* volData, Texture* transferData) {
 	m->kd[0] = 0.0; m->kd[1] = 0.0; m->kd[2] = 0.0; m->kd[3] = 1.0;
 	m->ke[0] = 0.0; m->ke[1] = 0.0; m->ke[2] = 0.0; m->ke[3] = 1.0;
     
-    char *vertshader = readTextFile("data/shaders/volume.vert");
-    char *fragshader = readTextFile("data/shaders/volumeTransfer.frag");
-    m->shdr = initializeShader( NULL, vertshader, fragshader); 
+    char *vertshader = ReadTextFile("data/shaders/volume.vert");
+    char *fragshader = ReadTextFile("data/shaders/volumeTransfer.frag");
+    m->shdr = InitializeShader( NULL, vertshader, fragshader); 
 
     return m;
-
 }
 
-void bindMaterial(Material* m, Light* l ){
+void BindMaterial(Material* m, Light* l ){
 	if (!m || !l)
 		return;
 
-	setShaderConstant3f(m->shdr, "kd", m->kd );
-	setShaderConstant4f(m->shdr, "ka", m->ka );
-	setShaderConstant4f(m->shdr, "ks", m->ks );
-	setShaderConstant1f(m->shdr, "shininess", m->shininess);
+    vec3 kd = {m->kd[0], m->kd[1], m->kd[2]};
+    vec3 ka = {m->ka[0], m->ka[1], m->ka[2]};
+    vec3 ks = {m->ks[0], m->ks[1], m->ks[2]};
+	SetShaderConstant3f(m->shdr, "kd", kd );
+	SetShaderConstant3f(m->shdr, "ka", ka );
+	SetShaderConstant3f(m->shdr, "ks", ks );
+	SetShaderConstant1f(m->shdr, "shininess", m->shininess);
 
-	setShaderConstant3f(m->shdr, "LightPosition", l->pos);
-	setShaderConstant4f(m->shdr, "LightColor", l->color);
+	SetShaderConstant3f(m->shdr, "LightPosition", l->pos);
+    vec3 lcolor = {l->color[0], l->color[1], l->color[2]};
+	SetShaderConstant3f(m->shdr, "LightColor", lcolor);
 
 	float ambient[4];
 	ambient[0] = 0.1;
 	ambient[1] = 0.1;
 	ambient[2] = 0.1;
 	ambient[3] = 0.1;
-	setShaderConstant4f(m->shdr, "globalAmbient", ambient);
+	SetShaderConstant4f(m->shdr, "globalAmbient", ambient);
 
     //if(m->diffsource == TEXTURE) {
     //    bindSamplerState(m->diffmap->state, 0);
@@ -290,8 +289,8 @@ void bindMaterial(Material* m, Light* l ){
 
     for(unsigned int i = 0; i < m->texCount; i++) {
         //printf("binding texture: %d/%d\n", i, m->texCount);
-        bindSamplerState(m->textures[i]->state, i);
-        bindTexture(m->textures[i], i);
+        BindSamplerState(m->textures[i]->state, i);
+        BindTexture(m->textures[i], i);
     }
 
     //if(m->transfermap) {
@@ -300,7 +299,7 @@ void bindMaterial(Material* m, Light* l ){
     //}
 }
 
-Material *materialInit() {
+Material *MaterialInit() {
     Material *m = malloc(sizeof(Material));
     m->texCount = 0;
 
@@ -308,14 +307,14 @@ Material *materialInit() {
 }
 
 //FIXME: retornar erro
-void materialAddTex(Material *m, Texture *t) {
+void MaterialAddTex(Material *m, Texture *t) {
     if(m->texCount < 8) {
         m->textures[m->texCount] = t;
         m->texCount++;
     }
 }
 
-void materialSetShader(Material *m, Shader *s) {
+void MaterialSetShader(Material *m, Shader *s) {
     m->shdr = s; 
 }
 

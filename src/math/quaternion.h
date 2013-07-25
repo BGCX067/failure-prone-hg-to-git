@@ -5,20 +5,23 @@
 #include "matrix.h"
 
 /*[0] = x, [1] = y, [2] = z, [3] = angle*/
-typedef float quaternion[4];
+typedef float quat[4];
 
-#define QUAT_IDENTITY(q) { q[0] = 0.0; q[1] = 0.0; q[2] = 0.0; q[3] = 1.0;}
+//#define QUAT_IDENTITY(q) { q[0] = 0.0; q[1] = 0.0; q[2] = 0.0; q[3] = 1.0;}
 
-float quatLength(quaternion q);
-void quatNormalize(quaternion q);
-void quatConjugate(quaternion q, quaternion conj);
-void quatMult(quaternion q1, quaternion q2, quaternion res);
-void quatMultVec(quaternion q, vec3 v, quaternion res);
-void fromAxisAngle(vec3 v, float theta, quaternion q);
-void quatToMatrix(quaternion q, mat4 m);
-void rotateVec(vec3 v, quaternion q, vec3 res);
-void quatComputeAngle(quaternion q);
-void quatSlerp(quaternion q1, quaternion q2, float t, quaternion res);
-float quatDotProduct(quaternion q1, quaternion q2);
+void Normalizeq(quat q);
+float Lengthq(quat q);
+void Conjugateq(quat q, quat conj);
+void Multq(quat q1, quat q2, quat res);
+void Multqv(quat q, vec3 v, quat res);
+void FromAxisAngle(vec3 v, float theta, quat q);
+void ToMatrixq(quat q, mat4 m);
+void Rotateq(vec3 v, quat q, vec3 res);
+void Angleq(quat q);
+void Slerpq(quat q1, quat q2, float t, quat res);
+float Dotq(quat q1, quat q2);
+
+void Setq(quat dest, quat src);
+void Setqf(quat q, float x, float y, float z, float w);
 
 #endif

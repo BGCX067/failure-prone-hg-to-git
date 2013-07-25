@@ -11,8 +11,7 @@
  * Os passos 1-4 ficam em alguma parte de inicializaçao do codigo, depois de pronto basta usar o passo 5 sempre
  */
 
-typedef struct  _batch{
-
+typedef struct _batch{
 	int  primitive;
 	
 	unsigned int vertexVBO;
@@ -32,24 +31,22 @@ typedef struct  _batch{
 	float** texCoords;
 
 	int verticesComponents; //se eh xy ou xyz
+}Batch;
 
-}batch;
+Batch* InitializeBatch();
+void DestroyBatch(Batch *b);
 
-batch* initializeBatch();
+void Begin(Batch* b, int primitive, int nverts, int texSets);
+void End(Batch* b);
+void Draw(Batch* b);
 
-void begin(batch* b, int primitive, int nverts, int texSets);
-void end(batch* b);
-void draw(batch* b);
-
-void vertex3f(batch* b, float x, float y, float z);
-void vertex2f(batch* b, float x, float y);
-void normal3f(batch* b, float x, float y, float z);
-void color4f(batch* b,float x, float y, float z, float w);
-void texCoord2f(batch* b, unsigned int texUnit, float s, float t);
+void Vertex3f(Batch* b, float x, float y, float z);
+void Vertex2f(Batch* b, float x, float y);
+void Normal3f(Batch* b, float x, float y, float z);
+void Color4f(Batch* b,float x, float y, float z, float w);
+void TexCoord2f(Batch* b, unsigned int texUnit, float s, float t);
 
 //funcoes de desenho
-batch* makeCube(float radius);
-
-void destroyBatch(batch *b);
+Batch* MakeCube(float radius);
 
 #endif

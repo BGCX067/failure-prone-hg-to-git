@@ -6,6 +6,6 @@
 
 size_t GetDelim(char** linebuff, size_t* linebufsz, int delim, FILE* fd);
 size_t GetLine(char** linebuff, size_t *n, FILE *fd);
-char* readTextFile(char* filename);
+char* ReadTextFile(char* filename);
 
 #endif /* TEXTFILE_H_ */

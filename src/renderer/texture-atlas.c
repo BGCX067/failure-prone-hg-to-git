@@ -315,8 +315,8 @@ texture_atlas_upload( texture_atlas_t * self )
     assert( self );
     assert( self->data );
 
-	self->tex = initializeTextureFromMemory(self->data, self->width, self->height, TEXTURE_2D, GL_ALPHA, GL_ALPHA, GL_UNSIGNED_BYTE);
-	self->tex->state = initializeSamplerState(CLAMP_TO_EDGE, NEAREST, NEAREST, 0); 
+	self->tex = InitializeTextureFromMemory(self->data, self->width, self->height, TEXTURE_2D, GL_ALPHA, GL_ALPHA, GL_UNSIGNED_BYTE);
+	self->tex->state = InitializeSamplerState(CLAMP_TO_EDGE, NEAREST, NEAREST, 0); 
 		unsigned char* bmp3 = (unsigned char*) malloc(self->height*self->width*4);
 		for(int i = 0,  k = 0; i < self->width*self->height; i++, k  += 4){
 			bmp3[k] = self->data[i];

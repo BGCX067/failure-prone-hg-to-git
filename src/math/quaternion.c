@@ -2,36 +2,36 @@
 #include <math.h>
 #include <string.h> //memcpy
 
-float quatLength(quaternion q) {
+float Lengthq(quat q) {
     return sqrt(q[0]*q[0]+q[1]*q[1]+q[2]*q[2]+q[3]*q[3]);
 }
 
-void quatNormalize(quaternion q) {
-    float len = quatLength(q);
+void Normalizeq(quat q) {
+    float len = Lengthq(q);
     q[0] /= len;
     q[1] /= len;
     q[2] /= len;
     q[3] /= len;
 }
 
-void quatConjugate(quaternion q, quaternion conj) {
+void Conjugateq(quat q, quat conj) {
     conj[0] = -q[0];
     conj[1] = -q[1];
     conj[2] = -q[2];
     conj[3] =  q[3];
 }
 
-void quatMult(quaternion q2, quaternion q1, quaternion res) {
-    quaternion temp;
+void Multq(quat q2, quat q1, quat res) {
+    quat temp;
     temp[0] = q2[1]*q1[2] - q2[2]*q1[1] + q2[3]*q1[0] + q2[0]*q1[3];
 	temp[1] = q2[2]*q1[0] - q2[0]*q1[2] + q2[3]*q1[1] + q2[1]*q1[3];
 	temp[2] = q2[0]*q1[1] - q2[1]*q1[0] + q2[3]*q1[2] + q2[2]*q1[3];
 	temp[3] = q2[3]*q1[3] - q2[0]*q1[0] - q2[1]*q1[1] - q2[2]*q1[2];
-    memcpy(res, temp, sizeof(quaternion));
+    memcpy(res, temp, sizeof(quat));
 }
 
 
-void quatMultVec(quaternion q, vec3 v, quaternion res) {
+void Multqv(quat q, vec3 v, quat res) {
     res[3] = -(q[0]*v[0]) - (q[1]* v[1]) - (q[2]*v[2]);
     res[0] = (q[3]*v[0]) + (q[1]*v[2]) - (q[2]*v[1]);
     res[1] = (q[3]*v[1]) + (q[2]*v[0]) - (q[0]*v[2]);
@@ -39,16 +39,16 @@ void quatMultVec(quaternion q, vec3 v, quaternion res) {
 
 }
 
-void fromAxisAngle(vec3 v, float theta, quaternion q) {
+void FromAxisAngle(vec3 v, float theta, quat q) {
     float angle = theta*0.5;
     q[0] = v[0]*sin(angle);
     q[1] = v[1]*sin(angle);
     q[2] = v[2]*sin(angle);
     q[3] = cos(angle);
-    quatNormalize(q);
+    Normalizeq(q);
 }
 
-void quatToMatrix(quaternion q, mat4 m) {
+void ToMatrixq(quat q, mat4 m) {
     float xx, yy, zz, wx, wy, wz, xy, xz, yz;
 	xx = 2*q[0]*q[0];	yy = 2*q[1]*q[1];	zz = 2*q[2]*q[2];
 	wx = 2*q[3]*q[0];	wy = 2*q[3]*q[1];	wz = 2*q[3]*q[2];
@@ -70,27 +70,27 @@ void quatToMatrix(quaternion q, mat4 m) {
 	m[3] = m[7] = m[11] =  m[12] = m[13] = m[14] = 0.0;
 }
 
-void rotateVec(vec3 v, quaternion q, vec3 res) {
-    quaternion q2;
+void Rotateq(vec3 v, quat q, vec3 res) {
+    quat q2;
     q2[0] = v[0];
     q2[1] = v[1];
     q2[2] = v[2];
     q2[3] = 0.0;
 
-    quaternion result, tmp;
+    quat result, tmp;
     
-    quaternion conjq;
-    quatConjugate(q, conjq);
+    quat conjq;
+    Conjugateq(q, conjq);
     ////quatMult(q, q2, tmp);
-    quatMultVec(q, v, tmp);
-    quatMult(tmp, conjq, result);
+    Multqv(q, v, tmp);
+    Multq(tmp, conjq, result);
     
     res[0] = result[0];
     res[1] = result[1];
     res[2] = result[2];
 }
 
-void quatComputeAngle(quaternion q) {
+void Angleq(quat q) {
     float t = 1.0f - q[0]*q[0] - q[1]*q[1] - q[2]*q[2];
     if (t < 0.0f)
         q[3] = 0.0f;
@@ -98,26 +98,24 @@ void quatComputeAngle(quaternion q) {
         q[3] = -sqrt(t);
 }
 
-
-
-float quatDotProduct(quaternion q1, quaternion q2) {
+float Dotq(quat q1, quat q2) {
     return q1[0]*q2[0] + q1[1]*q2[1] + q1[2]*q2[2] + q1[3]*q2[3];
 }
 
-void quatSlerp(quaternion q1, quaternion q2, float t, quaternion res) {
+void Slerpq(quat q1, quat q2, float t, quat res) {
     /* Check for out-of range parameter and return edge points if so */
     if (t <= 0.0) {
-        memcpy(res, q1, sizeof(quaternion));
+        memcpy(res, q1, sizeof(quat));
         return;
     }
 
     if (t >= 1.0) {
-        memcpy(res, q2, sizeof (quaternion));
+        memcpy(res, q2, sizeof (quat));
         return;
     }
 
     /* Compute "cosine of angle between quaternions" using dot product */
-    float cosOmega = quatDotProduct(q1, q2);
+    float cosOmega = Dotq(q1, q2);
 
     /* If negative dot, use -q1.  Two quaternions q and -q
        represent the same rotation, but may produce
@@ -164,11 +162,18 @@ void quatSlerp(quaternion q1, quaternion q2, float t, quaternion res) {
         k1 = sin(t*omega)*oneOverSinOmega;
     }
 
-    /* Interpolate and return new quaternion */
+    /* Interpolate and return new quat */
     res[3] = (k0*q1[3]) + (k1*q1w);
     res[0] = (k0*q1[0]) + (k1*q1x);
     res[1] = (k0*q1[1]) + (k1*q1y);
     res[2] = (k0*q1[2]) + (k1*q1z);
 }
 
+void Setq(quat dest, quat src) {
+    memcpy(dest, src, sizeof(quat));
+}
+
+void Setqf(quat q, float x, float y, float z, float w) {
+    q[0] = x; q[1] = y; q[2] = z; q[3] = w;
+}
 

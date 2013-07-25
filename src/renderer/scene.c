@@ -8,16 +8,16 @@
 #endif
 #include "util/utlist.h"
 
-void addMesh(Scene* s, Mesh *m){
+void AddMesh(Scene* s, Mesh *m){
     DL_APPEND(s->meshList, m);
     //FIXME com struct auxiliar
     //MeshElem *melem = malloc(sizeof(MeshElem));
     //melem->m = m;
     //DL_APPEND(s->meshList, melem);
-    bbunion(&s->b, m->b, s->b);
+    BBUnion(&s->b, m->b, s->b);
 }
 
-void rmMesh(Scene *s, Mesh *m) {
+void RmMesh(Scene *s, Mesh *m) {
     DL_DELETE(s->meshList, m);
     //FIXME Com struct auxiliar
     //MeshElem melem, *tmpelem;
@@ -25,14 +25,14 @@ void rmMesh(Scene *s, Mesh *m) {
     //DL_SEARCH(s->meshList, tmpelem, &melem, meshElemCmp);
     //DL_DELETE(s->meshList, tmpelem);
     //Atualizar bounding box
-    sceneSetBoundingBox(s);
+    CalcBBoxs(s);
 }
 
-void addLight(Scene* s, Light* l){
+void AddLight(Scene* s, Light* l){
     DL_APPEND(s->lightList, l);
 }
 
-void addMaterial(Scene *s, Material *m) {
+void AddMaterial(Scene *s, Material *m) {
     DL_APPEND(s->materialList, m);
 }
 
@@ -44,7 +44,7 @@ void addMaterial(Scene *s, Material *m) {
 //	return fplist_insback(n, s->nodes);
 //}
 
-Scene* initializeScene(){
+Scene* InitializeScene(){
 	Scene * s = malloc(sizeof(Scene));
 	memset(s, 0, sizeof(Scene));
     
@@ -64,14 +64,14 @@ Scene* initializeScene(){
 	return s;
 }
 
-void drawScene(Scene* scn){
+void DrawScene(Scene* scn){
 	if (scn == NULL)
 		return;
 
     //Iterator pra percorrer a lista
     Mesh *it;
     DL_FOREACH(scn->meshList, it)
-        drawIndexedVAO(it->vaoId, it->indicesCount, GL_TRIANGLES);
+        DrawIndexedVAO(it->vaoId, it->indicesCount, GL_TRIANGLES);
 
 
     //FIXME com struct auxiliar:
@@ -97,13 +97,13 @@ void drawScene(Scene* scn){
 }
 
 //TODO considerar animated mesh
-void sceneSetBoundingBox(Scene *s) {
-    memset(&s->b, 0, sizeof(BoundingBox));
+void CalcBBoxs(Scene *s) {
+    memset(&s->b, 0, sizeof(BBox));
     //Ver se a lista tá vazia
     int size = 0;
     Mesh *it;
     DL_FOREACH(s->meshList, it) { 
-        bbunion(&s->b, it->b, s->b);
+        BBUnion(&s->b, it->b, s->b);
         size++;
     }
 

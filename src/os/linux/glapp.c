@@ -1,4 +1,3 @@
-
 #include "glapp.h"
 
 //#ifndef WIN
@@ -33,8 +32,7 @@ static int modescmp(const void* pa, const void* pb){
 	return b->vdisplay - a->vdisplay;
 }
 
-void setVideoMode(int w, int h, int fullscreen){
-
+void SetVideoMode(int w, int h, int fullscreen){
 	if (window){
 		XDestroyWindow(display, window);
 		/* mudar de modo? */
@@ -184,38 +182,33 @@ void setVideoMode(int w, int h, int fullscreen){
 
 }
 
-void closeVideo(){
-
-	if (context)
-		glXDestroyContext(display, context);
-
-	if (window)
-		XDestroyWindow(display,  window);
-
-	if (display)
-		XCloseDisplay(display);
-
+void CloseVideo(){
+	if(context)
+        glXDestroyContext(display, context);
+	if(window)
+        XDestroyWindow(display,  window);
+	if(display)
+        XCloseDisplay(display);
 }
 
-void setWindowTitle(char* title){
+void SetWindowTitle(char* title){
 	XStoreName(display, window, title);
 	XSetIconName(display, window, title);
 }
 
-void setMouse(int x, int y){
+void SetMouse(int x, int y){
 	XWarpPointer(display, None, window, 0, 0, 0, 0, x, y);
 	XFlush(display);
 }
 
 //retorna o tempo em milisegundos
-double getTime(){
+double GetTime(){
 	struct timespec time;
 	clock_gettime(CLOCK_REALTIME, &time);
 	return time.tv_sec + time.tv_nsec*1e-9;
 }
 
-int getKeyCode(int key){
-
+static int getKeyCode(int key){
 	int ret = 0;
     
     //TODO ordenar alfabeticamente as teclas pra facilitar a leitura
@@ -269,8 +262,7 @@ int getKeyCode(int key){
 	return ret;
 }
 
-
-void MainLoop( ){
+void MainLoop(){
 	event evt;
     evt.buttonLeft =  evt.buttonRight = 0;
 	memset(evt.keys, 0, 512*sizeof(int));
@@ -342,7 +334,7 @@ void MainLoop( ){
 		}
 		//printf("FPS: %f\n", fps);
 
-		double newTime = getTime();
+		double newTime = GetTime();
 		deltaTime = newTime - currentTime;
 		currentTime = newTime;
 
@@ -365,17 +357,15 @@ void MainLoop( ){
 		evt.button &= ~(BUTTON_UP | BUTTON_DOWN);
 
 		if (warpmouse_)
-            setMouse(app->width/2, app->height/2);
+            SetMouse(app->width/2, app->height/2);
 	}
 }
 
-
-void warpmouse( int i){
+void WarpMouse( int i){
 	warpmouse_ = i;
 }
 
-
-void swapBuffers() {
+void SwapBuffers() {
     glXSwapBuffers(display, window);    
 }
 
@@ -386,7 +376,6 @@ unsigned int GetScreenW() {
 unsigned int GetScreenH() {
     return app->height;
 }
-
 
 //#endif
 

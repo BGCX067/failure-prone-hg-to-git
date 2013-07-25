@@ -10,10 +10,10 @@ enum MatComponentSource {
 
 typedef struct Material{
 	float shininess;
-	float ks[4];
-	float kd[4];
-	float ka[4];
-    float ke[4];
+	float ks[3];
+	float kd[3];
+	float ka[3];
+    float ke[3];
 
     //TODO outras texturas (specular map, normal map, etc)
     Texture *diffmap;
@@ -30,30 +30,30 @@ typedef struct Material{
     struct Material *prev, *next;
 }Material;
 
-void bindMaterial(Material* m, Light* l);
+void BindMaterial(Material* m, Light* l);
 
-Material* colorMaterialDir();
-Material* colorMaterialDir2();
-Material* colorMaterialNoLight();
-Material* colorMaterialLightSimple();
+Material* ColorMaterialDir();
+Material* ColorMaterialDir2();
+Material* ColorMaterialNoLight();
+Material* ColorMaterialLightSimple();
 //Material* colorMateralPoint();
-Material* colorMaterialPhong(vec3 ka, vec3 kd, vec3 ks, float shininess);
-Material* colorMaterialShadowPhong(vec3 ka, vec3 kd, vec3 ks, float shininess);
+Material* ColorMaterialPhong(vec3 ka, vec3 kd, vec3 ks, float shininess);
+Material* ColorMaterialShadowPhong(vec3 ka, vec3 kd, vec3 ks, float shininess);
 
-Material* texturedMaterialDir(Texture *t);
+Material* TexturedMaterialDir(Texture *t);
 //Material* texturedMaterialPoint();
 
-Material* volumeMaterial(Texture* t);
-Material* volumeMaterialTransfer(Texture* volData, Texture* transferData);
+Material* VolumeMaterial(Texture* t);
+Material* VolumeMaterialTransfer(Texture* volData, Texture* transferData);
 
 
 
 //---------------------------------------
 // API LOW LEVEL
 
-Material* materialInit();
-void materialAddTex(Material *m, Texture *t);
-void materialSetShader(Material *m, Shader *s);
+Material* MaterialInit();
+void MaterialAddTex(Material *m, Texture *t);
+void MaterialSetShader(Material *m, Shader *s);
 
 
 #endif

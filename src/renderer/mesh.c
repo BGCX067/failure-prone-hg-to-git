@@ -5,76 +5,77 @@
 #include <string.h> //memset
 #include "util/utlist.h"
 
-Mesh* initMesh() {
+Mesh* InitMesh() {
     Mesh *m = malloc(sizeof(Mesh));
     memset(m, 0, sizeof(Mesh));
-    fpIdentity(m->transform);
+    Identity(m->transform);
     return m;
 }
 
-void addVertices(Mesh *m, int num, int comp, float *vertices) {
+void AddVertices(Mesh *m, int num, int comp, float *vertices) {
     m->verticesCount = num;
     m->vertices = vertices;
-    setVertexAttribute(m->attrs, ATTR_VERTEX, m->verticesCount, m->verticesCount*sizeof(float), 0, comp, 0);
-    setMeshBoundingBox(m);
+    SetVertexAttribute(m->attrs, ATTR_VERTEX, m->verticesCount, m->verticesCount*sizeof(float), 0, comp, 0);
+    CalcBBox(&m->b, m->vertices, m->verticesCount/3);
+    //setMeshBBox(m);
 }
 
-void addNormals(Mesh* m, int num, int comp, float *normals) {
+void AddNormals(Mesh* m, int num, int comp, float *normals) {
     m->normalsCount = num;
     m->normals = normals;
-    setVertexAttribute(m->attrs, ATTR_NORMAL, m->normalsCount, m->normalsCount*sizeof(float), 0, comp, 0);
+    SetVertexAttribute(m->attrs, ATTR_NORMAL, m->normalsCount, m->normalsCount*sizeof(float), 0, comp, 0);
 }
 
-void addTexCoords(Mesh *m, int num, int comp, int texset, float *texcoords) {
+void AddTexCoords(Mesh *m, int num, int comp, int texset, float *texcoords) {
     m->texCoords[texset] = malloc(sizeof(TexCoord));
     m->texCoords[texset]->count = num;
     m->texCoords[texset]->components = comp;
     m->texCoords[texset]->set = texset;
     m->texCoords[texset]->texCoords = texcoords;
     m->numTexSets++;
-    setVertexAttribute(m->attrs, ATTR_TEXCOORD0+texset, m->texCoords[texset]->count, m->texCoords[texset]->count*sizeof(float), 0, comp, 0);
+    SetVertexAttribute(m->attrs, ATTR_TEXCOORD0+texset, m->texCoords[texset]->count, m->texCoords[texset]->count*sizeof(float), 0, comp, 0);
 }
 
-void addIndices(Mesh *m, int num, unsigned int *indices) {
+void AddIndices(Mesh *m, int num, unsigned int *indices) {
     m->indicesCount = num;
     m->indices = indices;
 }
 
-void addColors(Mesh *m, int count, float *colors) {
+void AddColors(Mesh *m, int count, float *colors) {
    m->colors = colors;
    m->colorsCount = count;
-   setVertexAttribute(m->attrs, ATTR_COLOR, m->colorsCount, m->colorsCount*sizeof(float), 0, 3, 0);
+   SetVertexAttribute(m->attrs, ATTR_COLOR, m->colorsCount, m->colorsCount*sizeof(float), 0, 3, 0);
 }
 
 
-void prepareMesh(Mesh *m) {
+void PrepareMesh(Mesh *m) {
     //Criar VBO de indices
-    m->indicesId = initializeVBO(m->indicesCount*sizeof(unsigned int), GL_STATIC_DRAW, m->indices);
-    m->verticesVBO = initializeVBO(m->verticesCount*sizeof(float), GL_STATIC_DRAW, m->vertices);
+    m->indicesId = InitializeVBO(m->indicesCount*sizeof(unsigned int), GL_STATIC_DRAW, m->indices);
+    m->verticesVBO = InitializeVBO(m->verticesCount*sizeof(float), GL_STATIC_DRAW, m->vertices);
     m->attrs[ATTR_VERTEX]->vboID = m->verticesVBO;
 
     if(m->normals) {
-        m->normalsVBO = initializeVBO(m->normalsCount*sizeof(float), GL_STATIC_DRAW, m->normals);
+        m->normalsVBO = InitializeVBO(m->normalsCount*sizeof(float), GL_STATIC_DRAW, m->normals);
         m->attrs[ATTR_NORMAL]->vboID = m->normalsVBO;
     }
     if(m->binormals) {
-        m->binormalsVBO = initializeVBO(m->binormalsCount*sizeof(float), GL_STATIC_DRAW, m->binormals);
+        m->binormalsVBO = InitializeVBO(m->binormalsCount*sizeof(float), GL_STATIC_DRAW, m->binormals);
         m->attrs[ATTR_BINORMAL]->vboID = m->binormalsVBO;
     }
     if(m->tangents) {
-        m->tangentsVBO = initializeVBO(m->tangentsCount*sizeof(float), GL_STATIC_DRAW, m->tangents);
+        m->tangentsVBO = InitializeVBO(m->tangentsCount*sizeof(float), GL_STATIC_DRAW, m->tangents);
         m->attrs[ATTR_TANGENT]->vboID = m->tangentsVBO;
     }
     for(unsigned int i = 0; i < m->numTexSets; i++) {
-        m->texVBO[i] = initializeVBO(m->texCoords[i]->count*sizeof(float), GL_STATIC_DRAW, m->texCoords[i]->texCoords);
+        m->texVBO[i] = InitializeVBO(m->texCoords[i]->count*sizeof(float), GL_STATIC_DRAW, m->texCoords[i]->texCoords);
         m->attrs[ATTR_TEXCOORD0 + i]->vboID = m->texVBO[i];
     }
     if(m->colors) {
-        m->colorsVBO = initializeVBO(m->colorsCount*sizeof(float), GL_STATIC_DRAW, m->colors);
+        m->colorsVBO = InitializeVBO(m->colorsCount*sizeof(float), GL_STATIC_DRAW, m->colors);
         m->attrs[ATTR_COLOR]->vboID = m->colorsVBO;
     }
-    m->vaoId = initEmptyVAO();
-    configureIndexedVAO(m->vaoId, m->indicesId, m->attrs);
+    m->vaoId = InitEmptyVAO();
+    ConfigureIndexedVAO(m->vaoId, m->indicesId, m->attrs);
 }
 
 //TODO: versão pra AnimatedMesh 
@@ -85,7 +86,7 @@ void prepareMesh(Mesh *m) {
 }*/
 
 
-void addAnim(AnimatedMesh *m, SkeletalAnim *anim) {
+void AddAnim(AnimatedMesh *m, SkeletalAnim *anim) {
     if(m->animated == 0) {
         m->animList = NULL;
         m->animated = 1;
@@ -94,7 +95,7 @@ void addAnim(AnimatedMesh *m, SkeletalAnim *anim) {
 }
 
 
-SkeletalAnim* getCurrentAnim(AnimatedMesh *m) {
+SkeletalAnim* GetCurrentAnim(AnimatedMesh *m) {
     int i = 0;
     SkeletalAnim *it;
     DL_FOREACH(m->animList, it) {
@@ -107,7 +108,7 @@ SkeletalAnim* getCurrentAnim(AnimatedMesh *m) {
 
 //Função auxiliar pra calcular normais, dados os índices e os vértices
 //baseado no código do iq
-void setNormals(unsigned int *tIndices, float *tVerts, float *tNormals, 
+void SetNormals(unsigned int *tIndices, float *tVerts, float *tNormals, 
                 int trisCount, int verticesCount) 
 {
     for(int j = 0; j < trisCount; j++) {
@@ -120,11 +121,11 @@ void setNormals(unsigned int *tIndices, float *tVerts, float *tNormals,
         vec3 icpos = { tVerts[3*ic], tVerts[3*ic + 1], tVerts[3*ic + 2]  };
 
         vec3 e1;
-        vecSub(iapos, ibpos, e1);
+        Subv(iapos, ibpos, e1);
         vec3 e2;
-        vecSub(icpos, ibpos, e2);
+        Subv(icpos, ibpos, e2);
         vec3 no;
-        cross(e2, e1, no);
+        Cross(e2, e1, no);
 
         tNormals[3*ia] += no[0];
         tNormals[3*ia + 1] += no[1];
@@ -138,7 +139,7 @@ void setNormals(unsigned int *tIndices, float *tVerts, float *tNormals,
     }
     for(int j = 0; j < verticesCount; j++) {
         vec3 n = { tNormals[3*j], tNormals[3*j + 1], tNormals[3*j + 2] };
-        vecNormalize(n);
+        Normalizev(n);
         tNormals[3*j] = n[0];
         tNormals[3*j + 1] = n[1];
         tNormals[3*j + 2] = n[2];
@@ -146,24 +147,23 @@ void setNormals(unsigned int *tIndices, float *tVerts, float *tNormals,
 }
 
 //TODO verificar se precisa liberar memória do vetor retornado pelo map
-void updateMeshNormals(Mesh* m,  float* normals){
-	float* n = mapVBO(m->normalsVBO, GL_WRITE_ONLY);
+void UpdateMeshNormals(Mesh* m,  float* normals){
+	float* n = MapVBO(m->normalsVBO, GL_WRITE_ONLY);
 	memcpy(n, normals, m->normalsCount*sizeof(float));
-	unmapVBO(m->normalsVBO);
+	UnmapVBO(m->normalsVBO);
 }
 
-void updateMeshVertices(Mesh* m,  float* normals){
-	float* v = mapVBO(m->verticesVBO, GL_WRITE_ONLY);
+void UpdateMeshVertices(Mesh* m,  float* normals){
+	float* v = MapVBO(m->verticesVBO, GL_WRITE_ONLY);
 	memcpy(v, normals, m->verticesCount*sizeof(float));
-	unmapVBO(m->verticesVBO);
+	UnmapVBO(m->verticesVBO);
 }
 
-void updateMeshColors(Mesh* m, float* colors) {
-	float* c = mapVBO(m->colorsVBO, GL_WRITE_ONLY);
+void UpdateMeshColors(Mesh* m, float* colors) {
+	float* c = MapVBO(m->colorsVBO, GL_WRITE_ONLY);
 	memcpy(c, colors, m->colorsCount*sizeof(float));
-	unmapVBO(m->colorsVBO);
+	UnmapVBO(m->colorsVBO);
 }
-
 
 /*void updateMesh(Mesh* m, Joint *skeleton) {
     for(int i = 0; i < m->tris->size; i++) {
@@ -191,7 +191,7 @@ void updateMeshColors(Mesh* m, float* colors) {
     }
 }*/
 
-void interpolateSkeletons(const Joint *skelA, const Joint *skelB,
+void InterpolateSkeletons(const Joint *skelA, const Joint *skelB,
                           int numJoints, float interp, Joint *out)
 {
     for(int i = 0; i < numJoints; i++) {
@@ -204,42 +204,50 @@ void interpolateSkeletons(const Joint *skelA, const Joint *skelB,
         out[i].pos[2] = skelA[i].pos[2] + interp*(skelB[i].pos[2] - skelA[i].pos[2]);
 
         /* Spherical linear interpolation for orientation */
-        quatSlerp(skelA[i].orientation, skelB[i].orientation, interp, out[i].orientation);
+        Slerpq(skelA[i].orientation, skelB[i].orientation, interp, out[i].orientation);
     }
 }
 
-void setMeshBoundingBox(Mesh *m) {
-    m->b.pmin[0] = 99999999;
-    m->b.pmin[1] = 99999999;
-    m->b.pmin[2] = 99999999;
+int RayMeshIntersection(vec3 ro, vec3 rd, Mesh *m, int *indices) {
+    //TODO testar logo com bounding box pra otimizar casos em que não há interseção
+    int intersect = 0;
+    float minT = 99999999.0f;
+    //percorrer a lista de triangulos mesmo
+    for(unsigned int j = 0; j < m->indicesCount; j+=3) {
+        unsigned int ia = m->indices[j], ib = m->indices[j + 1], ic = m->indices[j + 2];
+        vec3 va, vb, vc;
+        va[0] = m->vertices[3*ia]; va[1] = m->vertices[3*ia + 1]; va[2] = m->vertices[3*ia + 2];
+        vb[0] = m->vertices[3*ib]; vb[1] = m->vertices[3*ib + 1]; vb[2] = m->vertices[3*ib + 2];
+        vc[0] = m->vertices[3*ic]; vc[1] = m->vertices[3*ic + 1]; vc[2] = m->vertices[3*ic + 2];
 
-    m->b.pmax[0] = -999999999;
-    m->b.pmax[1] = -999999999;
-    m->b.pmax[2] = -999999999;
-
-    for(unsigned int j = 0; j < m->verticesCount/3; j++) {
-        //X
-        if(m->vertices[3*j] < m->b.pmin[0])
-            m->b.pmin[0] = m->vertices[3*j];
-        if (m->vertices[3*j] > m->b.pmax[0])
-            m->b.pmax[0] = m->vertices[3*j];
-        //Y
-        if(m->vertices[3*j + 1] < m->b.pmin[1])
-            m->b.pmin[1] = m->vertices[3*j + 1];
-        if (m->vertices[3*j + 1] > m->b.pmax[1])
-            m->b.pmax[1] = m->vertices[3*j + 1];
-        //Z
-        if(m->vertices[3*j + 2] < m->b.pmin[2])
-            m->b.pmin[2] = m->vertices[3*j + 2];
-        if (m->vertices[3*j + 2] > m->b.pmax[2])
-            m->b.pmax[2] = m->vertices[3*j + 2];
+        float t;
+        if(RayTriangleIntersection(ro, rd, va, vb, vc, &t)) {
+            if(t < minT) {
+                minT = t;
+                intersect = 1;
+                indices[0] = ia; indices[1] = ib; indices[2] = ic;
+            }
+        }
     }
+
+    return intersect;
 }
 
+int Picking(int mouseX, int mouseY, mat4 modelviewMatrix, mat4 projectionMatrix, int viewPort[4], Mesh *m, int *indices) {
+    float pNear[3], pFar[3];
+    Unproject(mouseX, mouseY, 0.0, modelviewMatrix, projectionMatrix, viewPort, &pNear[0], &pNear[1], &pNear[2]);
+    Unproject(mouseX, mouseY, 1.0, modelviewMatrix, projectionMatrix, viewPort, &pFar[0], &pFar[1], &pFar[2]);
+   
+    //Pega a posição da camera a partir da modelview
+    vec3 rayOrigin;
+    PosFromMatrix(modelviewMatrix, rayOrigin);
 
-int meshElemCmp(MeshElem *el1, MeshElem *el2) {
-    if(el1->m == el2->m)
-        return 0;
-    else
-        return -1;
+    vec3 rayDir;
+    rayDir[0] = pFar[0] - pNear[0];
+    rayDir[1] = pFar[1] - pNear[1];
+    rayDir[2] = pFar[2] - pNear[2];
+    Normalizev(rayDir);
+
+    return RayMeshIntersection(rayOrigin, rayDir, m, indices);
 }
+
