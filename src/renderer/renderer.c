@@ -461,6 +461,7 @@ static ShaderInfo* shdrIsLoaded(const char* vertfile, const char* fragfile) {
     DL_FOREACH(shaders, si) {
         if((strcmp(vertfile, si->vertname) == 0) &&
            (strcmp(fragfile, si->fragname) == 0)) {
+            printf("achou! si->vertname: %s, si->fragname: %s\n", si->vertname, si->fragname);
             return si;
         }
     }
@@ -469,8 +470,12 @@ static ShaderInfo* shdrIsLoaded(const char* vertfile, const char* fragfile) {
 
 static void shdrAddInfo(Shader *shdr, const char *vertname, const char *fragname) {
     ShaderInfo *si = malloc(sizeof(ShaderInfo));
-    si->vertname = strdup(vertname);
-    si->fragname = strdup(fragname);
+    //si->vertname = strdup(vertname);
+    si->vertname = malloc(sizeof(char)*(strlen(vertname) + 1));
+    strcpy(si->vertname, vertname);
+    si->fragname = malloc(sizeof(char)*(strlen(fragname) + 1));
+    strcpy(si->fragname, fragname);
+    //si->fragname = strdup(fragname);
 
     si->shdr = shdr;
     si->refs = 1;
@@ -479,12 +484,16 @@ static void shdrAddInfo(Shader *shdr, const char *vertname, const char *fragname
 
 Shader* InitializeShaderFile(const char* vertfile, const char* fragfile) {
     //verifica se o shader foi loaded ;
+    static int count = 1;
+    printf("<InitializeShaderFile> count: %d\n", count++);
     ShaderInfo *si = shdrIsLoaded(vertfile, fragfile);
     Shader *shdr;
     if(!si) { //cria um ShaderInfo
+        printf("<InitializeShaderFile> !si\n");
         shdr = InitializeShader(NULL, ReadTextFile(vertfile), ReadTextFile(fragfile));
         shdrAddInfo(shdr, vertfile, fragfile);
     } else { //não precisa criar, apenas copia o progid e inicializa uniforms equivalentes
+        printf("<InitializeShaderFile> si == true\n");
         si->refs++;
         shdr = malloc(sizeof(Shader));
         shdr->progid = si->shdr->progid;
@@ -494,17 +503,21 @@ Shader* InitializeShaderFile(const char* vertfile, const char* fragfile) {
         shdr->samplers = malloc(sizeof(Sampler*)*shdr->numSamplers);
         for(int i = 0; i < shdr->numUniforms; i++) {
             Uniform *uni = malloc(sizeof(Uniform));
-            uni->location = shdr->uniforms[i]->location;
-            uni->name = strdup(shdr->uniforms[i]->name);
-            uni->size = shdr->uniforms[i]->size;
-            uni->type = shdr->uniforms[i]->type;
-            uni->semantic = shdr->uniforms[i]->semantic;
+            uni->location = si->shdr->uniforms[i]->location;
+            uni->name = malloc(sizeof(char)*(strlen(si->shdr->uniforms[i]->name)+ 1));
+            strcpy(uni->name, si->shdr->uniforms[i]->name);
+            //uni->name = strdup(shdr->uniforms[i]->name);
+            printf("<InitializeShader> i: %d, name: %s\n", i, si->shdr->uniforms[i]->name);
+            uni->size = si->shdr->uniforms[i]->size;
+            uni->type = si->shdr->uniforms[i]->type;
+            uni->semantic = si->shdr->uniforms[i]->semantic;
             uni->dirty = 0;
             int constantsize = constantTypeSizes[uni->type] * uni->size;
             uni->data = malloc(sizeof(unsigned char) * constantsize);
             memset(uni->data, 0, constantsize);
             shdr->uniforms[i] = uni;
         }
+        //TODO copiar samplers
         
     }
     return shdr;
@@ -632,6 +645,7 @@ Shader* InitializeShader(const char* geometrysource, const char* vertexsource, c
 				uni->type = getConstantType(type);
 				uni->size = size;
 				strcpy(uni->name, name);
+                printf("uni->name: %s\n", uni->name);
 				int constantsize = constantTypeSizes[uni->type] * uni->size;
 				uni->data = malloc(sizeof(unsigned char) * constantsize);
 				memset(uni->data, 0, constantsize);

@@ -44,36 +44,43 @@ void initializeGame(){
 
     Mesh *leftWall = createBox(0.05, 1.95, 1.95);
     Translatef(leftWall->transform, -0.975, 0.0, 0.025);
+    printf("antes de PhongMaterial halveRed\n");
     leftWall->material = PhongMaterial(halveRedAmb, halveRedDiff, halveRedSpec, halveRedShininess, l.pos, l.color);
     AddMesh(cena, leftWall);
 
     Mesh *rightWall = createBox(0.05, 1.95, 1.95);
     Translatef(rightWall->transform, 0.975, 0.0, 0.025);
-    rightWall->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
+    printf("antes de PhongMaterial darkGreen\n");
+    rightWall->material = PhongMaterial(darkGreenAmb, darkGreenDiff, darkGreenSpec, darkGreenShininess, l.pos, l.color); 
     AddMesh(cena, rightWall);
 
     Mesh *backWall = createBox(2.0, 1.95, 0.05);
     Translatef(backWall->transform, 0.0, 0.0, -0.975);
+    printf("antes de PhongMaterial khaki\n");
     backWall->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
     AddMesh(cena, backWall);
 
     Mesh *floor = createBox(2.0, 0.05, 2.0);
     Translatef(floor->transform, 0.0, -1.0, 0.0);
+    printf("antes de PhongMaterial khaki\n");
     floor->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
     AddMesh(cena, floor);
 
     Mesh *ceiling = createBox(2.0, 0.05, 2.0);
+    printf("antes de PhongMaterial khaki\n");
     ceiling->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
     Translatef(ceiling->transform, 0.0, 1.0, 0.0);
     AddMesh(cena, ceiling);
     
     Mesh *tallBox = createBox(0.7, 1.16, 0.7);
+    printf("antes de PhongMaterial khaki\n");
     tallBox->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
     Translatef(tallBox->transform, -0.4, -(1.0 - 0.58), -0.5);
     Rotatef(tallBox->transform, 3.14159265358979323846/6.0, 0.0, 1.0, 0.0);
     AddMesh(cena, tallBox);
 
     Mesh *shortBox = createBox(0.7, 0.56, 0.7);
+    printf("antes de PhongMaterial khaki\n");
     shortBox->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
     Translatef(shortBox->transform, 0.4, -(1.0 - 0.28), 0.3);
     Rotatef(shortBox->transform, -3.14159/12.0, 0.0, 1.0, 0.0);
