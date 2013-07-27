@@ -213,16 +213,16 @@ static int isHover(Rect *r){
 static void drawRect(Rect* r, int fillColor, int borderColor, Texture* t){
 	if (!t){
 		BindShader(gui->widgetShader);	
-		SetShaderConstant4f(gui->widgetShader, "fillColor", gui->widgetColor[fillColor]);
-		SetShaderConstant4f(gui->widgetShader, "borderColor", gui->borderColor[borderColor] );
+		SetShaderConstant(gui->widgetShader, "fillColor", gui->widgetColor[fillColor]);
+		SetShaderConstant(gui->widgetShader, "borderColor", gui->borderColor[borderColor] );
 		float zones[] = {0.0, 0.0};
-		SetShaderConstant2f(gui->widgetShader, "zones", zones);
-		SetShaderConstant4x4f(gui->widgetShader, "ortho", ortho);
+		SetShaderConstant(gui->widgetShader, "zones", zones);
+		SetShaderConstant(gui->widgetShader, "ortho", ortho);
 	}else{
 		BindShader(gui->skinnedShader);
 		float color[] = {1.0, 1.0, 1.0, 1.0}; 
-		SetShaderConstant4f(gui->skinnedShader, "color", color);
-		SetShaderConstant4x4f(gui->skinnedShader, "ortho", ortho);
+		SetShaderConstant(gui->skinnedShader, "color", color);
+		SetShaderConstant(gui->skinnedShader, "ortho", ortho);
 		BindSamplerState(t->state, 0);
 		BindTexture(t, 0);
 	}
@@ -258,11 +258,11 @@ static void drawRect(Rect* r, int fillColor, int borderColor, Texture* t){
 }
 
 static void drawRoundedRect( Rect* rect,  Point* corner, int fillColorId, int borderColorId ){
-	SetShaderConstant4f(gui->widgetShader, "fillColor",  gui->widgetColor[fillColorId]);
-	SetShaderConstant4f(gui->widgetShader, "borderColor", gui->borderColor[borderColorId] );
-	SetShaderConstant4x4f(gui->widgetShader, "ortho", ortho);
+	SetShaderConstant(gui->widgetShader, "fillColor",  gui->widgetColor[fillColorId]);
+	SetShaderConstant(gui->widgetShader, "borderColor", gui->borderColor[borderColorId] );
+	SetShaderConstant(gui->widgetShader, "ortho", ortho);
 	float zones[2]; zones[0] = corner->x - 1; zones[1] = corner->x-2;
-	SetShaderConstant2f(gui->widgetShader, "zones", zones);
+	SetShaderConstant(gui->widgetShader, "zones", zones);
 	BindShader(gui->widgetShader);
 
     float xb = corner->x;
@@ -364,11 +364,11 @@ void drawDownArrow( Rect* rect, int width, int fillColorId, int borderColorId ){
     float y1 = rect->y + rect->h * 0.6;
 
     
-	SetShaderConstant4f(gui->widgetShader, "fillColor", gui->widgetColor[fillColorId] );
-	SetShaderConstant4f(gui->widgetShader, "borderColor", gui->borderColor[borderColorId] );
-	SetShaderConstant4x4f(gui->widgetShader, "ortho", ortho);
+	SetShaderConstant(gui->widgetShader, "fillColor", gui->widgetColor[fillColorId] );
+	SetShaderConstant(gui->widgetShader, "borderColor", gui->borderColor[borderColorId] );
+	SetShaderConstant(gui->widgetShader, "ortho", ortho);
 	float zones[2]; zones[0] = xb - 1; zones[1] = xb-2;
-	SetShaderConstant2f(gui->widgetShader, "zones", zones);
+	SetShaderConstant(gui->widgetShader, "zones", zones);
     BindShader(gui->widgetShader);
 
    glBegin(GL_TRIANGLE_STRIP);
@@ -417,7 +417,7 @@ void drawDownArrow( Rect* rect, int width, int fillColorId, int borderColorId ){
 
 void DoLine(int x1, int y1, int x2, int y2){
 	float color[4] = { 1.0, 0.0, 0.0, 1.0};
-	SetShaderConstant4f(gui->fontshader, "color", color );
+	SetShaderConstant(gui->fontshader, "color", color );
 	BindShader(gui->colorShader);
 	printf("%d %d %d %d \n", x1, y1, x2, y2);
 	glDisable(GL_BLEND);
@@ -579,8 +579,8 @@ void DoLabel( float posx, float posy, char* text ){
 
     BindSamplerState(atlas->tex->state, 0);
     BindTexture( atlas->tex, 0);
-    SetShaderConstant4x4f(gui->colorShader, "ortho", ortho);
-    SetShaderConstant4f(gui->colorShader, "color", gui->fontColor );
+    SetShaderConstant(gui->colorShader, "ortho", ortho);
+    SetShaderConstant(gui->colorShader, "color", gui->fontColor );
     BindShader(gui->colorShader);
 
     if (gui->drawingMenu){

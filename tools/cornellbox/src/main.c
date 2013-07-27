@@ -24,6 +24,8 @@ void initializeGame(){
     Setvf(c.pos, 0.0, 0.0, 5.0);
 
     cena = InitializeScene();
+    l.pos[0]= 0.0; l.pos[1] = 0.92; l.pos[2] = 0.0;
+    l.color[0] = 1.0; l.color[1] = 1.0; l.color[2] = 1.0; l.color[3] = 1.0;
 
     vec3 halveRedAmb = { 0.082, 0.0, 0.0 };
     vec3 halveRedDiff = { 0.35, 0.0, 0.0 };
@@ -42,46 +44,42 @@ void initializeGame(){
 
     Mesh *leftWall = createBox(0.05, 1.95, 1.95);
     Translatef(leftWall->transform, -0.975, 0.0, 0.025);
-    leftWall->material = ColorMaterialPhong(halveRedAmb, halveRedDiff, halveRedSpec, halveRedShininess);
+    leftWall->material = PhongMaterial(halveRedAmb, halveRedDiff, halveRedSpec, halveRedShininess, l.pos, l.color);
     AddMesh(cena, leftWall);
 
     Mesh *rightWall = createBox(0.05, 1.95, 1.95);
     Translatef(rightWall->transform, 0.975, 0.0, 0.025);
-    rightWall->material = ColorMaterialPhong(darkGreenAmb, darkGreenDiff, darkGreenSpec, darkGreenShininess);
+    rightWall->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
     AddMesh(cena, rightWall);
 
     Mesh *backWall = createBox(2.0, 1.95, 0.05);
     Translatef(backWall->transform, 0.0, 0.0, -0.975);
-    backWall->material = ColorMaterialPhong(khakiAmb, khakiDiff, khakiSpec, khakiShininess);
+    backWall->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
     AddMesh(cena, backWall);
 
     Mesh *floor = createBox(2.0, 0.05, 2.0);
     Translatef(floor->transform, 0.0, -1.0, 0.0);
-    floor->material = ColorMaterialPhong(khakiAmb, khakiDiff, khakiSpec, khakiShininess);
+    floor->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
     AddMesh(cena, floor);
 
     Mesh *ceiling = createBox(2.0, 0.05, 2.0);
-    ceiling->material = ColorMaterialPhong(khakiAmb, khakiDiff, khakiSpec, khakiShininess);
+    ceiling->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
     Translatef(ceiling->transform, 0.0, 1.0, 0.0);
     AddMesh(cena, ceiling);
     
     Mesh *tallBox = createBox(0.7, 1.16, 0.7);
-    tallBox->material = ColorMaterialPhong(khakiAmb, khakiDiff, khakiSpec, khakiShininess);
+    tallBox->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
     Translatef(tallBox->transform, -0.4, -(1.0 - 0.58), -0.5);
     Rotatef(tallBox->transform, 3.14159265358979323846/6.0, 0.0, 1.0, 0.0);
     AddMesh(cena, tallBox);
 
     Mesh *shortBox = createBox(0.7, 0.56, 0.7);
-    shortBox->material = ColorMaterialPhong(khakiAmb, khakiDiff, khakiSpec, khakiShininess);
+    shortBox->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
     Translatef(shortBox->transform, 0.4, -(1.0 - 0.28), 0.3);
     Rotatef(shortBox->transform, -3.14159/12.0, 0.0, 1.0, 0.0);
     AddMesh(cena, shortBox);
     
-    l.pos[0]= 0.0; l.pos[1] = 0.92; l.pos[2] = 0.0;
-    l.color[0] = 1.0;
-    l.color[1] = 1.0;
-    l.color[2] = 1.0;
-    l.color[3] = 1.0;
+    
     //glPolygonMode(GL_BACK, GL_LINE);
 }
 
@@ -91,8 +89,8 @@ int Render(event *e, double* dt){
     Mesh *m;
     DL_FOREACH(cena->meshList, m) {
         SetModel(m->transform);
-        BindMaterial(m->material, &l);
-        BindShader(m->material->shdr);
+        //BindMaterial(m->material, &l);
+        BindShader(m->material);
         DrawIndexedVAO(m->vaoId, m->indicesCount, GL_TRIANGLES);
     }
 

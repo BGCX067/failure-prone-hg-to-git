@@ -4,7 +4,109 @@
 #include <string.h>
 #include "util/textfile.h"
 
-const char* colorDirVertex = {
+
+Shader* PhongMaterial(vec3 ka, vec3 kd, vec3 ks, float shininess, vec3 lightpos, vec3 lightcolor) {
+    //TODO tá lendo o shader da pasta local da tool, poder ser melhor armazenar esses shaders
+    //pre-definidos na pasta data da engine.
+    Shader *shdr = InitializeShaderFile("data/shaders/phong.vert", "data/shaders/phong.frag");
+    SetShaderConstant(shdr, "ka", ka);
+    SetShaderConstant(shdr, "kd", kd);
+    SetShaderConstant(shdr, "ks", ks);
+    SetShaderConstant(shdr, "shininess", &shininess);
+    SetShaderConstant(shdr, "LightPosition", lightpos);
+    SetShaderConstant(shdr, "LightColor", lightcolor);
+    return shdr;
+}
+
+
+
+
+//FIXME criar um arquivo para colocar as strings com código dos shaders
+/*const char *phongVert {
+"#version 330\n\
+layout(location = 0) in vec3 inpos;\n\
+layout(location = 2) in vec3 innormal;\n\
+out vec3 vertexpos;\n\
+out vec3 normal;\n\
+out vec3 lPos;\n\
+uniform mat4 modelview;\n\
+uniform mat4 view;\n\
+uniform mat3 normalmatrix;\n\
+uniform mat4 mvp;\n\
+uniform vec3 LightPosition;\n\
+void main(void)\n\
+{\n\
+    normal = normalize(normalmatrix*innormal);\n\
+    vertexpos = vec3(modelview*vec4(inpos, 1.0));\n\
+    lPos = vec3(view*vec4(LightPosition, 1.0));\n\
+	gl_Position = mvp*vec4(inpos, 1.0);\n\
+}\n\
+"};
+
+const char *phongFrag {
+"#version 330\n\
+in vec3 vertexpos;\n\
+in vec3 normal;\n\
+in vec3 lPos;\n\
+out vec4 outcolor;\n\
+//uniform vec3 LightPosition;\n\
+uniform vec3 LightColor;\n\
+uniform vec3 ka;\n\
+uniform vec3 ks;\n\
+uniform vec3 kd;\n\
+uniform float shininess;\n\
+//Não precisa do eyepos pq já tá transformando tudo pro eyespace, logo eyepos = (0, 0, 0)\n\
+//uniform vec3 eyepos;\n\
+void main() {\n\
+    vec3 n = normalize(normal);\n\
+    vec3 l = normalize(lPos - vertexpos);\n\
+    vec3 v = normalize(-vertexpos);\n\
+    vec3 h = normalize(l + v);\n\
+    float diffuseLight = max(dot(n, l), 0.0);\n\
+    float specularLight = pow(max(dot(n, h), 0.0), shininess);\n\
+    if(diffuseLight == 0.0)\n\
+        specularLight = 0.0;\n\
+    vec3 globalAmbient = vec3(0.1, 0.1, 0.1);\n\
+    vec3 amb = globalAmbient*ka;\n\
+    vec3 diff = LightColor*kd*diffuseLight;\n\
+    vec3 spec = LightColor*ks*specularLight;\n\
+    vec3 outcolor3 = amb + diff + spec;\n\
+    float gamma = 2.2;\n\
+    outcolor = vec4(pow(outcolor3, vec3(1.0/gamma)), 1.0);\n\
+    //outcolor = vec4(outcolor3, 1.0);\n\
+}\n\
+"};
+
+static void bindPhong(Material *m);
+
+//FIXME materiais do mesmo tipo deveriam usar o mesmo shader, mas uniforms diferentes
+Material *MaterialInitType(int type) {
+    Material *m = malloc(sizeof(Material));
+    m->type = type;
+    switch(m->type) {
+        case PHONG:
+            m->bind = bindPhong;
+            m->shdr = InitializeShader(NULL, phongVert, phongFrag); 
+            break;
+        default:
+            m->type = CUSTOM;
+            break;
+    }
+}
+
+void BindMaterial(Material *m) {
+    //m->bind(m);
+    BindShader(m->shdr);
+}
+
+static void bindPhong(Material *m) {
+    
+}*/
+
+
+
+
+/*const char* colorDirVertex = {
 "#version 330 \n\
 layout(location = 0) in vec3 inpos; \n\
 layout(location = 2) in vec3 innormal; \n\
@@ -266,21 +368,21 @@ void BindMaterial(Material* m, Light* l ){
     vec3 kd = {m->kd[0], m->kd[1], m->kd[2]};
     vec3 ka = {m->ka[0], m->ka[1], m->ka[2]};
     vec3 ks = {m->ks[0], m->ks[1], m->ks[2]};
-	SetShaderConstant3f(m->shdr, "kd", kd );
-	SetShaderConstant3f(m->shdr, "ka", ka );
-	SetShaderConstant3f(m->shdr, "ks", ks );
-	SetShaderConstant1f(m->shdr, "shininess", m->shininess);
+	SetShaderConstant(m->shdr, "kd", kd );
+	SetShaderConstant(m->shdr, "ka", ka );
+	SetShaderConstant(m->shdr, "ks", ks );
+	SetShaderConstant(m->shdr, "shininess", &m->shininess);
 
-	SetShaderConstant3f(m->shdr, "LightPosition", l->pos);
+	SetShaderConstant(m->shdr, "LightPosition", l->pos);
     vec3 lcolor = {l->color[0], l->color[1], l->color[2]};
-	SetShaderConstant3f(m->shdr, "LightColor", lcolor);
+	SetShaderConstant(m->shdr, "LightColor", lcolor);
 
 	float ambient[4];
 	ambient[0] = 0.1;
 	ambient[1] = 0.1;
 	ambient[2] = 0.1;
 	ambient[3] = 0.1;
-	SetShaderConstant4f(m->shdr, "globalAmbient", ambient);
+	SetShaderConstant(m->shdr, "globalAmbient", ambient);
 
     //if(m->diffsource == TEXTURE) {
     //    bindSamplerState(m->diffmap->state, 0);
@@ -316,5 +418,5 @@ void MaterialAddTex(Material *m, Texture *t) {
 
 void MaterialSetShader(Material *m, Shader *s) {
     m->shdr = s; 
-}
+}*/
 

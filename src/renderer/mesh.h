@@ -4,8 +4,9 @@
 #include "math/mathutil.h"
 #include "math/quaternion.h"
 #include "math/matrix.h"
-#include "material.h"
+//#include "material.h"
 #include "vertexattribute.h"
+#include "renderer.h"
 
 #define MAX_TEXCOORDS 8
 
@@ -61,7 +62,8 @@ typedef struct Mesh{
 	TexCoord* texCoords[MAX_TEXCOORDS];
 	unsigned int numTexSets;
 
-    Material *material;
+    //Material *material;
+    Shader *material;
 
     BBox b;
 

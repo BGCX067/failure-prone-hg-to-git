@@ -63,7 +63,7 @@ static void readMaterialComponent(float* component, char *floatarray) {
     free(componentarray);
 }
 
-static void readMaterial(ezxml_t collada, Scene *s) {
+/*static void readMaterial(ezxml_t collada, Scene *s) {
     //Começar lendo a <library_images>
     ezxml_t library_images = ezxml_child(collada, "library_images");
     
@@ -101,43 +101,43 @@ static void readMaterial(ezxml_t collada, Scene *s) {
             techniquetype = ezxml_child(technique, "blinn");
 
         //le as informações de material
-        ezxml_t emission = ezxml_child(techniquetype, "emission");
-        readMaterialComponent(mat->ke, ezxml_child(emission, "color")->txt);
+        //ezxml_t emission = ezxml_child(techniquetype, "emission");
+        //readMaterialComponent(mat->ke, ezxml_child(emission, "color")->txt);
 
-        ezxml_t ambient = ezxml_child(techniquetype, "ambient");
-        readMaterialComponent(mat->ka, ezxml_child(ambient, "color")->txt);
+        //ezxml_t ambient = ezxml_child(techniquetype, "ambient");
+        //readMaterialComponent(mat->ka, ezxml_child(ambient, "color")->txt);
 
-        ezxml_t diffuse = ezxml_child(techniquetype, "diffuse");
+        //ezxml_t diffuse = ezxml_child(techniquetype, "diffuse");
 
         //lê a componente difusa do material, de uma textura ou de uma cor sólida
-        if(ezxml_child(diffuse, "texture")) {
-            const char *textureid = ezxml_attr(ezxml_child(diffuse, "texture"), "texture");
+        //if(ezxml_child(diffuse, "texture")) {
+        //    const char *textureid = ezxml_attr(ezxml_child(diffuse, "texture"), "texture");
             
             //FIXME portar pras novas listas
             //procura a textura com id lido
-            Texture *t = NULL;
-            /*for(fpnode *n = s->texList->first; n != NULL; n = n->next ) {
-                t = (Texture*)n->data;
-                if(strcmp(textureid, t->id) == 0)
-                    break;
-            }*/
-            mat->diffmap = t;
-            mat->diffsource = TEXTURE;
-        } else if(ezxml_child(diffuse, "color")) {
-            readMaterialComponent(mat->kd, ezxml_child(diffuse, "color")->txt);
-            mat->diffsource = VEC;
-        }
+       //     Texture *t = NULL;
+            //for(fpnode *n = s->texList->first; n != NULL; n = n->next ) {
+            //    t = (Texture*)n->data;
+            //    if(strcmp(textureid, t->id) == 0)
+            //        break;
+            //}
+       //     mat->diffmap = t;
+       //     mat->diffsource = TEXTURE;
+       // } else if(ezxml_child(diffuse, "color")) {
+       //     readMaterialComponent(mat->kd, ezxml_child(diffuse, "color")->txt);
+       //     mat->diffsource = VEC;
+       // }
         //TODO possibilidade de ler specular de textura
-        ezxml_t specular = ezxml_child(techniquetype, "specular");
-        readMaterialComponent(mat->ks, ezxml_child(specular, "color")->txt);
+        //ezxml_t specular = ezxml_child(techniquetype, "specular");
+        //readMaterialComponent(mat->ks, ezxml_child(specular, "color")->txt);
 
-        ezxml_t shininess = ezxml_child(techniquetype, "shininess");
-        mat->shininess = atof(ezxml_child(shininess, "float")->txt);
+        //ezxml_t shininess = ezxml_child(techniquetype, "shininess");
+        //mat->shininess = atof(ezxml_child(shininess, "float")->txt);
 
         //Adiciona o material na lista de materials da cena
         AddMaterial(s, mat);
     }
-}
+}*/
 
 static void readLibraryGeometries(ezxml_t library_geometries, Scene *s) {
     for(ezxml_t geometry = ezxml_child(library_geometries, "geometry"); geometry; geometry = geometry->next) {
@@ -212,10 +212,10 @@ static void readLibraryGeometries(ezxml_t library_geometries, Scene *s) {
                 if(strcmp(material->id, matlabel) == 0)
                     m->material = material;
             }*/
-            Material *it;
-            DL_FOREACH(s->materialList, it) 
-                if(strcmp(matlabel, it->id) == 0)
-                    m->material = it;
+            //Material *it;
+            //DL_FOREACH(s->materialList, it) 
+            //    if(strcmp(matlabel, it->id) == 0)
+            //        m->material = it;
             
             unsigned int numtriangles = atoi(ezxml_attr(trianglestag, "count"));
             int numindices = 3*numtriangles*(maxoffset + 1);
@@ -433,7 +433,7 @@ Scene* ReadColladaFile(const char *filename) {
     }
     Scene *s = InitializeScene();
     //Read material
-    readMaterial(collada, s);
+    //readMaterial(collada, s);
     //Read geometry
     readLibraryGeometries(ezxml_child(collada, "library_geometries"), s);
     //Read lights

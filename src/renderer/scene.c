@@ -7,6 +7,7 @@
 	#include <GL/gl.h>
 #endif
 #include "util/utlist.h"
+#include <stdlib.h>
 
 void AddMesh(Scene* s, Mesh *m){
     DL_APPEND(s->meshList, m);
@@ -32,7 +33,7 @@ void AddLight(Scene* s, Light* l){
     DL_APPEND(s->lightList, l);
 }
 
-void AddMaterial(Scene *s, Material *m) {
+void AddMaterial(Scene *s, Shader *m) {
     DL_APPEND(s->materialList, m);
 }
 

@@ -16,7 +16,18 @@
 	#include "GL3/glext.h"
 #endif
 
+typedef struct ShaderInfo {
+    char *vertname, *fragname;
+    Shader *shdr;
+    int refs;
+    struct ShaderInfo *prev, *next;
+} ShaderInfo;
+ShaderInfo *shaders = NULL;
 
+//TODO verificar se funções que acessam TextureInfo podem ser escritas de modo melhor
+//(uma das funções recebe o filename e retorna a etxture (isLoaded), outra recebe texid
+//e retorna o textureInfo, talvez pudesse ter só 1 função que recebe o filename e retorna
+//o TextureInfo)
 typedef struct TextureInfo {
 	char* filename;
 	Texture* tex;
@@ -84,6 +95,24 @@ int constantTypeSizes[CONSTANT_TYPE_COUNT] = {
 	sizeof(float) *4,
 	sizeof(float) *9,
 	sizeof(float) * 16,
+};
+
+int constantTypeLen[CONSTANT_TYPE_COUNT] = {
+	1,
+	2,
+	3,
+	4,
+	1,
+	2,
+	3,
+	4,
+	1,
+	2,
+	3,
+	4,
+	4,
+	9,
+	16,
 };
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
@@ -215,7 +244,7 @@ static Texture* texIsLoaded(char* filename){
 }
 
 //adiciona uma texinfo nova
-void AddTexInfo(Texture* t, char* filename){
+static void AddTexInfo(Texture* t, char* filename){
     TextureInfo* newinfo = malloc(sizeof(TextureInfo));
     newinfo->filename = malloc(sizeof(char)*(strlen(filename)+1));
     strcpy(newinfo->filename, filename);
@@ -426,8 +455,62 @@ void BindTexture(Texture* t, unsigned int slot){
 ////////
 // SHADERS
 //////////
-Shader* InitializeShader(const char* geometrysource, const char* vertexsource, const char* fragmentsource){
 
+static ShaderInfo* shdrIsLoaded(const char* vertfile, const char* fragfile) {
+    ShaderInfo *si;
+    DL_FOREACH(shaders, si) {
+        if((strcmp(vertfile, si->vertname) == 0) &&
+           (strcmp(fragfile, si->fragname) == 0)) {
+            return si;
+        }
+    }
+    return NULL;
+}
+
+static void shdrAddInfo(Shader *shdr, const char *vertname, const char *fragname) {
+    ShaderInfo *si = malloc(sizeof(ShaderInfo));
+    si->vertname = strdup(vertname);
+    si->fragname = strdup(fragname);
+
+    si->shdr = shdr;
+    si->refs = 1;
+    DL_APPEND(shaders, si);
+}
+
+Shader* InitializeShaderFile(const char* vertfile, const char* fragfile) {
+    //verifica se o shader foi loaded ;
+    ShaderInfo *si = shdrIsLoaded(vertfile, fragfile);
+    Shader *shdr;
+    if(!si) { //cria um ShaderInfo
+        shdr = InitializeShader(NULL, ReadTextFile(vertfile), ReadTextFile(fragfile));
+        shdrAddInfo(shdr, vertfile, fragfile);
+    } else { //não precisa criar, apenas copia o progid e inicializa uniforms equivalentes
+        si->refs++;
+        shdr = malloc(sizeof(Shader));
+        shdr->progid = si->shdr->progid;
+        shdr->numUniforms = si->shdr->numUniforms;
+        shdr->numSamplers = si->shdr->numSamplers;
+        shdr->uniforms = malloc(sizeof(Uniform*)*shdr->numUniforms);
+        shdr->samplers = malloc(sizeof(Sampler*)*shdr->numSamplers);
+        for(int i = 0; i < shdr->numUniforms; i++) {
+            Uniform *uni = malloc(sizeof(Uniform));
+            uni->location = shdr->uniforms[i]->location;
+            uni->name = strdup(shdr->uniforms[i]->name);
+            uni->size = shdr->uniforms[i]->size;
+            uni->type = shdr->uniforms[i]->type;
+            uni->semantic = shdr->uniforms[i]->semantic;
+            uni->dirty = 0;
+            int constantsize = constantTypeSizes[uni->type] * uni->size;
+            uni->data = malloc(sizeof(unsigned char) * constantsize);
+            memset(uni->data, 0, constantsize);
+            shdr->uniforms[i] = uni;
+        }
+        
+    }
+    return shdr;
+}
+
+Shader* InitializeShader(const char* geometrysource, const char* vertexsource, const char* fragmentsource){
 	if (!vertexsource && !fragmentsource)
 		return 0;
 
@@ -503,18 +586,14 @@ Shader* InitializeShader(const char* geometrysource, const char* vertexsource, c
 	glUseProgram(shaderprogram);
 
 	int uniformcount, maxlength;
-	int attributecount, maxattrlength;
 	glGetProgramiv(shaderprogram, GL_ACTIVE_UNIFORMS, &uniformcount);
 	glGetProgramiv(shaderprogram, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxlength);
-	glGetProgramiv(shaderprogram, GL_ACTIVE_ATTRIBUTES, &attributecount);
-	glGetProgramiv(shaderprogram, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxattrlength);
 
 	Shader* newshader =  (Shader*) malloc( sizeof(Shader));
     newshader->progid = shaderprogram;
 	newshader->numUniforms = newshader->numSamplers = 0;
 	//conta quantas uniforms sao samplers ou variaveis uniforms
 	char* name = (char*) malloc (sizeof(char)*maxlength);
-	//char* attrName = (char*) malloc(sizeof(char)*maxAttrLength);
 	for (int  i = 0; i < uniformcount; i++){
 		GLenum type;
 		GLint length, size;
@@ -528,15 +607,6 @@ Shader* InitializeShader(const char* geometrysource, const char* vertexsource, c
 	newshader->uniforms = (Uniform**)malloc(sizeof(Uniform*)*newshader->numUniforms);
 	newshader->samplers = (Sampler**)malloc(sizeof(Sampler*)*newshader->numSamplers);
 	int samplers = 0;
-	/*for (int i = 0; i < attributeCount; i++){
-		GLenum type;
-		GLint length, size;
-		glGetActiveAttrib(shaderProgram, i, maxAttrLength, &length, &size, &type, attrName );
-		if ( strcmp(name, "Tangent") == 0)
-			glBindAttribLocation(shaderProgram, ATTR_TANGENT, "Tangent");
-		if ( strcmp(name, "Binormal") == 0 )
-			glBindAttribLocation(shaderProgram, ATTR_BINORMAL, "Binormal");
-	}*/
 	int numuniforms = 0;
 	int numsamplers = 0;
 	for(int i = 0; i < uniformcount; i++){
@@ -566,8 +636,6 @@ Shader* InitializeShader(const char* geometrysource, const char* vertexsource, c
 				uni->data = malloc(sizeof(unsigned char) * constantsize);
 				memset(uni->data, 0, constantsize);
 				uni->dirty = 0;
-				if (strcmp(uni->name, "lightPosition") == 0)
-					uni->semantic = LIGHTPOS;
 				if (strcmp(uni->name, "eyepos") == 0)
 					uni->semantic = EYEPOS;
 				if (strcmp(uni->name, "time") == 0)
@@ -617,7 +685,7 @@ void BindShader(Shader* shdr){
                 glUniform4fv(shdr->uniforms[i]->location, shdr->uniforms[i]->size, (float*)shdr->uniforms[i]->data);
             } else if (shdr->uniforms[i]->type == CONSTANT_FLOAT){
                 glUniform1f(shdr->uniforms[i]->location, *((float*)shdr->uniforms[i]->data));
-           }
+            }
         }
         if(shdr->uniforms[i]->semantic == MVP){
             Multm(modelview, view, model);
@@ -675,35 +743,7 @@ int PrintShaderLinkerLog(unsigned int program){
 	return 0;
 }
 
-void SetShaderConstant1i(Shader* s, const char *name, const int constant){
-	SetShaderConstantRaw(s, name, &constant, 1);
-}
-
-void SetShaderConstant1f(Shader* s, const char *name, const float constant){
-	SetShaderConstantRaw(s, name, &constant, 1);
-}
-
-void SetShaderConstant2f(Shader *s, const char* name, const float constant[]){
-	SetShaderConstantRaw(s, name, constant, 2);
-}
-
-void SetShaderConstant3f(Shader* s, const char *name,  const float constant[]){
-	SetShaderConstantRaw(s, name, constant, 3);
-}
-
-void SetShaderConstant4f(Shader* s, const char *name, const float constant[]){
-	SetShaderConstantRaw(s, name, constant, 4);
-}
-
-void SetShaderConstant3x3f(Shader* s, const char *name, const float constant[]) {
-	SetShaderConstantRaw(s, name, constant, 9);
-}
-
-void SetShaderConstant4x4f(Shader* s, const char *name, const float constant[]) {
-	SetShaderConstantRaw(s, name, constant, 16);
-}
-
-int resolveUniType(int type) {
+static int resolveUniType(int type) {
     switch(type) {
         case CONSTANT_FLOAT:
         case CONSTANT_VEC2:
@@ -718,25 +758,23 @@ int resolveUniType(int type) {
         case CONSTANT_IVEC2:
         case CONSTANT_IVEC3:
         case CONSTANT_IVEC4:
-            return INT;
-            break;
         case CONSTANT_BOOL:
         case CONSTANT_BVEC2:
         case CONSTANT_BVEC3:
         case CONSTANT_BVEC4:
-            return UNSIGNED_BYTE;
+            return INT;
             break;
         default:
             return -1;
     }
 }
 
-void SetShaderConstantRaw(Shader* shdr, const char* name, const void* data, int size){
-	for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
+void SetShaderConstant(Shader* shdr, const char* name, const void* data) {
+    for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
         Uniform *uni = shdr->uniforms[i];
-		if (strcmp(name, uni->name ) == 0 ){
+        if (strcmp(name, uni->name) == 0 ){
             int t = resolveUniType(uni->type);
-            for(int j = 0; j < size; j++) {
+            for(int j = 0; j < constantTypeLen[uni->type] ; j++) {
                 switch(t) {
                     case FLOAT: {
                         float *a = uni->data;
@@ -771,14 +809,6 @@ void SetShaderConstantRaw(Shader* shdr, const char* name, const void* data, int 
             }
         }
     }
-    /*for(unsigned int i = 0; i < shdr->numUniforms; i++ ){
-      if (strcmp(name, shdr->uniforms[i]->name ) == 0 ){
-      if (memcmp(shdr->uniforms[i]->data, data, size)){
-      memcpy(shdr->uniforms[i]->data, data, size);
-      shdr->uniforms[i]->dirty = 1;
-      }
-      }
-      }*/
 }
 
 VertexAttribute** InitializeVertexFormat(){

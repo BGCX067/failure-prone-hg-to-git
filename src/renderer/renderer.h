@@ -94,7 +94,6 @@ enum Semantic{
 };
 
 typedef struct _uniform{
-
 	int location;
 	char* name;
 	//unsigned char* data;
@@ -119,6 +118,8 @@ typedef struct _shader{
 	int numSamplers;
 
     unsigned int progid;
+
+    struct _shader *prev, *next;
 }Shader;
 
 
@@ -217,25 +218,15 @@ void ConfigureVAO(unsigned int vaoid, VertexAttribute** attrs);
 void ConfigureIndexedVAO(unsigned int vaoid, unsigned int indicesid, VertexAttribute** attrs);
 void DestroyVAO(unsigned int vaoid);
 
-
 //shaders
 Shader* InitializeShader(const char *geometrysource, const char* vertexsource, const char* fragmentsource);
 void BindShader(Shader* program);
 int PrintShaderCompilerLog(unsigned int shader);
 int PrintShaderLinkerLog(unsigned int program);
-void SetShaderConstant1i(Shader* s, const char *name, const int constant);
-void SetShaderConstant1f(Shader* s, const char *name, const float constant);
-void SetShaderConstant2f(Shader* s, const char *name, const float constant[]);
-void SetShaderConstant3f(Shader* s, const char *name, const float constant[]);
-void SetShaderConstant4f(Shader* s, const char *name, const float constant[]);
-void SetShaderConstant3x3f(Shader* s, const char *name, const float constant[]);
-void SetShaderConstant4x4f(Shader* s, const char *name, const float constant[]);
-/*void setShaderConstantArray1f(const char *name, const float *constant, const uint count);
-void setShaderConstantArray2f(const char *name, const vec2  *constant, const uint count);
-void setShaderConstantArray3f(const char *name, const vec3  *constant, const uint count);
-void setShaderConstantArray4f(const char *name, const vec4  *constant, const uint count);
-void setShaderConstantArray4x4f(const char *name, const mat4 *constant, const uint count);*/
-void SetShaderConstantRaw(Shader* s, const char *name, const void *data, const int size);
+//FIXME talvez setshaderconstant não devesse comparar com o valor armazenado em data (apenas modificar uniform->data),
+//já que a função poderia ser chamada pela aplicação apenas quando valor realmente mudasse, então o passo de
+//comparação pode ser redundante.
+void SetShaderConstant(Shader* shdr, const char* name, const void* data); 
 
 /////////
 // Util
