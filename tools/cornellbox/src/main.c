@@ -7,6 +7,7 @@
 #include "renderer/camera.h"
 #include "renderer/gui.h"
 #include "util/utlist.h"
+#include "renderer/material.h"
 
 Scene* cena;
 Renderer *mainrenderer;
@@ -45,7 +46,7 @@ void initializeGame(){
     Mesh *leftWall = createBox(0.05, 1.95, 1.95);
     Translatef(leftWall->transform, -0.975, 0.0, 0.025);
     printf("antes de PhongMaterial halveRed\n");
-    leftWall->material = PhongMaterial(halveRedAmb, halveRedDiff, halveRedSpec, halveRedShininess, l.pos, l.color);
+    leftWall->material = PhongMaterial(halveRedAmb, halveRedDiff, halveRedSpec, 12.5, l.pos, l.color);
     AddMesh(cena, leftWall);
 
     Mesh *rightWall = createBox(0.05, 1.95, 1.95);

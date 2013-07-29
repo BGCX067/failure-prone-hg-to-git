@@ -16,8 +16,8 @@ char* ReadTextFile(char* filename){
 
 	char* text = (char*) malloc(sizeof(char)*(fileLength+1));
 	result = fread(text, fileLength, 1, f);
-	if (result < fileLength)
-		printf("Result from fread less than file length: %s \n", filename);
+	if (result != 1)
+		printf("Result from fread %s less than file length: %d %d \n", filename, fileLength, result);
 	text[fileLength] = '\0';
 
 	fclose(f);

@@ -9,9 +9,11 @@ Shader* PhongMaterial(vec3 ka, vec3 kd, vec3 ks, float shininess, vec3 lightpos,
     //TODO tá lendo o shader da pasta local da tool, poder ser melhor armazenar esses shaders
     //pre-definidos na pasta data da engine.
     static int i = 1;
-    printf("<PhongMaterial> i: %d\n", i++);
-    Shader *shdr = InitializeShaderFile("data/shaders/phong.vert", "data/shaders/phong.frag");
-    printf("<PhongMaterial> depois de initializeShaderfile\n");
+    char* vertsrc = ReadTextFile("data/shaders/phong.vert");
+    char* fragsrc = ReadTextFile("data/shaders/phong.frag"); 
+    Shader *shdr = InitializeShader(NULL, vertsrc, fragsrc);
+    free(vertsrc);
+    free(fragsrc);
     SetShaderConstant(shdr, "ka", ka);
     SetShaderConstant(shdr, "kd", kd);
     SetShaderConstant(shdr, "ks", ks);
