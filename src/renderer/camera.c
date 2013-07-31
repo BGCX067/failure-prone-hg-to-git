@@ -90,6 +90,20 @@ void CamRotZ(Camera *c, float angle) {
     //quatNormalize(c->orientation);
 }
 
+void SetFovy(Camera* c, float f){
+    c->fovy = f;
+    Perspective(c->mprojection, c->fovy, (float)c->screenW/(float)c->screenH, c->znear, c->zfar);
+}
+
+void SetZnear(Camera* c, float f){
+    c->znear = f;
+    Perspective(c->mprojection, c->fovy, (float)c->screenW/(float)c->screenH, c->znear, c->zfar);
+}
+
+void SetZfar(Camera* c, float f){
+    c->zfar = f;
+    Perspective(c->mprojection, c->fovy, (float)c->screenW/(float)c->screenH, c->znear, c->zfar);
+}
 static void fpsUpdate(Camera *c, event *e, double *dt);
 static void trackballUpdate(Camera *c, event *e, double *dt);
 
@@ -124,7 +138,7 @@ void CamInit(Camera *c, int w, int h, int ct, int pt) {
     c->zfar = 100.0;
 
     if(pt == PERSPECTIVE)
-        Perspective(c->mprojection, 45.0, (float)w/(float)h, 0.1, 100.0);
+        Perspective(c->mprojection, c->fovy, (float)w/(float)h, c->znear, c->zfar);
     else if (pt == ORTHO) {
         //FIXME setar znear e zfar da camera diferente se a projeção for do tipo
         //orthographic.

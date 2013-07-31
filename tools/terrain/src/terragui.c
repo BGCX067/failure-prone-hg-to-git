@@ -1,5 +1,5 @@
 #include "terragui.h"
-
+#include <stdlib.h>
 
 
 GUINode* InitGUINode(){
@@ -50,14 +50,14 @@ void DrawGUINode(){
 		init = 1;
 	}
 
-    	rect r5, r6, r7, r8, r9, r10, r11;
+    	Rect r5, r6, r7, r8, r9, r10, r11;
 	char* options[] = { "Noise", "Add", "Mul", "Min", "Max", "Mix" };
 	r10.x = 50;
 	r10.y = 910;
-        doComboBox(10, &r10, 6, options, &comboselected, &combostate );
+        DoComboBox(10, &r10, 6, options, &comboselected, &combostate );
 	r11.x = 120;
 	r11.y = 910;
-	if (doButton(11, &r11, "Add Node")) {
+	if (DoButton(11, &r11, "Add Node")) {
 		if ( comboselected == 0){
     			TerrainParam* node3 = InitNoiseParam(512, 512, 0.1, 0.2, 0.8, 0.6 );
 			GUINode* guinode = InitGUINode();
@@ -93,7 +93,7 @@ void DrawGUINode(){
 						x2 = (int)(nodes[i]->inputs[0]->r.x+190+10) + nodes[i]->inputs[0]->menux;
 						y2 = (int)(nodes[i]->inputs[0]->r.y+10+5) + nodes[i]->inputs[0]->menuy;
 					}
-				doLine(x1, y1, x2, y2);
+				DoLine(x1, y1, x2, y2);
 			}
 		}
 	}
@@ -103,22 +103,22 @@ void DrawGUINode(){
 			if ( nodes[i]->n->type == NOISE){
 				int x = nodes[i]->r.x;
 				int y = nodes[i]->r.y;
-				beginMenu(i+1000, x, y, nodes[i]->r.w, nodes[i]->r.h, &(nodes[i]->menux), &(nodes[i]->menuy), "Noise", NULL);
-					doLabel(x+100, y+130, "Noise");
-					doLabel(x+10, y+110, "Persistence");
+				BeginMenu(i+1000, x, y, nodes[i]->r.w, nodes[i]->r.h, &(nodes[i]->menux), &(nodes[i]->menuy), "Noise", NULL);
+					DoLabel(x+100, y+130, "Noise");
+					DoLabel(x+10, y+110, "Persistence");
 					r6.x = x+110; r6.y = y+110;
-					doHorizontalSlider(i+100, &r6, &(nodes[i]->n->persistence));
-					doLabel(x+10, y+90, "Lacunarity");
+					DoHorizontalSlider(i+100, &r6, &(nodes[i]->n->persistence));
+					DoLabel(x+10, y+90, "Lacunarity");
 					r7.x = x+110; r7.y = y+90;
-					doHorizontalSlider(i+200, &r7, &(nodes[i]->n->lacunarity));
-					doLabel(x+10, y+70, "Frequency");
+					DoHorizontalSlider(i+200, &r7, &(nodes[i]->n->lacunarity));
+					DoLabel(x+10, y+70, "Frequency");
 					r8.x = x+110; r8.y = y+70;
-					doHorizontalSlider(i+300, &r8, &(nodes[i]->n->frequency));
-					doLabel(x+10, y+50, "Octaves");
+					DoHorizontalSlider(i+300, &r8, &(nodes[i]->n->frequency));
+					DoLabel(x+10, y+50, "Octaves");
 					r9.x = x+110; r9.y = y+50;
-					doHorizontalSlider(i+400, &r9, &(nodes[i]->n->octaves));
+					DoHorizontalSlider(i+400, &r9, &(nodes[i]->n->octaves));
 					r5.x = x+190; r5.y = y+10;
-					if (doButton(i+500, &r5, "Out")){
+					if (DoButton(i+500, &r5, "Out")){
 						if (outputid == 0){
 							outputid = i;
 							if (inputid != 0){
@@ -134,16 +134,16 @@ void DrawGUINode(){
 							}
 						}
 					}
-				endMenu(i+1000, x, y, nodes[i]->r.w, nodes[i]->r.h, &(nodes[i]->menux), &(nodes[i]->menuy));
+				EndMenu(i+1000, x, y, nodes[i]->r.w, nodes[i]->r.h, &(nodes[i]->menux), &(nodes[i]->menuy));
 			}
 			else if (nodes[i]->n->type == ADD ){
 				int x = nodes[i]->r.x;
 				int y = nodes[i]->r.y;
-				beginMenu(i+1000, x, y, nodes[i]->r.w, nodes[i]->r.h, &(nodes[i]->menux), &(nodes[i]->menuy), "Root", NULL);
-					doLabel(x+40, y+80, "ADD");
+				BeginMenu(i+1000, x, y, nodes[i]->r.w, nodes[i]->r.h, &(nodes[i]->menux), &(nodes[i]->menuy), "Root", NULL);
+					DoLabel(x+40, y+80, "ADD");
 					//doLabel(x+10, y+110, "Geometry");
 					r6.x = x+10; r6.y = y+50;
-					if (doButton(i+600, &r6, "In")){
+					if (DoButton(i+600, &r6, "In")){
 						if (inputid == 0){
 							inputid = i;
 							if (outputid != 0){
@@ -153,19 +153,19 @@ void DrawGUINode(){
 						}
 					}
 					r6.x = x+60; r6.y = y +50;
-					doButton(i + 700, &r6, "Out");
-				endMenu(i+1000, x, y, nodes[i]->r.w, nodes[i]->r.h, &(nodes[i]->menux), &(nodes[i]->menuy));
+					DoButton(i + 700, &r6, "Out");
+				EndMenu(i+1000, x, y, nodes[i]->r.w, nodes[i]->r.h, &(nodes[i]->menux), &(nodes[i]->menuy));
 				
 
 
 			} else if (nodes[i]->n->type == ROOT) {
 				int x = nodes[i]->r.x;
 				int y = nodes[i]->r.y;
-				beginMenu(i+1000, x, y, nodes[i]->r.w, nodes[i]->r.h, &(nodes[i]->menux), &(nodes[i]->menuy), "Root", NULL);
-					doLabel(x+40, y+130, "Root");
+				BeginMenu(i+1000, x, y, nodes[i]->r.w, nodes[i]->r.h, &(nodes[i]->menux), &(nodes[i]->menuy), "Root", NULL);
+					DoLabel(x+40, y+130, "Root");
 					//doLabel(x+10, y+110, "Geometry");
 					r6.x = x+10; r6.y = y+100;
-					if (doButton(i+800, &r6, "Geometry")){
+					if (DoButton(i+800, &r6, "Geometry")){
 						if (inputid == 0){
 							inputid = i;
 							if (outputid != 0){
@@ -175,12 +175,12 @@ void DrawGUINode(){
 						}
 					}
 					r6.x = x+10; r6.y = y + 70;
-					doButton(i+900, &r6, "Material");
+					DoButton(i+900, &r6, "Material");
 					r6.x = x+20; r6.y = y + 40;
-					if (doButton(i + 1100, &r6, "Apply")){
+					if (DoButton(i + 1100, &r6, "Apply")){
 						generateTerrain(nodes[0]->n, 512,512);
 					}
-				endMenu(i+1000, x, y, nodes[i]->r.w, nodes[i]->r.h, &(nodes[i]->menux), &(nodes[i]->menuy));
+				EndMenu(i+1000, x, y, nodes[i]->r.w, nodes[i]->r.h, &(nodes[i]->menux), &(nodes[i]->menuy));
 			}
 		}
 	}

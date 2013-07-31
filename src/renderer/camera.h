@@ -54,7 +54,7 @@ struct _camera{
     int screenW, screenH;
     mat4 mview, mprojection;
     float fovy;
-    int znear, zfar;
+    float znear, zfar;
 };
 
 //Mover
@@ -70,5 +70,9 @@ void CamRotZ(Camera *c, float angle);
 
 //API HIGH LEVEL
 void CamInit(Camera *c, int w, int h, int ct, int pt);
+
+void SetFovy(Camera *c, float f);
+void SetZfar(Camera *c, float f);
+void SetZnear(Camera *c, float f);
 
 #endif

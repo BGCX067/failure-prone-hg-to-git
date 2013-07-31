@@ -17,7 +17,7 @@ char* ReadTextFile(char* filename){
 	char* text = (char*) malloc(sizeof(char)*(fileLength+1));
 	result = fread(text, fileLength, 1, f);
 	if (result != 1)
-		printf("Result from fread %s less than file length: %d %d \n", filename, fileLength, result);
+		printf("Result from fread %s less than file length: %ld %ld \n", filename, fileLength, result);
 	text[fileLength] = '\0';
 
 	fclose(f);
@@ -29,7 +29,7 @@ size_t GetDelim(char** linebuff, size_t* linebufsz, int delim, FILE* fd){
 	static const int GROWBY = 80;
 
 	int ch;
-	int idx = 0;
+	unsigned int idx = 0;
 	
 	if (fd == NULL || linebuff == NULL || linebufsz == NULL)
 		return -1;

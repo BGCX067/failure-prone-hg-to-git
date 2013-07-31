@@ -71,11 +71,11 @@ void ToMatrixq(quat q, mat4 m) {
 }
 
 void Rotateq(vec3 v, quat q, vec3 res) {
-    quat q2;
+    /*quat q2;
     q2[0] = v[0];
     q2[1] = v[1];
     q2[2] = v[2];
-    q2[3] = 0.0;
+    q2[3] = 0.0;*/
 
     quat result, tmp;
     

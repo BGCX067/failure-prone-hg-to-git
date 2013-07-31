@@ -1,11 +1,13 @@
 #include "cfgfile.h"
+#include "textfile.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
 void DelTokens(char** buf, char* str){
 
-	int i, k, sz = 0;
+	int  sz = 0;
+	unsigned int i, k;
 
 	for (i = 0; i < strlen(str); i++){
 		if ( !(str[i] == '\t' || str[i] == '\n' /*|| str[i] == ' '*/) ){
@@ -40,7 +42,8 @@ Cfg* ReadConfigFile(char* filename){
 	char* line = NULL;
 	size_t read = 1;
 	size_t len = 0;
-	int i, k = 0;
+	int i; 
+	unsigned int k = 0;
 	int isbracket = 0;
 
 	fp = fopen(filename, "r");
@@ -124,7 +127,7 @@ Cfg* ReadConfigFile(char* filename){
 
 void FreeConfigFile(Cfg* f){
 	if (f){
-		int i, j;
+		unsigned int i, j;
 		if (f->filename)
 			free(f->filename);
 
@@ -150,7 +153,7 @@ void FreeConfigFile(Cfg* f){
 }
 
 CfgElem* FindConfigElem(Cfg* c, char* elem){
-	int i = 0;
+	unsigned int i = 0;
 	for (i = 0; i < c->nelems; i++){
 		if (strcmp(elem, c->elems[i].key) == 0)
 			return &(c->elems[i]);
@@ -159,7 +162,7 @@ CfgElem* FindConfigElem(Cfg* c, char* elem){
 }
 
 int GetConfigInt(CfgElem* elem, char* prop){
-	int i = 0;
+	unsigned int i = 0;
 	for (i = 0; i < elem->TextLines; i++){
 		if (strcmp(prop, elem->propnames[i]) == 0){
 			int ret;
@@ -172,7 +175,7 @@ int GetConfigInt(CfgElem* elem, char* prop){
 }
 
 float GetConfigReal(CfgElem* elem, char* prop){
-	int i = 0;
+	unsigned int i = 0;
 	for (i = 0; i < elem->TextLines; i++){
 		if (strcmp(prop, elem->propnames[i]) == 0){
 			float ret;
@@ -186,7 +189,7 @@ float GetConfigReal(CfgElem* elem, char* prop){
 }
 
 char* GetConfigString(CfgElem* elem, char* prop){
-	int i = 0;
+	unsigned int i = 0;
 	for (i = 0; i < elem->TextLines; i++){
 		if (strcmp(prop, elem->propnames[i]) == 0){
 			return elem->propvalues[i];
@@ -198,7 +201,7 @@ char* GetConfigString(CfgElem* elem, char* prop){
 
 char** GetConfigStringArray(CfgElem* elem, char* prop, int* size){
 	char** ret = NULL;
-	int i = 0;
+	unsigned int i = 0;
 	*size = 0;
 	for (i = 0; i < elem->TextLines; i++){
 		if (strcmp(prop, elem->propnames[i]) == 0){

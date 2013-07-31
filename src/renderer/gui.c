@@ -106,20 +106,20 @@ const char* TexViewWidgetFSSource = {
      //   gl_FragColor += texel.y * vec4( texelSwizzling.x == 1, texelSwizzling.y == 1, texelSwizzling.z == 1, texelSwizzling.w == 1 );\n\
      //   gl_FragColor += texel.z * vec4( texelSwizzling.x == 2, texelSwizzling.y == 2, texelSwizzling.z == 2, texelSwizzling.w == 2 );\n\
       //  gl_FragColor += texel.w * vec4( texelSwizzling.x == 3, texelSwizzling.y == 3, texelSwizzling.z == 3, texelSwizzling.w == 3 );\n\
-	gl_FragColor = vec4(texel.rgb, 1.0); \n\
-//	gl_FragColor = vec4(gl_TexCoord[0].x, 0.0, 0.0, 1.0); \n\
+	gl_FragColor = vec4(texel.rgb, 1.0);\n\
+//	gl_FragColor = vec4(gl_TexCoord[0].x, 0.0, 0.0, 1.0);\n\
     }\n\
     "};
 
 const char* fontfrag2 = {
 "#version 330\n\
 out vec4 outcolor;\n\
-in vec3 texcoords; \n\
-uniform sampler2D tex; \n\
-uniform vec4 color; \n\ 
-void main(void) \n\
+in vec3 texcoords;\n\
+uniform sampler2D tex;\n\
+uniform vec4 color;\n\
+void main(void)\n\
 {\n\
-	vec4 texcol = texture2D(tex, texcoords.st); \n\
+	vec4 texcol = texture2D(tex, texcoords.st);\n\
 	outcolor =  color* texcol.a;\n\
 }\n\
 "};
@@ -127,12 +127,12 @@ void main(void) \n\
 const char* WidgetFSSkinned = {
 "#version 330\n\
 out vec4 outcolor;\n\
-in vec3 texcoords; \n\
-uniform sampler2D tex; \n\
-uniform vec4 color; \n\ 
-void main(void) \n\
+in vec3 texcoords;\n\
+uniform sampler2D tex;\n\
+uniform vec4 color;\n\
+void main(void)\n\
 {\n\
-	vec4 texcol = texture2D(tex, texcoords.st); \n\
+	vec4 texcol = texture2D(tex, texcoords.st);\n\
 	outcolor =  color* texcol;\n\
 }\n\
 "};
@@ -460,7 +460,7 @@ void Plot1d(float* serie, int num, int x, int y, int width, int h, int r, int g,
 
 	//draw y axis
 	glDisable(GL_BLEND);
-	glColor3f(195.0/255.0, 195.0/255.0, 195.0/255.0);
+	glColor3f(r/255.0, g/255.0, b/255.0);
 	glBegin(GL_LINES);
 		glVertex2f(x, y);
 		glVertex2f(x, y+h);
@@ -496,7 +496,7 @@ static void drawFrame(Rect* rect, Point corner, int isHover, int  isDown){
 }
 
 static float getTextLineWidth(char* text){
-   	size_t i,j;
+   	size_t i;
     	size_t strsize = strlen(text);
 
 	float posx = 0;
@@ -516,7 +516,7 @@ static float getTextLineWidth(char* text){
 }
 
 static float getFontHeight(char *text){
-  	size_t i,j;
+  	size_t i;
     	size_t strsize = strlen(text);
 
 	float size = 0;
@@ -574,7 +574,7 @@ void DoImage(int id, float x, float y, float w, float h, Texture* t){
 }
 
 void DoLabel( float posx, float posy, char* text ){
-    size_t i,j;
+    size_t i;
     size_t strsize = strlen(text);
 
     BindSamplerState(atlas->tex->state, 0);
@@ -1165,7 +1165,7 @@ int DoComboBox(int id, Rect* r, int numOptions, char* options[], int* selected, 
 		drawComboBox(r, numOptions, options, &rt, &rd, *selected, hover, 0 );
 		drawListBox(&ro, numOptions, options, &ri, &rit, *selected, hovered);
 
-		if ((!isHover(&ro) || !isHover(&r)) && !guiEv->buttonLeft){
+		if ((!isHover(&ro) || !isHover(r)) && !guiEv->buttonLeft){
 			*state = 0;
 			gui->activeitem = 0;
 		}

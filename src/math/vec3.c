@@ -1,5 +1,6 @@
 #include "vec3.h"
 #include <math.h>
+#include <string.h>
 
 void Addv(vec3 v1, vec3 v2, vec3 res) {
     res[0] = v1[0] + v2[0];

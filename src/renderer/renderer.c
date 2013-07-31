@@ -257,7 +257,7 @@ static void AddTexInfo(Texture* t, char* filename){
 static TextureInfo* getTexInfo(int id){
     TextureInfo *it;
     DL_FOREACH(textures, it) {
-        if(it->tex->texid == id)
+        if(it->tex->texid == (unsigned int) id)
             return it;
     }
     return NULL;
@@ -310,11 +310,11 @@ void BindSamplerState(SamplerState* s, unsigned int unit){
 
 void DestroyTexture(Texture* t){
 	if(t != NULL){
-		TextureInfo* tinfo = getTexInfo(t->id);
+		TextureInfo* tinfo = getTexInfo(t->texid);
 		if (tinfo){
 			tinfo->refs--;
 			if (tinfo->refs <= 0){
-				glDeleteTextures(1,  tinfo->tex->texid);
+				glDeleteTextures(1,  &(tinfo->tex->texid));
                 DL_DELETE(textures, tinfo);
 			}
 		} else { //se  nao tem tinfo eh textura gerada procedural, entao deleta 

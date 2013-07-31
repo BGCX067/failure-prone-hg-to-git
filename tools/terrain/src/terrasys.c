@@ -1,7 +1,7 @@
 #include "terrasys.h"
 #include <stdlib.h>
 #include "util/sdnoise1234.h"
-#include "math/util.h"
+#include "math/mathutil.h"
 
 void ParseTerrainNodes(TerrainParam* node){
 
@@ -26,11 +26,11 @@ void ParseTerrainNodes(TerrainParam* node){
      } else if ( node->type == MAX ) {
 	for (int j = 0; j < sizey; j++)
 		for(int i = 0; i < sizex; i++)
-			node->terrain[i + j*sizex] = max(node->inputs[0]->terrain[i+j*sizex],  node->inputs[1]->terrain[i+j*sizex]);
+			node->terrain[i + j*sizex] = Max(node->inputs[0]->terrain[i+j*sizex],  node->inputs[1]->terrain[i+j*sizex]);
      } else if ( node->type == MIN ) {
 	for (int j = 0; j < sizey; j++)
 		for(int i = 0; i < sizex; i++)
-			node->terrain[i + j*sizex] = min(node->inputs[0]->terrain[i+j*sizex], node->inputs[1]->terrain[i+j*sizex]);
+			node->terrain[i + j*sizex] = Min(node->inputs[0]->terrain[i+j*sizex], node->inputs[1]->terrain[i+j*sizex]);
      } else if ( node->type == ADD ) {
 	for (int j = 0; j < sizey; j++)
 		for(int i = 0; i < sizex; i++)

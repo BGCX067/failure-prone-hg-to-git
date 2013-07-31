@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "glapp.h"
 #include "math/vec3.h"
-#include "math/util.h"
+#include "math/mathutil.h"
 #include "renderer/renderer.h"
 #include "renderer/scene.h"
 #include "renderer/mesh.h"
@@ -12,6 +12,7 @@
 #include "util/sdnoise1234.h"
 #include "util/image.h"
 #include "util/utlist.h"
+#include "util/textfile.h"
 #include "terrasys.h"
 #include "terragui.h"
 #include <stdlib.h>
@@ -19,7 +20,6 @@
 Scene* cena;
 Shader *shdr;
 Camera c;
-BoundingBox bbox;
 Light l;
 
 float* terrain;
@@ -51,10 +51,10 @@ void changeTerrain(){
         }
 
     float* normals = calloc(sizex*sizey*3,sizeof(float));
-    setNormals(indices, vertices, normals, (sizex - 1)*(sizey - 1)*2, sizex*sizey);
+    SetNormals(indices, vertices, normals, (sizex - 1)*(sizey - 1)*2, sizex*sizey);
 
-    updateMeshNormals(tMesh, normals);
-    updateMeshVertices(tMesh, vertices);
+    UpdateMeshNormals(tMesh, normals);
+    UpdateMeshVertices(tMesh, vertices);
 
     free(normals);
     free(vertices);
@@ -112,14 +112,20 @@ void generateTerrain(TerrainParam* root, int sizex, int sizey){
             index += 6;
         }
     float* normals = calloc(sizex*sizey*3,sizeof(float));
-    setNormals(indices, vertices, normals, (sizex - 1)*(sizey - 1)*2, sizex*sizey);
-    addVertices(tMesh, sizex*sizey*3, 3, vertices);
-    addIndices(tMesh, (sizex - 1)*(sizey - 1)*2*3, indices);
-    addNormals(tMesh, sizex*sizey*3, 3, normals);
-    prepareMesh(tMesh);
-    addMesh(cena, tMesh);
+    SetNormals(indices, vertices, normals, (sizex - 1)*(sizey - 1)*2, sizex*sizey);
+    AddVertices(tMesh, sizex*sizey*3, 3, vertices);
+    AddIndices(tMesh, (sizex - 1)*(sizey - 1)*2*3, indices);
+    AddNormals(tMesh, sizex*sizey*3, 3, normals);
+    PrepareMesh(tMesh);
+    AddMesh(cena, tMesh);
 
-    tMesh->material = colorMaterialDir();
+    vec3 ka = {0.2, 0.4, 0.2};
+    vec3 kd = {0.2, 0.4, 0.2};
+    vec3 ks = {0.2, 0.4, 0.2};
+    float shininess = 12.0;
+    vec3 lightpos = {256, 100, 256};
+    vec3 lightcolor = {1.0, 1.0, 1.0};
+    tMesh->material = PhongMaterial(ka, kd, ks, shininess, lightpos, lightcolor);
     free(vertices);
     free(normals);
     //free(indices);
@@ -146,13 +152,13 @@ static void subdivide(vec3 v1, vec3 v2, vec3 v3, int depth, float *vertices)
         return;
     }
 
-    vecAdd(v1, v2, v12);
-    vecAdd(v2, v3, v23);
-    vecAdd(v3, v1, v31);
+    Addv(v1, v2, v12);
+    Addv(v2, v3, v23);
+    Addv(v3, v1, v31);
 
-    vecNormalize(v12);
-    vecNormalize(v23);
-    vecNormalize(v31);
+    Normalizev(v12);
+    Normalizev(v23);
+    Normalizev(v31);
 
     subdivide(v1, v12, v31, depth-1, vertices);
     subdivide(v2, v23, v12, depth-1, vertices);
@@ -197,16 +203,16 @@ void generateSkyDome(int ndiv, float radius) {
         vertices[i] *= radius;
 
 
-    Mesh *m = initMesh();
+    Mesh *m = InitMesh();
     float* normals = malloc(sizeof(float)*ntris*3*3);
-    setNormals(indices, vertices, normals, ntris, ntris*3);
-    addVertices(m, ntris*3*3, 3, vertices);
-    addIndices(m, ntris*3, indices);
-    addNormals(m, ntris*3*3, 3, normals);
-    prepareMesh(m);
-    addMesh(cena, m);
+    SetNormals(indices, vertices, normals, ntris, ntris*3);
+    AddVertices(m, ntris*3*3, 3, vertices);
+    AddIndices(m, ntris*3, indices);
+    AddNormals(m, ntris*3*3, 3, normals);
+    PrepareMesh(m);
+    AddMesh(cena, m);
 
-    m->material = colorMaterialDir2();
+    m->material = AtmosphereMaterial();
 
     free(vertices);
     free(normals);
@@ -215,92 +221,75 @@ void generateSkyDome(int ndiv, float radius) {
 
 int menux, menuy;
 
-void initializeGame(){
+void InitializeGame(){
+
+    CamInit(&c, GetScreenW(), GetScreenH(), TRACKBALL, PERSPECTIVE);
+    SetZfar(&c, 2000.0);  
+    SetProjection(c.mprojection);
+    Setvf(c.pos, 256.0, 0.0, 1024.0);
 
     menux = menuy = 0;
-    tMesh = initMesh();
-    initializeGUI(1280, 960);
+    tMesh = InitMesh();
+    InitializeGUI(1280, 960);
 
     terrain = malloc(512*512*sizeof(float));
 
-    cena = initializeScene();
+    cena = InitializeScene();
     
     //generateTerrain(512, 512);
     generateSkyDome(5, 1024);
 
   //  stbi_write_tga("noise.tga", 512, 512, 1, terrainbmp );
 
-    initCamera(&c, TRACKBALL, 1280, 960);
-    
-    char *vertshader = readTextFile("data/shaders/phong.vert");
-    char *fragshader = readTextFile("data/shaders/phong.frag");
-    shdr = initializeShader(NULL, vertshader, fragshader); 
-
-    bbox.pmin[0] = 0.0;
-    bbox.pmin[1] = 0.0;
-    bbox.pmin[2] = 0.0;
-    bbox.pmax[0] = 512.0;
-    bbox.pmax[1] = 0.0;
-    bbox.pmax[2] = 512.0;
-    camerafit(&c, bbox, 45.0, 1280.0f/960.0f, 0.1, 10000.0);
+    char *vertshader = ReadTextFile("data/shaders/phong.vert");
+    char *fragshader = ReadTextFile("data/shaders/phong.frag");
+    shdr = InitializeShader(NULL, vertshader, fragshader); 
+    free(vertshader);
+    free(fragshader);
 
     l.pos[0]= 256.0; l.pos[1] = 10.0; l.pos[2] = 256.0;
-    l.color[0] = 1.0;
-    l.color[1] = 1.0;
-    l.color[2] = 1.0;
-    l.color[3] = 1.0;
     
     //mat = colorMaterialDir();
     //glPolygonMode(GL_BACK, GL_LINE);
 }
 
-int Update(event* e, double* dt){
-    cameraHandleEvent(&c, e);
-    setupViewMatrix(&c);
+void Update(event* e, double* dt){
+    c.update(&c, e, dt);
+    SetView(c.mview);
 
 }
 
-int Render(event *e, double* dt){
+void Render(event *e, double* dt){
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    vec3 bboxcenter;
-    bboxcenter[0] = 256.0;
-    bboxcenter[1] = 0.0;
-    bboxcenter[2] = 256.0;
-    //translada para o centro
-    fptranslatef(c.modelview, -bboxcenter[0], -bboxcenter[1], -bboxcenter[2]);
-    fpMultMatrix(c.mvp, c.projection, c.modelview);
-    setView(c.modelview);
-    setProjection(c.projection);
-    
     //Desenhar cena
     Mesh *it;
     DL_FOREACH(cena->meshList, it) {
-        setShaderConstant3f(it->material->shdr, "eyepos", c.pos); 
-        bindMaterial(it->material, &l);
-        bindShader(it->material->shdr);
-        drawIndexedVAO(it->vaoId, it->indicesCount, GL_TRIANGLES);
+	SetModel(it->transform);
+        BindShader(it->material);
+        DrawIndexedVAO(it->vaoId, it->indicesCount, GL_TRIANGLES);
+	i++;
     }
 
-    beginGUI(e);
+    BeginGUI(e);
 	DrawGUINode();
 
-    endGUI();
+    EndGUI();
 
     glFlush();
 }
 
 
 int main(){
-	setVideoMode(1280, 960, 0);
-	warpmouse(0);
-	setWindowTitle("Terra");
-	initializeRenderer(1280, 960, 0.1, 10000.0, 45.0);
-	initializeGame();
+	SetVideoMode(1280, 960, 0);
+	WarpMouse(0);
+	SetWindowTitle("Terra");
+	InitializeRenderer(1280, 960, 0.1, 10000.0, 45.0);
+	InitializeGame();
 	MainLoop();
 
-	closeVideo();
+	CloseVideo();
 	return 0;
 }
 

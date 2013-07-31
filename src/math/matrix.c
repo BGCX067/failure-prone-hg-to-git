@@ -1,5 +1,6 @@
 #include "matrix.h"
 #include <math.h>
+#include <string.h>
 
 
 /* Por algum motivo M_PI nao aparece definido em math.h */

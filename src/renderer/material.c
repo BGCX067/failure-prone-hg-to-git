@@ -23,8 +23,16 @@ Shader* PhongMaterial(vec3 ka, vec3 kd, vec3 ks, float shininess, vec3 lightpos,
     return shdr;
 }
 
+Shader* AtmosphereMaterial(){
 
+    char *vertshader = ReadTextFile("data/shaders/skyfromatmosphere.vert");
+    char *fragshader = ReadTextFile("data/shaders/skyfromatmosphere.frag");
+    Shader *shdr = InitializeShader(NULL, vertshader, fragshader);
+    free(vertshader);
+    free(fragshader);
 
+    return shdr;
+}
 
 //FIXME criar um arquivo para colocar as strings com código dos shaders
 /*const char *phongVert {
@@ -232,25 +240,7 @@ Material* ColorMaterialDir(){
 	return m;
 }
 
-Material* ColorMaterialDir2(){
-	Material *m = malloc(sizeof(Material));
-    memset(m, 0, sizeof(Material));
 
-    m->diffsource = VEC;
-
-	m->shininess = 8.0;
-	m->ks[0] = 0.0; m->ks[1] = 0.0; m->ks[2] = 0.0; m->ks[3] = 1.0;
-	m->ka[0] = 0.0; m->ka[1] = 0.0; m->ka[2] = 0.0; m->ka[3] = 1.0;
-	m->kd[0] = 0.0; m->kd[1] = 0.0; m->kd[2] = 0.8; m->kd[3] = 1.0;
-	m->ke[0] = 0.0; m->ke[1] = 0.0; m->ke[2] = 0.0; m->ke[3] = 1.0;
-    
-    char *vertshader = ReadTextFile("data/shaders/skyfromatmosphere.vert");
-    char *fragshader = ReadTextFile("data/shaders/skyfromatmosphere.frag");
-    m->shdr = InitializeShader( NULL, vertshader, fragshader); 
-	//m->shdr = initializeShader(colorDirVertex, colorDirFrag);
-
-	return m;
-}
 
 Material* ColorMaterialPhong(vec3 ka, vec3 kd, vec3 ks, float shininess) {
     Material *m = malloc(sizeof(Material));

@@ -161,18 +161,18 @@ void SetVideoMode(int w, int h, int fullscreen){
 	glXCreateContextAttribsARB = (PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddress( (const unsigned  char *)"glXCreateContextAttribsARB");
 	if (!glXCreateContextAttribsARB){
 		printf("glCreateContextAttribs not supported.\n");
-		return NULL;
+		return;
 	}
 
 	 if (!(context = glXCreateContextAttribsARB( display, fbc[ 0 ], 0, True, attribList ))){
 	 	printf("glCreateContetAttribs returned null.");
-	 	return  NULL;
+	 	return;
 	}
 
 		
 	if (!context){
 		printf("context ta null\n");
-		return NULL;
+		return;
 	}
 
 	glXMakeCurrent(display, window, context);
@@ -274,7 +274,7 @@ void MainLoop(){
 	double accumulator = 0.0;
 	double deltaTime;
 	float fps = 60;
-	float ifps = 1/fps;
+	//float ifps = 1/fps;
     
 	//setMouse(app->width/2, app->height/2);
 	while(1){

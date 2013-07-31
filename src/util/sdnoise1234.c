@@ -36,6 +36,7 @@
  */
 
 #include <math.h>
+#include <stdlib.h>
 
 #include "sdnoise1234.h" /* We strictly don't need this, but play nice. */
 
@@ -805,7 +806,7 @@ float ridgedMulti(float x, float y, float lacunarity, float freq, float gain, fl
 		first = 1;
 	}
 
-	for ( int i = 1; i < noctaves; i++){
+	for ( unsigned int i = 1; i < noctaves; i++){
 
 		signal = sdnoise3(x, y, (x+y)*lacunarity, &d1, &d2, &d2 );
 		signal = fabs(signal);

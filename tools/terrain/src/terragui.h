@@ -8,7 +8,7 @@ typedef struct _NodeGui GUINode;
 
 struct _NodeGui{
 	TerrainParam* n;
-	rect r;
+	Rect r;
 	float menux, menuy;
 	GUINode* inputs[2];
 };
