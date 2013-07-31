@@ -8,7 +8,6 @@
 Mesh* InitMesh() {
     Mesh *m = malloc(sizeof(Mesh));
     memset(m, 0, sizeof(Mesh));
-    Identity(m->transform);
     return m;
 }
 

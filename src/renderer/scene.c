@@ -9,50 +9,121 @@
 #include "util/utlist.h"
 #include <stdlib.h>
 
-void AddMesh(Scene* s, Mesh *m){
-    DL_APPEND(s->meshList, m);
-    //FIXME com struct auxiliar
-    //MeshElem *melem = malloc(sizeof(MeshElem));
-    //melem->m = m;
-    //DL_APPEND(s->meshList, melem);
-    BBUnion(&s->b, m->b, s->b);
+struct MeshInfo {
+    Mesh *m;
+    char *id;
+    int refs;
+    struct MeshInfo *prev, *next;
+};
+
+static MeshInfo *meshIsLoadedId(Scene *s, char *filename) {
+    MeshInfo *mi;
+    DL_FOREACH(s->mInfos, mi) {
+        if(!strcmp(mi->id, filename)) {
+            return mi;
+        }
+    }
+    return NULL;
 }
 
-void RmMesh(Scene *s, Mesh *m) {
-    DL_DELETE(s->meshList, m);
+static MeshInfo *meshIsLoadedPtr(Scene *s, Mesh *m) {
+    MeshInfo *mi;
+    DL_FOREACH(s->mInfos, mi) {
+        if(m == mi->m) {
+            return mi;
+        }
+    }
+    return NULL;
+}
+
+static MeshInfo* meshAddInfo(Scene *s, Mesh *m, char *filename) {
+    MeshInfo *mi = malloc(sizeof(MeshInfo));
+    mi->m = m;
+    mi->id = malloc(sizeof(char)*(strlen(filename) + 1));
+    strcpy(mi->id, filename);
+    //mi->id = strdup(filename);
+    mi->refs = 1;
+    DL_APPEND(s->mInfos, mi);    
+    return mi;
+}
+
+//Usado para meshes lidos de arquivos
+Node* AddMeshFile(Scene *s, char *filename) {
+    Node *n = malloc(sizeof(Node));
+    Identity(n->transform);
+    n->parent = s->root;
+    n->children = NULL;
+    n->material = NULL;
+    DL_APPEND(s->root->children, n);
+    
+    MeshInfo *mi = meshIsLoadedId(s, filename);
+    if(!mi) {
+        //Mesh com esse identificador ainda não existe, carregar o mesh
+        //Mesh *m = loadMeshFromFile(filename);
+        Mesh *m =  NULL;
+        mi = meshAddInfo(s, m, filename);
+    } else {
+        mi->refs++;
+    }
+    n->mesh = mi->m;
+    return n;
+}
+
+//Usado para meshes gerados proceduralmente
+//a unica utilidade de verificar se um mesh igual já existe
+//é gerenciar meio que automaticamente a memória e deletar
+//meshes para os quais já não há mais referencias
+Node* AddMesh(Scene *s, Mesh *m) {
+    Node *n = malloc(sizeof(Node));
+    Identity(n->transform);
+    n->parent = s->root;
+    n->children = NULL;
+    n->material = NULL;
+    DL_APPEND(s->root->children, n);
+
+    MeshInfo *mi = meshIsLoadedPtr(s, m);
+    if(!mi) {
+        mi = meshAddInfo(s, m, "fpmesh");
+    } else {
+        mi->refs++;
+    }
+    n->mesh = mi->m;
+    return n;
+}
+
+void AddChildNode(Node *parent, Node *child) {
+    if(child->parent) {
+        DL_DELETE(child->parent->children, child);
+    }
+    child->parent = parent;
+    DL_APPEND(parent->children, child);
+}
+
+//void AddMesh(Scene* s, Mesh *m){
+//    DL_APPEND(s->meshList, m);
+//    BBUnion(&s->b, m->b, s->b);
+//}
+
+//void RmMesh(Scene *s, Mesh *m) {
+    //DL_DELETE(s->meshList, m);
     //FIXME Com struct auxiliar
     //MeshElem melem, *tmpelem;
     //melem.m = m;
     //DL_SEARCH(s->meshList, tmpelem, &melem, meshElemCmp);
     //DL_DELETE(s->meshList, tmpelem);
     //Atualizar bounding box
-    CalcBBoxs(s);
-}
-
-void AddLight(Scene* s, Light* l){
-    DL_APPEND(s->lightList, l);
-}
-
-void AddMaterial(Scene *s, Shader *m) {
-    DL_APPEND(s->materialList, m);
-}
-
-//void addTexture(Scene *s, Texture *t) {
-//  return fplist_insback(t, s->texList);
-//}
-
-//int addNode(Scene* s, Node* n){
-//	return fplist_insback(n, s->nodes);
+    //CalcBBoxs(s);
 //}
 
 Scene* InitializeScene(){
 	Scene * s = malloc(sizeof(Scene));
 	memset(s, 0, sizeof(Scene));
+
+    s->root = malloc(sizeof(Node));
+    s->root->children = NULL;
     
     //TODO animatedmeshlist
-    s->meshList = NULL;
-    s->lightList = NULL;
-    s->materialList = NULL; 
+    s->mInfos = NULL;
 
     s->b.pmin[0] = 99999999.0f;
     s->b.pmin[1] = 99999999.0f;
@@ -65,14 +136,32 @@ Scene* InitializeScene(){
 	return s;
 }
 
+static void renderNode(Node *n, mat4 t) {
+    mat4 tres;
+    Multm(tres, t, n->transform);
+    SetModel(tres);
+    BindShader(n->material);
+    DrawIndexedVAO(n->mesh->vaoId, n->mesh->indicesCount, GL_TRIANGLES);
+    Node *it;
+    DL_FOREACH(n->children, it) {
+        renderNode(it, tres);
+    }
+}
+
 void DrawScene(Scene* scn){
 	if (scn == NULL)
 		return;
-
+    mat4 ident;
+    Identity(ident);
+    //renderNode(scn->root, ident); 
+    Node *it;
+    DL_FOREACH(scn->root->children, it) {
+        renderNode(it, ident);
+    }
     //Iterator pra percorrer a lista
-    Mesh *it;
-    DL_FOREACH(scn->meshList, it)
-        DrawIndexedVAO(it->vaoId, it->indicesCount, GL_TRIANGLES);
+    //Mesh *it;
+    //DL_FOREACH(scn->meshList, it)
+    //    DrawIndexedVAO(it->vaoId, it->indicesCount, GL_TRIANGLES);
 
 
     //FIXME com struct auxiliar:
@@ -102,11 +191,11 @@ void CalcBBoxs(Scene *s) {
     memset(&s->b, 0, sizeof(BBox));
     //Ver se a lista tá vazia
     int size = 0;
-    Mesh *it;
-    DL_FOREACH(s->meshList, it) { 
-        BBUnion(&s->b, it->b, s->b);
-        size++;
-    }
+    //Mesh *it;
+    //DL_FOREACH(s->meshList, it) { 
+    //    BBUnion(&s->b, it->b, s->b);
+    //    size++;
+    //}
 
     //FIXME com struct auxiliar
     //MeshElem *it;

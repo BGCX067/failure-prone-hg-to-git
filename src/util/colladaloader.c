@@ -306,7 +306,7 @@ static void readLight(ezxml_t library_lights, Scene *s) {
         l->color[2] = 1.0;
         l->color[3] = 1.0;
 
-        AddLight(s, l);
+        //AddLight(s, l);
  /*       ezxml_t technique_common = ezxml_child(lighttag, "technique_common");
         //Directional
         ezxml_t directional = ezxml_child(technique_common, "directional");

@@ -62,9 +62,6 @@ typedef struct Mesh{
 	TexCoord* texCoords[MAX_TEXCOORDS];
 	unsigned int numTexSets;
 
-    //Material *material;
-    Shader *material;
-
     BBox b;
 
     unsigned int numweights;
@@ -72,7 +69,7 @@ typedef struct Mesh{
     VertexWeightInfo *weightInfo;
 
     //temporario só pra teste
-    mat4 transform;
+    //mat4 transform;
 
     //informações da lista de meshes
     struct Mesh *prev, *next;
