@@ -141,7 +141,8 @@ static void renderNode(Node *n, mat4 t) {
     Multm(tres, t, n->transform);
     SetModel(tres);
     BindShader(n->material);
-    DrawIndexedVAO(n->mesh->vaoId, n->mesh->indicesCount, GL_TRIANGLES);
+    if(n->mesh)
+        DrawIndexedVAO(n->mesh->vaoId, n->mesh->indicesCount, GL_TRIANGLES);
     Node *it;
     DL_FOREACH(n->children, it) {
         renderNode(it, tres);
