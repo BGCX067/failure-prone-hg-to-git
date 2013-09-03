@@ -17,9 +17,15 @@ void Multmv(const float matrix[16], const float in[4], float out[4]);
 
 
 //Transformations related
+//Translate, Rotate and Scale multiplicam a matriz m (arg)
+//a direita (post-multiply - igual ao padrão do OpenGL)
+//Obs: talvez seja interessante fazer multiplicação a esquerda
+//(pre-multiply) para ter uma API mais simples e intuitiva
 void Translatefv(mat4 m, vec3 v);
 void Translatef(mat4 m, float x, float y, float z);
-void Rotatef(mat4 matrix, float angleInRadians, float x, float y, float z);
+void Rotatef(mat4 m, float angInRad, float x, float y, float z);
+void Scalef(mat4 m, float x, float y, float z);
+
 void LookAt(mat4 result, vec3 position, vec3 look, vec3 up);
 void Perspective(mat4 m, float fovy, float ratio, float znear, float zfar);
 void Ortho( mat4 m, float xMin, float xMax, float yMin, float yMax, float zMin, float zMax);

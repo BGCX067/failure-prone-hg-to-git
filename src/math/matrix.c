@@ -137,6 +137,60 @@ void Translatef(mat4 m, float x, float y, float z) {
     m[15]= x*m[3] + y*m[7] + z*m[11] + m[15];
 }
 
+void Scalef(mat4 m, float x, float y, float z) {
+   m[0] *= x; m[1] *= x; m[2] *= x;
+   m[4] *= y; m[5] *= y; m[6] *= y;
+   m[8] *= z; m[9] *= z; m[10] *= z;
+}
+
+void Rotatef(mat4 matrix, float angleInRadians, float x, float y, float z) {
+    	//See page 191 of Elementary Linear Algebra by Howard Anton
+	//GLfloat m[16], rotate[16];
+    mat4 m, rotate;
+	float OneMinusCosAngle, CosAngle, SinAngle;
+	float A_OneMinusCosAngle, C_OneMinusCosAngle;
+	CosAngle = cosf(angleInRadians);			//Some stuff for optimizing code
+	OneMinusCosAngle = 1.0 - CosAngle;
+	SinAngle = sinf(angleInRadians);
+	A_OneMinusCosAngle = x*OneMinusCosAngle;
+	C_OneMinusCosAngle = z*OneMinusCosAngle;
+	
+    //Make a copy
+//  for(int i = 0; i < 16; i++)
+//      m[i] = matrix[i];
+
+    Identity(rotate);
+	rotate[0] = x*A_OneMinusCosAngle+CosAngle;
+	rotate[1] = y*A_OneMinusCosAngle+z*SinAngle;
+	rotate[2] = z*A_OneMinusCosAngle-y*SinAngle;
+
+	rotate[4] = y*A_OneMinusCosAngle-z*SinAngle;
+	rotate[5] = y*y*OneMinusCosAngle+CosAngle;
+	rotate[6] = y*C_OneMinusCosAngle+x*SinAngle;
+
+	rotate[8] = x*C_OneMinusCosAngle+y*SinAngle;
+	rotate[9] = y*C_OneMinusCosAngle-x*SinAngle;
+	rotate[10] = z*C_OneMinusCosAngle+CosAngle;
+
+    Multm(matrix, matrix, rotate);
+	/*matrix[0] = m[0]*rotate[0] + m[4]*rotate[1] + m[8]*rotate[2];
+	matrix[4] = m[0]*rotate[4] + m[4]*rotate[5] + m[8]*rotate[6];
+	matrix[8] = m[0]*rotate[8] + m[4]*rotate[9] + m[8]*rotate[10];
+	//matrix[12]=matrix[12];
+	matrix[1] = m[1]*rotate[0] + m[5]*rotate[1] + m[9]*rotate[2];
+	matrix[5] = m[1]*rotate[4] + m[5]*rotate[5] + m[9]*rotate[6];
+	matrix[9] = m[1]*rotate[8] + m[5]*rotate[9] + m[9]*rotate[10];
+	//matrix[13]=matrix[13];
+	matrix[2] = m[2]*rotate[0] + m[6]*rotate[1] + m[10]*rotate[2];
+	matrix[6] = m[2]*rotate[4] + m[6]*rotate[5] + m[10]*rotate[6];
+	matrix[10] = m[2]*rotate[8] + m[6]*rotate[9] + m[10]*rotate[10];
+	//matrix[14]=matrix[14];
+	matrix[3] = m[3]*rotate[0] + m[7]*rotate[1] + m[11]*rotate[2];
+	matrix[7] = m[3]*rotate[4] + m[7]*rotate[5] + m[11]*rotate[6];
+	matrix[11] = m[3]*rotate[8] + m[7]*rotate[9] + m[11]*rotate[10];
+	//matrix[15]=matrix[15];*/
+}
+
 void Perspective(mat4 m, float fovy, float ratio, float znear, float zfar) {
     float xmax = znear*tan(0.5*fovy*M_PI/180.0);
     float xmin = -xmax;
@@ -287,53 +341,5 @@ void PosFromMatrix(const mat4 matrix, vec3 pos) {
     pos[2] = invertedMatrix[14];
 }
 
-void Rotatef(mat4 matrix, float angleInRadians, float x, float y, float z) {
-    	//See page 191 of Elementary Linear Algebra by Howard Anton
-	//GLfloat m[16], rotate[16];
-    mat4 m, rotate;
-	float OneMinusCosAngle, CosAngle, SinAngle;
-	float A_OneMinusCosAngle, C_OneMinusCosAngle;
-	CosAngle = cosf(angleInRadians);			//Some stuff for optimizing code
-	OneMinusCosAngle = 1.0 - CosAngle;
-	SinAngle = sinf(angleInRadians);
-	A_OneMinusCosAngle = x*OneMinusCosAngle;
-	C_OneMinusCosAngle = z*OneMinusCosAngle;
-	
-    //Make a copy
-    for(int i = 0; i < 16; i++)
-        m[i] = matrix[i];
 
-	rotate[0] = x*A_OneMinusCosAngle+CosAngle;
-	rotate[1] = y*A_OneMinusCosAngle+z*SinAngle;
-	rotate[2] = z*A_OneMinusCosAngle-y*SinAngle;
-	rotate[3] = 0.0;
-
-	rotate[4] = y*A_OneMinusCosAngle-z*SinAngle;
-	rotate[5] = y*y*OneMinusCosAngle+CosAngle;
-	rotate[6] = y*C_OneMinusCosAngle+x*SinAngle;
-	rotate[7] = 0.0;
-
-	rotate[8] = x*C_OneMinusCosAngle+y*SinAngle;
-	rotate[9] = y*C_OneMinusCosAngle-x*SinAngle;
-	rotate[10] = z*C_OneMinusCosAngle+CosAngle;
-	rotate[11] = 0.0;
-	//The last column of rotate[] is {0 0 0 1}
-
-	matrix[0] = m[0]*rotate[0] + m[4]*rotate[1] + m[8]*rotate[2];
-	matrix[4] = m[0]*rotate[4] + m[4]*rotate[5] + m[8]*rotate[6];
-	matrix[8] = m[0]*rotate[8] + m[4]*rotate[9] + m[8]*rotate[10];
-	//matrix[12]=matrix[12];
-	matrix[1] = m[1]*rotate[0] + m[5]*rotate[1] + m[9]*rotate[2];
-	matrix[5] = m[1]*rotate[4] + m[5]*rotate[5] + m[9]*rotate[6];
-	matrix[9] = m[1]*rotate[8] + m[5]*rotate[9] + m[9]*rotate[10];
-	//matrix[13]=matrix[13];
-	matrix[2] = m[2]*rotate[0] + m[6]*rotate[1] + m[10]*rotate[2];
-	matrix[6] = m[2]*rotate[4] + m[6]*rotate[5] + m[10]*rotate[6];
-	matrix[10] = m[2]*rotate[8] + m[6]*rotate[9] + m[10]*rotate[10];
-	//matrix[14]=matrix[14];
-	matrix[3] = m[3]*rotate[0] + m[7]*rotate[1] + m[11]*rotate[2];
-	matrix[7] = m[3]*rotate[4] + m[7]*rotate[5] + m[11]*rotate[6];
-	matrix[11] = m[3]*rotate[8] + m[7]*rotate[9] + m[11]*rotate[10];
-	//matrix[15]=matrix[15];
-}
 

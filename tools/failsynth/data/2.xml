@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <rules max_depth="20">
     <rule name="entry">
-        <call count="300" transforms="ry 3.6" rule="arm"/>
+        <call count="100" transforms="ry 3.6" rule="arm"/>
     </rule>
     <rule name="arm">
         <call transforms="sa 0.9 rz 6 tx 1" rule="arm"/>
-        <instance transforms="s 1 0.2 0.5" shape="box"/>
+        <instance transforms="s 1 0.9 0.9" shape="box"/>
     </rule>
     <rule name="arm">
         <call transforms="sa 0.9 rz -6 tx 1" rule="arm"/>
-        <instance transforms="s 1 0.2 0.5" shape="box"/>
+        <instance transforms="s 1 0.9 0.9" shape="box"/>
     </rule>
 </rules>

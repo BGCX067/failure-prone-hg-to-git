@@ -14,11 +14,15 @@
 enum InstanceType { EMPTY, CUBE }; 
 
 typedef struct Rule {
+    //Model local transformation
+    mat4 itransform;
     int instance;
 
     int ncalls;
     int *cid;
+    //Child node transformations
     mat4 *ctransform;
+    int *ccount;
 
     float weight;
     struct Rule *prev, *next;
@@ -38,8 +42,6 @@ Shader *material;
 Mesh* createBox(float x, float y, float z);
 //TODO:
 //1. More shapes
-//2. read count
-//3. scale
 //4. camera functions for better visualization
 MeshGrammar *loadFromFile(const char *path);
 void processRule(Rule *r, mat4 t, MeshGrammar *g, Node *parent, int depth);
@@ -50,7 +52,7 @@ void initializeGame(){
 
     SetProjection(c.mprojection);
 
-    Setvf(c.pos, 0.0, 0.0, 90.0);
+    Setvf(c.pos, 0.0, 0.0, 50.0);
 
     cena = InitializeScene();
     Light l; 
@@ -67,8 +69,9 @@ void initializeGame(){
 //    Node *shortBoxNode = AddMesh(cena, shortBox);
 //    shortBoxNode->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
     
-    g = loadFromFile("data/spiral.xml");
-    //g = loadFromFile("data/2.xml");
+    //g = loadFromFile("data/spiral.xml");
+    g = loadFromFile("data/2.xml");
+    //g = loadFromFile("data/3.xml");
     mat4 ident;
     Identity(ident);
     processRule(g->entry, ident, g, cena->root, 20);
@@ -110,6 +113,9 @@ Mesh* createBox(float w, float h, float l) {
     float x = w*0.5;
     float y = h*0.5;
     float z = l*0.5;
+    //float x = w;
+    //float y = h;
+    //float z = l;
 
     float vertices[] = { -x, -y, z, x, -y, z, -x, y, z,  //Front1
                          -x, y, z, x, -y, z, x, y, z, //Front2
@@ -124,6 +130,19 @@ Mesh* createBox(float w, float h, float l) {
                          -x, -y, z, -x, -y, -z, x, -y, z, //Bot1
                          -x, -y, -z, x, -y, -z, x, -y, z, //Bot2
                        };
+/*    float vertices[] = { 0.0, 0.0, z, x, 0.0, z, 0.0, y, z,  //Front1
+                         0.0, y, z, x, 0.0, z, x, y, z, //Front2
+                         0.0, 0.0, 0.0, 0.0, y, 0.0, x, 0.0, 0.0, //Back1
+                         0.0, y, 0.0, x, y, 0.0, x, 0.0, 0.0, //Back2
+                         x, 0.0, z, x, 0.0, 0.0, x, y, z, //Right1
+                         x, y, z, x, 0.0, 0.0, x, y, 0.0, //Right2
+                         0.0, 0.0, z, 0.0, y, z, 0.0, 0.0, 0.0, //Left1
+                         0.0, y, z, 0.0, y, 0.0, 0.0, 0.0, 0.0, //Left2
+                         0.0, y, z, x, y, z, 0.0, y, 0.0, //Top1
+                         0.0, y, 0.0, x, y, z, x, y, 0.0, //Top2
+                         0.0, 0.0, z, 0.0, 0.0, 0.0, x, 0.0, z, //Bot1
+                         0.0, 0.0, 0.0, x, 0.0, 0.0, x, 0.0, z, //Bot2
+                       };*/
 
     unsigned int indices[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35};
     float normals[] = {0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, //Front1
@@ -154,23 +173,9 @@ Mesh* createBox(float w, float h, float l) {
     return m;
 }
 
-void addRuleName(char **ruleid, int n, char *name) {
-    int i;
-    for(i = 0; (ruleid[i] != NULL) && (i < n); i++)
-        if(strcmp(ruleid[i], name) == 0)
-            return;
-    ruleid[i] = name;
-}
-
-int getRuleId(char **ruleid, int n, char *name) {
-    for(int i = 0; i < n; i++) 
-        if(strcmp(ruleid[i], name) == 0) 
-            return i;
-    return -1;
-}
 
 
-enum TransformStates {TRANSLATE, ROTATE, SCALE, NONE };
+enum TransformStates {TRANSLATE, ROTATE, SCALE, SCALEALL, NONE };
 
 void getState(char *s, int *state, int *index) {
     if(strcmp(s, "tx") == 0) {
@@ -191,42 +196,88 @@ void getState(char *s, int *state, int *index) {
     } else if(strcmp(s, "rz") == 0) {
         *state = ROTATE;
         *index = 2;
+    } else if(strcmp(s, "sa") == 0) {
+        *state = SCALEALL;
+        *index = 0;
+    } else if(strcmp(s, "s") == 0) {
+        *state = SCALE;
+        *index = 0;
     }
 }
 
 void parseTransform(char *str, mat4 t) {
-    //printf("--parseTransform str: %s\n", str);
-    vec3 tr[2] = { {0.0f} };
+    printf("--parseTransform str: %s\n", str);
+    vec3 trs[3] = { {0.0f} };
+    //inicializa escala com {1, 1, 1}
+    trs[2][0] = trs[2][1] = trs[2][2] = 1.0;
     char *tok;
     tok = strtok(str, " ");
     int state = NONE;
     int index;
     while(tok) {
-        //printf("%s\n", tok);
-        if(state < SCALE) { //Translate or rotate
-            //printf("translate or rotate\n");
+        printf("%s\n", tok);
+        //if(state < SCALEALL) { //Translate or rotate
+        //printf("state: %d\n", state);
+        if((state == TRANSLATE) || (state == ROTATE)) {
+            printf("translate or rotate\n");
             float value = atof(tok);
-            tr[state][index] = value;
+            trs[state][index] = value;
             state = NONE;
-        } else
+        } else if (state == SCALE) {
+            printf("scale\n");
+            trs[2][0] = atof(tok);
+            tok = strtok(NULL, " ");
+            trs[2][1] = atof(tok);
+            tok = strtok(NULL, " ");
+            trs[2][2] = atof(tok);
+            state = NONE;
+        } else if (state == SCALEALL) {
+            printf("scale all\n");
+            float value = atof(tok);
+            trs[2][0] = trs[2][1] = trs[2][2] = value;    
+            state = NONE;
+        } else //NONE
             getState(tok, &state, &index);
         tok = strtok(NULL, " ");
     }
-    mat4 translate, rotate, rotatexy, rotatex, rotatey, rotatez;
-    Identity(translate); Identity(rotatexy); Identity(rotatex); 
-    Identity(rotatey); Identity(rotatez);
-    Translatef(translate, tr[0][0], tr[0][1], tr[0][2]);
-    Rotatef(rotatex, DegToRad(tr[1][0]), 1.0, 0.0, 0.0);
-    Rotatef(rotatey, DegToRad(tr[1][1]), 0.0, 1.0, 0.0);
-    Rotatef(rotatez, DegToRad(tr[1][2]), 0.0, 0.0, 1.0);
+    mat4 translate, rotatex, rotatey, rotatez, scale;
+    Identity(translate); 
+    Identity(rotatex); 
+    Identity(rotatey); 
+    Identity(rotatez); 
+    Identity(scale);
+    Translatef(translate, trs[0][0], trs[0][1], trs[0][2]);
+    Rotatef(rotatex, DegToRad(trs[1][0]), 1.0, 0.0, 0.0);
+    Rotatef(rotatey, DegToRad(trs[1][1]), 0.0, 1.0, 0.0);
+    Rotatef(rotatez, DegToRad(trs[1][2]), 0.0, 0.0, 1.0);
+    Scalef(scale, trs[2][0], trs[2][1], trs[2][2]);
+    
+    Identity(t);
+    Multm(t, scale, t);
+    Multm(t, rotatez, t); 
+    Multm(t, rotatey, t); 
+    Multm(t, rotatex, t); 
+    Multm(t, translate, t); 
 
-    Multm(rotatexy, rotatex, rotatey);
-    Multm(rotate, rotatexy, rotatez);
-    Multm(t, rotate, translate);
-    //memcpy(t, translate, sizeof(mat4));
+    printf("translate: (%.1f, %.1f, %.1f)\n", trs[0][0], trs[0][1], trs[0][2]);
+    printf("rotate: (%.1f, %.1f, %.1f)\n", trs[1][0], trs[1][1], trs[1][2]);
+    printf("scale: (%.1f, %.1f, %.1f)\n", trs[2][0], trs[2][1], trs[2][2]);
+}
 
-    //printf("translate: (%.1f, %.1f, %.1f)\n", tr[0][0], tr[0][1], tr[0][2]);
-    //printf("rotate: (%.1f, %.1f, %.1f)\n", tr[1][0], tr[1][1], tr[1][2]);
+
+void addRuleName(char **ruleid, int n, char *name) {
+    int i;
+    for(i = 0; (ruleid[i] != NULL) && (i < n); i++)
+        if(strcmp(ruleid[i], name) == 0)
+            return;
+    ruleid[i] = name;
+}
+
+int getRuleId(char **ruleid, int n, char *name) {
+    for(int i = 0; i < n; i++) 
+        if(strcmp(ruleid[i], name) == 0) 
+            return i;
+    return -1;
 }
 
 MeshGrammar *loadFromFile(const char *path) {
@@ -286,26 +337,40 @@ MeshGrammar *loadFromFile(const char *path) {
         r->ncalls = callcount;
         r->cid = malloc(sizeof(int)*callcount);
         r->ctransform = malloc(sizeof(mat4)*callcount);
+        r->ccount = malloc(sizeof(int)*callcount);
         int j = 0;
         for (ezxml_t ctag = ezxml_child(rtag, "call"); ctag; ctag = ctag->next, j++){
             char *crname = (char*)ezxml_attr(ctag, "rule"); 
             r->cid[j] = getRuleId(ruleid, newcount, crname);
             char *tstr = (char *)ezxml_attr(ctag, "transforms");
             parseTransform(tstr, r->ctransform[j]);
-            //TODO ler transformação
+            char *countstr = (char *) ezxml_attr(ctag, "count");
+            if(countstr)
+                r->ccount[j] = atoi(countstr);
+            else
+                r->ccount[j] = 1;
         }
         
         //FIXME: 1. ler tipo da instance
         //       2. tem mais de 1 instance?
         ezxml_t itag = ezxml_child(rtag, "instance");
-        if(itag)
+        if(itag) {
             r->instance = CUBE;
-        else
+            //Ler transformação?
+            char *itstr = (char *)ezxml_attr(itag, "transforms");
+            if(itstr)
+                parseTransform(itstr, r->itransform);
+            else
+                Identity(r->itransform);
+
+        } else
             r->instance = EMPTY;
 
         char *wstr = (char *)ezxml_attr(rtag, "weight");
         if(wstr)
             r->weight = atof(wstr);
+        else
+            r->weight = 1.0;
         //DEBUG:
         //printf("rname: %s\n", rname);
         //printf("r->ncalls = %d\n", r->ncalls);
@@ -356,10 +421,8 @@ void processRule(Rule *r, mat4 t, MeshGrammar *g, Node *parent, int depth) {
     if(depth == 0)
         return;
     
-    //printf("processRule - depth %d\n", depth);
     Node *n = malloc(sizeof(Node));
     memcpy(n->transform, t, sizeof(mat4));
-    //Identity(n->transform);
     n->parent = parent;
     DL_APPEND(parent->children, n);
     n->children = NULL;
@@ -368,16 +431,18 @@ void processRule(Rule *r, mat4 t, MeshGrammar *g, Node *parent, int depth) {
 
     //Criar um node e usar a transformação
     if(r->instance == CUBE) {
-//      printf("instancing\n");
         Mesh *m = createBox(1.0f, 1.0f, 1.0f);
         n->mesh = m;
+        Multm(n->transform, n->transform, r->itransform);
     }
 
     for(int i = 0; i < r->ncalls; i++) {
-        //printf("\t picking rule for call %d\n", i);
-        Rule *newr = pickRule(g, r->cid[i]);
-//        printf("r->ctransform[%d]:\n", i);
-//        printMat(r->ctransform[i]);
-        processRule(newr, r->ctransform[i], g, n, depth - 1);
+        mat4 m;
+        Identity(m);
+        for(int j = 0; j < r->ccount[i]; j++) {
+            Rule *newr = pickRule(g, r->cid[i]);
+            Multm(m, r->ctransform[i], m);
+            processRule(newr, m, g, n, depth - 1);
+        }
     }
 }

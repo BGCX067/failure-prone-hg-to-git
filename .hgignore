@@ -42,6 +42,8 @@
 ^tools/q3/objs_optimized
 ^tools/shadowcornell/deps_optimized
 ^tools/shadowcornell/objs_optimized
+^tools/failsynth/deps_optimized
+^tools/failsynth/objs_optimized
 ^tools/uomap
 
 .*.*.DS_Store
