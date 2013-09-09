@@ -2,7 +2,7 @@
 #include <math.h>
 #include <string.h> //memcpy
 
-float Lengthq(quat q) {
+float Lengthq(const quat q) {
     return sqrt(q[0]*q[0]+q[1]*q[1]+q[2]*q[2]+q[3]*q[3]);
 }
 
@@ -14,14 +14,14 @@ void Normalizeq(quat q) {
     q[3] /= len;
 }
 
-void Conjugateq(quat q, quat conj) {
+void Conjugateq(const quat q, quat conj) {
     conj[0] = -q[0];
     conj[1] = -q[1];
     conj[2] = -q[2];
     conj[3] =  q[3];
 }
 
-void Multq(quat q2, quat q1, quat res) {
+void Multq(const quat q2, const quat q1, quat res) {
     quat temp;
     temp[0] = q2[1]*q1[2] - q2[2]*q1[1] + q2[3]*q1[0] + q2[0]*q1[3];
 	temp[1] = q2[2]*q1[0] - q2[0]*q1[2] + q2[3]*q1[1] + q2[1]*q1[3];
@@ -31,7 +31,7 @@ void Multq(quat q2, quat q1, quat res) {
 }
 
 
-void Multqv(quat q, vec3 v, quat res) {
+void Multqv(const quat q, const vec3 v, quat res) {
     res[3] = -(q[0]*v[0]) - (q[1]* v[1]) - (q[2]*v[2]);
     res[0] = (q[3]*v[0]) + (q[1]*v[2]) - (q[2]*v[1]);
     res[1] = (q[3]*v[1]) + (q[2]*v[0]) - (q[0]*v[2]);
@@ -39,7 +39,7 @@ void Multqv(quat q, vec3 v, quat res) {
 
 }
 
-void FromAxisAngle(vec3 v, float theta, quat q) {
+void FromAxisAngle(const vec3 v, float theta, quat q) {
     float angle = theta*0.5;
     q[0] = v[0]*sin(angle);
     q[1] = v[1]*sin(angle);
@@ -48,7 +48,7 @@ void FromAxisAngle(vec3 v, float theta, quat q) {
     Normalizeq(q);
 }
 
-void ToMatrixq(quat q, mat4 m) {
+void ToMatrixq(const quat q, mat4 m) {
     float xx, yy, zz, wx, wy, wz, xy, xz, yz;
 	xx = 2*q[0]*q[0];	yy = 2*q[1]*q[1];	zz = 2*q[2]*q[2];
 	wx = 2*q[3]*q[0];	wy = 2*q[3]*q[1];	wz = 2*q[3]*q[2];
@@ -70,7 +70,7 @@ void ToMatrixq(quat q, mat4 m) {
 	m[3] = m[7] = m[11] =  m[12] = m[13] = m[14] = 0.0;
 }
 
-void Rotateq(vec3 v, quat q, vec3 res) {
+void Rotateq(const vec3 v, const quat q, vec3 res) {
     /*quat q2;
     q2[0] = v[0];
     q2[1] = v[1];
@@ -98,11 +98,11 @@ void Angleq(quat q) {
         q[3] = -sqrt(t);
 }
 
-float Dotq(quat q1, quat q2) {
+float Dotq(const quat q1, const quat q2) {
     return q1[0]*q2[0] + q1[1]*q2[1] + q1[2]*q2[2] + q1[3]*q2[3];
 }
 
-void Slerpq(quat q1, quat q2, float t, quat res) {
+void Slerpq(const quat q1, const quat q2, float t, quat res) {
     /* Check for out-of range parameter and return edge points if so */
     if (t <= 0.0) {
         memcpy(res, q1, sizeof(quat));
@@ -169,7 +169,7 @@ void Slerpq(quat q1, quat q2, float t, quat res) {
     res[2] = (k0*q1[2]) + (k1*q1z);
 }
 
-void Setq(quat dest, quat src) {
+void Setq(quat dest, const quat src) {
     memcpy(dest, src, sizeof(quat));
 }
 

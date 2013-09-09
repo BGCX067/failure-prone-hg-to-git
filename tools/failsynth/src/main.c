@@ -36,27 +36,23 @@ typedef struct MeshGrammar {
 
 Scene* cena;
 Camera c;
-MeshGrammar *g;
 Shader *material;
 
-Mesh* createBox(float x, float y, float z);
 //TODO:
+//0. max_depth por cada função
 //1. More shapes
 //4. camera functions for better visualization
 MeshGrammar *loadFromFile(const char *path);
-void processRule(Rule *r, mat4 t, MeshGrammar *g, Node *parent, int depth);
+Scene *GenScnSynth(MeshGrammar *g, int depth);
 
 void initializeGame(){
     //CamInit(&c, GetScreenW(), GetScreenH(), FPS, PERSPECTIVE); 
     CamInit(&c, GetScreenW(), GetScreenH(), TRACKBALL, PERSPECTIVE); 
-
     SetProjection(c.mprojection);
+    Setvf(c.pos, 0.0, 0.0, 5.0);
 
-    Setvf(c.pos, 0.0, 0.0, 50.0);
-
-    cena = InitializeScene();
     Light l; 
-    l.pos[0]= 1.0; l.pos[1] = 0.92; l.pos[2] = 1.0;
+    l.pos[0]= 2.0; l.pos[1] = 1.92; l.pos[2] = 2.0;
     l.color[0] = 1.0; l.color[1] = 1.0; l.color[2] = 1.0; l.color[3] = 1.0;
 
     vec3 khakiAmb = {0.125, 0.1, 0.072};
@@ -65,16 +61,20 @@ void initializeGame(){
     float khakiShininess = 12.5;
     material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
 
-//    Mesh *shortBox = createBox(1.0, 1.0, 1.0);
-//    Node *shortBoxNode = AddMesh(cena, shortBox);
-//    shortBoxNode->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
-    
-    //g = loadFromFile("data/spiral.xml");
-    g = loadFromFile("data/2.xml");
+    int depth = 20;
+    //MeshGrammar *g = loadFromFile("data/spiral.xml");
+    MeshGrammar *g = loadFromFile("data/2.xml");
     //g = loadFromFile("data/3.xml");
-    mat4 ident;
-    Identity(ident);
-    processRule(g->entry, ident, g, cena->root, 20);
+
+    //cena = GenScnSynth(g, depth);
+
+    cena = InitializeScene();
+    Mesh *shortBox = CreateBox(1.0, 1.0, 1.0);
+    Node *shortBoxNode = AddMesh(cena, shortBox);
+    shortBoxNode->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color);
+    Scalef(shortBoxNode->transform, 1.0, 0.5, 0.5);
+    //Translatef(shortBoxNode->transform, 0.5, 0.5, 0.5);
+
 }
 
 int Render(event *e, double* dt){
@@ -98,82 +98,12 @@ int main(){
 	SetVideoMode(800, 600, 0);
 	WarpMouse(0);
 	SetWindowTitle("Fail Synth");
-	//initializeRenderer(1024, 768, 0.1, 10000.0, 45.0);
-	//Renderer *mainrenderer = InitializeRenderer(800, 600, 0.1, 10000.0, 45.0);
 	InitializeRenderer(800, 600, 0.1, 10000.0, 45.0);
 	initializeGame();
 	MainLoop();
 	CloseVideo();
 	return 0;
 }
-
-Mesh* createBox(float w, float h, float l) {
-    Mesh *m = InitMesh();
-    
-    float x = w*0.5;
-    float y = h*0.5;
-    float z = l*0.5;
-    //float x = w;
-    //float y = h;
-    //float z = l;
-
-    float vertices[] = { -x, -y, z, x, -y, z, -x, y, z,  //Front1
-                         -x, y, z, x, -y, z, x, y, z, //Front2
-                         -x, -y, -z, -x, y, -z, x, -y, -z, //Back1
-                         -x, y, -z, x, y, -z, x, -y, -z, //Back2
-                         x, -y, z, x, -y, -z, x, y, z, //Right1
-                         x, y, z, x, -y, -z, x, y, -z, //Right2
-                         -x, -y, z, -x, y, z, -x, -y, -z, //Left1
-                         -x, y, z, -x, y, -z, -x, -y, -z, //Left2
-                         -x, y, z, x, y, z, -x, y, -z, //Top1
-                         -x, y, -z, x, y, z, x, y, -z, //Top2
-                         -x, -y, z, -x, -y, -z, x, -y, z, //Bot1
-                         -x, -y, -z, x, -y, -z, x, -y, z, //Bot2
-                       };
-/*    float vertices[] = { 0.0, 0.0, z, x, 0.0, z, 0.0, y, z,  //Front1
-                         0.0, y, z, x, 0.0, z, x, y, z, //Front2
-                         0.0, 0.0, 0.0, 0.0, y, 0.0, x, 0.0, 0.0, //Back1
-                         0.0, y, 0.0, x, y, 0.0, x, 0.0, 0.0, //Back2
-                         x, 0.0, z, x, 0.0, 0.0, x, y, z, //Right1
-                         x, y, z, x, 0.0, 0.0, x, y, 0.0, //Right2
-                         0.0, 0.0, z, 0.0, y, z, 0.0, 0.0, 0.0, //Left1
-                         0.0, y, z, 0.0, y, 0.0, 0.0, 0.0, 0.0, //Left2
-                         0.0, y, z, x, y, z, 0.0, y, 0.0, //Top1
-                         0.0, y, 0.0, x, y, z, x, y, 0.0, //Top2
-                         0.0, 0.0, z, 0.0, 0.0, 0.0, x, 0.0, z, //Bot1
-                         0.0, 0.0, 0.0, x, 0.0, 0.0, x, 0.0, z, //Bot2
-                       };*/
-
-    unsigned int indices[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35};
-    float normals[] = {0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, //Front1
-                       0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, //Front2
-                       0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, //Back1
-                       0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, //Back2
-                       1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, //Right1
-                       1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, //Right2
-                       -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, //Left1
-                       -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, //Left2
-                       0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, //Top1
-                       0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, //Top2
-                       0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, //Bot2
-                       0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, //Bot2
-                      };
-    float colors[36*3];
-    for(int i = 0; i < 36; i++) {
-        colors[3*i] = 1.0;
-        colors[3*i + 1] = 0.82;
-        colors[3*i + 2] = 0.55;
-    }
-    AddVertices(m, 36*3, 3, vertices);
-    AddNormals(m, 36*3, 3, normals);
-    AddColors(m, 36*3, colors);
-    AddIndices(m, 36, indices);
-    PrepareMesh(m);
-
-    return m;
-}
-
-
 
 enum TransformStates {TRANSLATE, ROTATE, SCALE, SCALEALL, NONE };
 
@@ -431,9 +361,13 @@ void processRule(Rule *r, mat4 t, MeshGrammar *g, Node *parent, int depth) {
 
     //Criar um node e usar a transformação
     if(r->instance == CUBE) {
-        Mesh *m = createBox(1.0f, 1.0f, 1.0f);
+        Mesh *m = CreateBox(1.0f, 1.0f, 1.0f);
         n->mesh = m;
-        Multm(n->transform, n->transform, r->itransform);
+        mat4 t;
+        Identity(t);
+        Translatef(t, 0.5, 0.5, 0.5);
+        Multm(t, r->itransform, t);
+        Multm(n->transform, n->transform, t);
     }
 
     for(int i = 0; i < r->ncalls; i++) {
@@ -445,4 +379,15 @@ void processRule(Rule *r, mat4 t, MeshGrammar *g, Node *parent, int depth) {
             processRule(newr, m, g, n, depth - 1);
         }
     }
+}
+
+
+
+Scene *GenScnSynth(MeshGrammar *g, int depth) {
+    Scene *s = InitializeScene();
+
+    mat4 m;
+    Identity(m);
+    processRule(g->entry, m, g, s->root, depth);
+    return s;
 }

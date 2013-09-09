@@ -8,7 +8,6 @@
 Shader* PhongMaterial(vec3 ka, vec3 kd, vec3 ks, float shininess, vec3 lightpos, vec3 lightcolor) {
     //TODO tá lendo o shader da pasta local da tool, poder ser melhor armazenar esses shaders
     //pre-definidos na pasta data da engine.
-    static int i = 1;
     char* vertsrc = ReadTextFile("data/shaders/phong.vert");
     char* fragsrc = ReadTextFile("data/shaders/phong.frag"); 
     Shader *shdr = InitializeShader(NULL, vertsrc, fragsrc);

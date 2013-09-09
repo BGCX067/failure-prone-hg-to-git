@@ -250,3 +250,60 @@ int Picking(int mouseX, int mouseY, mat4 modelviewMatrix, mat4 projectionMatrix,
     return RayMeshIntersection(rayOrigin, rayDir, m, indices);
 }
 
+Mesh* CreateBox(float w, float h, float l) {
+    Mesh *m = InitMesh();
+
+    float x = 0.5*w;
+    float y = 0.5*h;
+    float z = 0.5*l;
+
+    unsigned int indices[] = { 0, 3, 6, 0, 6, 9, //Front
+                               15, 12, 21, 15, 21, 18, //Back
+                               5, 17, 20, 5, 20, 8, //Right
+                               14, 2, 11, 14, 11, 23, //Left
+                               10, 7, 19, 10, 19, 22, // TOP
+                               13, 16, 4, 13, 4, 1 //BOT
+                             };
+
+    /*float vertices[] = { 0.0, 0.0, z, 0.0, 0.0, z, 0.0, 0.0, z,
+                          x, 0.0, z,  x, 0.0, z,  x, 0.0, z, 
+                          x, y, z, x, y, z, x, y, z,
+                          0.0, y, z, 0.0, y, z, 0.0, y, z,
+                          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                          x, 0.0, 0.0, x, 0.0, 0.0, x, 0.0, 0.0,
+                          x, y, 0.0, x, y, 0.0, x, y, 0.0,
+                          0.0, y, 0.0, 0.0, y, 0.0, 0.0, y, 0.0 };*/
+
+    float vertices[] = { -x, -y, z, -x, -y, z, -x, -y, z,
+                          x, -y, z,  x, -y, z,  x, -y, z, 
+                          x, y, z, x, y, z, x, y, z,
+                          -x, y, z, -x, y, z, -x, y, z,
+                          -x, -y, -z, -x, -y, -z, -x, -y, -z,
+                          x, -y, -z, x, -y, -z, x, -y, -z,
+                          x, y, -z, x, y, -z, x, y, -z,
+                          -x, y, -z, -x, y, -z, -x, y, -z };
+
+    float normals[] = { 0.0, 0.0, 1.0, 0.0, -1.0, 0.0, -1.0, 0.0, 0.0,
+                        0.0, 0.0, 1.0, 0.0, -1.0, 0.0, 1.0, 0.0, 0.0,
+                        0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0,
+                        0.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0,
+                        0.0, 0.0, -1.0, 0.0, -1.0, 0.0, -1.0, 0.0, 0.0,
+                        0.0, 0.0, -1.0, 0.0, -1.0, 0.0, 1.0, 0.0, 0.0,
+                        0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0,
+                        0.0, 0.0, -1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0,
+                      };
+
+    float colors[24*3];
+    for(int i = 0; i < 24; i++) {
+        colors[3*i] = 1.0;
+        colors[3*i + 1] = 0.82;
+        colors[3*i + 2] = 0.55;
+    }
+    AddVertices(m, 24*3, 3, vertices);
+    AddNormals(m, 24*3, 3, normals);
+    AddColors(m, 24*3, colors);
+    AddIndices(m, 36, indices);
+    PrepareMesh(m);
+
+    return m;
+}

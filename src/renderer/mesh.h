@@ -4,9 +4,8 @@
 #include "math/mathutil.h"
 #include "math/quaternion.h"
 #include "math/matrix.h"
-//#include "material.h"
 #include "vertexattribute.h"
-#include "renderer.h"
+//#include "renderer.h"
 
 #define MAX_TEXCOORDS 8
 
@@ -68,9 +67,6 @@ typedef struct Mesh{
     Weight *weights;
     VertexWeightInfo *weightInfo;
 
-    //temporario só pra teste
-    //mat4 transform;
-
     //informações da lista de meshes
     struct Mesh *prev, *next;
 }Mesh;
@@ -112,7 +108,12 @@ void SetNormals(unsigned int *tIndices, float *tVerts, float *tNormals,
 void InterpolateSkeletons(const Joint *skelA, const Joint *skelB,
                           int numJoints, float interp, Joint *out);
 
+//Util
 int RayMeshIntersection(vec3 ro, vec3 rd, Mesh *m, int *indices);
 int Picking(int mouseX, int mouseY, mat4 modelviewMatrix, mat4 projectionMatrix, int viewPort[4], Mesh *m, int *indices);
+
+
+//Primitives
+Mesh* CreateBox(float w, float h, float l);
 
 #endif
