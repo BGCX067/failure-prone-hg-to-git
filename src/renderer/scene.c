@@ -51,6 +51,7 @@ static MeshInfo* meshAddInfo(Scene *s, Mesh *m, char *filename) {
 Node* AddMeshFile(Scene *s, char *filename) {
     Node *n = malloc(sizeof(Node));
     Identity(n->transform);
+    Identity(n->ltransform);
     n->parent = s->root;
     n->children = NULL;
     n->material = NULL;
@@ -76,6 +77,7 @@ Node* AddMeshFile(Scene *s, char *filename) {
 Node* AddMesh(Scene *s, Mesh *m) {
     Node *n = malloc(sizeof(Node));
     Identity(n->transform);
+    Identity(n->ltransform);
     n->parent = s->root;
     n->children = NULL;
     n->material = NULL;
@@ -137,9 +139,10 @@ Scene* InitializeScene(){
 }
 
 static void renderNode(Node *n, mat4 t) {
-    mat4 tres;
+    mat4 tres, lres;
     Multm(tres, t, n->transform);
-    SetModel(tres);
+    Multm(lres, t, n->ltransform);
+    SetModel(lres);
     BindShader(n->material);
     if(n->mesh)
         DrawIndexedVAO(n->mesh->vaoId, n->mesh->indicesCount, GL_TRIANGLES);
@@ -154,11 +157,15 @@ void DrawScene(Scene* scn){
 		return;
     mat4 ident;
     Identity(ident);
+    SetModel(ident);
     //renderNode(scn->root, ident); 
     Node *it;
     DL_FOREACH(scn->root->children, it) {
         renderNode(it, ident);
     }
+    //Outras coisas além de scn podem ser desenhadas,
+    //volta a matriz model para a identidade.
+    SetModel(ident);
     //Iterator pra percorrer a lista
     //Mesh *it;
     //DL_FOREACH(scn->meshList, it)

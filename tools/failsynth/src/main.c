@@ -10,6 +10,7 @@
 #include "util/utlist.h"
 #include "util/ezxml.h"
 #include "renderer/material.h"
+#include "renderer/glime.h"
 
 enum InstanceType { EMPTY, CUBE }; 
 
@@ -38,6 +39,12 @@ Scene* cena;
 Camera c;
 Shader *material;
 
+
+//Coordinate axis
+Shader *colorshdr;
+Batch *coordaxis;
+void createCoordAxis();
+
 //TODO:
 //0. max_depth por cada função
 //1. More shapes
@@ -46,10 +53,14 @@ MeshGrammar *loadFromFile(const char *path);
 Scene *GenScnSynth(MeshGrammar *g, int depth);
 
 void initializeGame(){
+    srand(time(0));
     //CamInit(&c, GetScreenW(), GetScreenH(), FPS, PERSPECTIVE); 
     CamInit(&c, GetScreenW(), GetScreenH(), TRACKBALL, PERSPECTIVE); 
+    SetZfar(&c, 1000.0);
     SetProjection(c.mprojection);
-    Setvf(c.pos, 0.0, 0.0, 5.0);
+    Setvf(c.pos, 0.0, 10.0, 40.0);
+
+    createCoordAxis();
 
     Light l; 
     l.pos[0]= 2.0; l.pos[1] = 1.92; l.pos[2] = 2.0;
@@ -61,26 +72,24 @@ void initializeGame(){
     float khakiShininess = 12.5;
     material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
 
-    int depth = 20;
+    int depth = 100;
     //MeshGrammar *g = loadFromFile("data/spiral.xml");
-    MeshGrammar *g = loadFromFile("data/2.xml");
-    //g = loadFromFile("data/3.xml");
+    //MeshGrammar *g = loadFromFile("data/2.xml");
+    MeshGrammar* g = loadFromFile("data/3.xml");
 
-    //cena = GenScnSynth(g, depth);
-
-    cena = InitializeScene();
-    Mesh *shortBox = CreateBox(1.0, 1.0, 1.0);
-    Node *shortBoxNode = AddMesh(cena, shortBox);
-    shortBoxNode->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color);
-    Scalef(shortBoxNode->transform, 1.0, 0.5, 0.5);
-    //Translatef(shortBoxNode->transform, 0.5, 0.5, 0.5);
-
+    cena = GenScnSynth(g, depth);
 }
 
 int Render(event *e, double* dt){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     DrawScene(cena);
+
+    //Draw the coordinate axis
+    glDisable(GL_DEPTH_TEST);
+    BindShader(colorshdr);
+    Draw(coordaxis);
+    glEnable(GL_DEPTH_TEST);
 
     glFlush();
     return 1;
@@ -105,95 +114,59 @@ int main(){
 	return 0;
 }
 
-enum TransformStates {TRANSLATE, ROTATE, SCALE, SCALEALL, NONE };
-
-void getState(char *s, int *state, int *index) {
-    if(strcmp(s, "tx") == 0) {
-        *state = TRANSLATE;
-        *index = 0;
-    } else if(strcmp(s, "ty") == 0) {
-        *state = TRANSLATE;
-        *index = 1;
-    } else if(strcmp(s, "tz") == 0) {
-        *state = TRANSLATE;
-        *index = 2;
-    } else if(strcmp(s, "rx") == 0) {
-        *state = ROTATE;
-        *index = 0;
-    } else if(strcmp(s, "ry") == 0) {
-        *state = ROTATE;
-        *index = 1;
-    } else if(strcmp(s, "rz") == 0) {
-        *state = ROTATE;
-        *index = 2;
-    } else if(strcmp(s, "sa") == 0) {
-        *state = SCALEALL;
-        *index = 0;
-    } else if(strcmp(s, "s") == 0) {
-        *state = SCALE;
-        *index = 0;
-    }
-}
-
 void parseTransform(char *str, mat4 t) {
     printf("--parseTransform str: %s\n", str);
-    vec3 trs[3] = { {0.0f} };
-    //inicializa escala com {1, 1, 1}
-    trs[2][0] = trs[2][1] = trs[2][2] = 1.0;
-    char *tok;
-    tok = strtok(str, " ");
-    int state = NONE;
-    int index;
-    while(tok) {
-        printf("%s\n", tok);
-        //if(state < SCALEALL) { //Translate or rotate
-        //printf("state: %d\n", state);
-        if((state == TRANSLATE) || (state == ROTATE)) {
-            printf("translate or rotate\n");
-            float value = atof(tok);
-            trs[state][index] = value;
-            state = NONE;
-        } else if (state == SCALE) {
-            printf("scale\n");
-            trs[2][0] = atof(tok);
-            tok = strtok(NULL, " ");
-            trs[2][1] = atof(tok);
-            tok = strtok(NULL, " ");
-            trs[2][2] = atof(tok);
-            state = NONE;
-        } else if (state == SCALEALL) {
-            printf("scale all\n");
-            float value = atof(tok);
-            trs[2][0] = trs[2][1] = trs[2][2] = value;    
-            state = NONE;
-        } else //NONE
-            getState(tok, &state, &index);
-        tok = strtok(NULL, " ");
-    }
-    mat4 translate, rotatex, rotatey, rotatez, scale;
-    Identity(translate); 
-    Identity(rotatex); 
-    Identity(rotatey); 
-    Identity(rotatez); 
-    Identity(scale);
-    Translatef(translate, trs[0][0], trs[0][1], trs[0][2]);
-    Rotatef(rotatex, DegToRad(trs[1][0]), 1.0, 0.0, 0.0);
-    Rotatef(rotatey, DegToRad(trs[1][1]), 0.0, 1.0, 0.0);
-    Rotatef(rotatez, DegToRad(trs[1][2]), 0.0, 0.0, 1.0);
-    Scalef(scale, trs[2][0], trs[2][1], trs[2][2]);
-    
     Identity(t);
-    Multm(t, scale, t);
-    Multm(t, rotatez, t); 
-    Multm(t, rotatey, t); 
-    Multm(t, rotatex, t); 
-    Multm(t, translate, t); 
 
-    printf("translate: (%.1f, %.1f, %.1f)\n", trs[0][0], trs[0][1], trs[0][2]);
-    printf("rotate: (%.1f, %.1f, %.1f)\n", trs[1][0], trs[1][1], trs[1][2]);
-    printf("scale: (%.1f, %.1f, %.1f)\n", trs[2][0], trs[2][1], trs[2][2]);
+    for(char *tok = strtok(str, " "); tok; tok = strtok(NULL, " ")) {
+        mat4 currt;
+        Identity(currt);
+        if(strcmp(tok, "tx") == 0) {
+            tok = strtok(NULL, " ");
+            Translatef(currt, atof(tok), 0.0, 0.0);
+        } else if (strcmp(tok, "ty") == 0) {
+            tok = strtok(NULL, " ");
+            Translatef(currt, 0.0, atof(tok), 0.0);
+        } else if (strcmp(tok, "tz") == 0) {
+            tok = strtok(NULL, " ");
+            Translatef(currt, 0.0, 0.0, atof(tok));
+        } else if (strcmp(tok, "rx") == 0) {
+            tok = strtok(NULL, " ");
+            Rotatef(currt, DegToRad(atof(tok)), 1.0, 0.0, 0.0);
+        } else if (strcmp(tok, "ry") == 0) {
+            tok = strtok(NULL, " ");
+            Rotatef(currt, DegToRad(atof(tok)), 0.0, 1.0, 0.0);
+        } else if (strcmp(tok, "rz") == 0) {
+            tok = strtok(NULL, " ");
+            Rotatef(currt, DegToRad(atof(tok)), 0.0, 0.0, 1.0);
+        } else if (strcmp(tok, "sx") == 0) {
+            tok = strtok(NULL, " ");
+            Scalef(currt, atof(tok), 1.0, 1.0);
+        } else if (strcmp(tok, "sy") == 0) {
+            tok = strtok(NULL, " ");
+            Scalef(currt, 1.0, atof(tok), 1.0);
+        } else if (strcmp(tok, "sz") == 0) {
+            tok = strtok(NULL, " ");
+            Scalef(currt, 1.0, 1.0, atof(tok));
+        } else if (strcmp(tok, "sa") == 0) {
+            tok = strtok(NULL, " ");
+            float s = atof(tok);
+            Scalef(currt, s, s, s);
+        } else if (strcmp(tok, "s") == 0) {
+            tok = strtok(NULL, " ");
+            float sx = atof(tok);
+            tok = strtok(NULL, " ");
+            float sy = atof(tok);
+            tok = strtok(NULL, " ");
+            float sz = atof(tok);
+            Scalef(currt, sx, sy, sz);
+        } else {
+            printf("!!ERROR!!\n");
+        }
+
+        Multm(t, t, currt);
+    }
 }
-
 
 void addRuleName(char **ruleid, int n, char *name) {
     int i;
@@ -273,7 +246,10 @@ MeshGrammar *loadFromFile(const char *path) {
             char *crname = (char*)ezxml_attr(ctag, "rule"); 
             r->cid[j] = getRuleId(ruleid, newcount, crname);
             char *tstr = (char *)ezxml_attr(ctag, "transforms");
-            parseTransform(tstr, r->ctransform[j]);
+            if(tstr)
+                parseTransform(tstr, r->ctransform[j]);
+            else
+                Identity(r->ctransform[j]);
             char *countstr = (char *) ezxml_attr(ctag, "count");
             if(countstr)
                 r->ccount[j] = atoi(countstr);
@@ -347,12 +323,14 @@ void printMat(mat4 m) {
     printf("\n\n\n\n");
 }
 
+//FIXME usar API e parar de instanciar e inicializar coisas na mão
 void processRule(Rule *r, mat4 t, MeshGrammar *g, Node *parent, int depth) {
     if(depth == 0)
         return;
     
     Node *n = malloc(sizeof(Node));
     memcpy(n->transform, t, sizeof(mat4));
+    Identity(n->ltransform);
     n->parent = parent;
     DL_APPEND(parent->children, n);
     n->children = NULL;
@@ -363,11 +341,11 @@ void processRule(Rule *r, mat4 t, MeshGrammar *g, Node *parent, int depth) {
     if(r->instance == CUBE) {
         Mesh *m = CreateBox(1.0f, 1.0f, 1.0f);
         n->mesh = m;
-        mat4 t;
-        Identity(t);
-        Translatef(t, 0.5, 0.5, 0.5);
-        Multm(t, r->itransform, t);
-        Multm(n->transform, n->transform, t);
+        mat4 tr;
+        Identity(tr);
+        Translatef(tr, 0.5, 0.5, 0.5);
+        Multm(tr, tr, r->itransform);
+        Multm(n->ltransform, tr, n->ltransform);
     }
 
     for(int i = 0; i < r->ncalls; i++) {
@@ -381,8 +359,6 @@ void processRule(Rule *r, mat4 t, MeshGrammar *g, Node *parent, int depth) {
     }
 }
 
-
-
 Scene *GenScnSynth(MeshGrammar *g, int depth) {
     Scene *s = InitializeScene();
 
@@ -390,4 +366,56 @@ Scene *GenScnSynth(MeshGrammar *g, int depth) {
     Identity(m);
     processRule(g->entry, m, g, s->root, depth);
     return s;
+}
+
+
+//Creates a small coordinate axis to help testing some stuff
+void createCoordAxis() {
+    char* vertsrc = ReadTextFile("data/shaders/color.vert");
+    char* fragsrc = ReadTextFile("data/shaders/color.frag"); 
+    colorshdr = InitializeShader(NULL, vertsrc, fragsrc);
+    free(vertsrc);
+    free(fragsrc);
+    coordaxis = InitializeBatch();
+    Begin(coordaxis, GL_LINES, 18, 0);
+        Color4f(coordaxis, 1.0, 0.0, 0.0, 0.0);
+        Vertex3f(coordaxis, 0.0, 0.0, 0.0);
+        Color4f(coordaxis, 1.0, 0.0, 0.0, 0.0);
+        Vertex3f(coordaxis, 1.0, 0.0, 0.0);
+        Color4f(coordaxis, 1.0, 0.0, 0.0, 0.0);
+        Vertex3f(coordaxis, 0.85, 0.15, 0.0);
+        Color4f(coordaxis, 1.0, 0.0, 0.0, 0.0);
+        Vertex3f(coordaxis, 1.0, 0.0, 0.0);
+        Color4f(coordaxis, 1.0, 0.0, 0.0, 0.0);
+        Vertex3f(coordaxis, 0.85, -0.15, 0.0);
+        Color4f(coordaxis, 1.0, 0.0, 0.0, 0.0);
+        Vertex3f(coordaxis,1.0, 0.0, 0.0);
+
+
+        Color4f(coordaxis, 0.0, 1.0, 0.0, 0.0);
+        Vertex3f(coordaxis, 0.0, 0.0, 0.0);
+        Color4f(coordaxis, 0.0, 1.0, 0.0, 0.0);
+        Vertex3f(coordaxis, 0.0, 1.0, 0.0);
+        Color4f(coordaxis, 0.0, 1.0, 0.0, 0.0);
+        Vertex3f(coordaxis, 0.15, 0.85, 0.0);
+        Color4f(coordaxis, 0.0, 1.0, 0.0, 0.0);
+        Vertex3f(coordaxis, 0.0, 1.0, 0.0);
+        Color4f(coordaxis, 0.0, 1.0, 0.0, 0.0);
+        Vertex3f(coordaxis, -0.15, 0.85, 0.0);
+        Color4f(coordaxis, 0.0, 1.0, 0.0, 0.0);
+        Vertex3f(coordaxis, 0.0, 1.0, 0.0);
+
+        Color4f(coordaxis, 0.0, 0.0, 1.0, 0.0);
+        Vertex3f(coordaxis, 0.0, 0.0, 0.0);
+        Color4f(coordaxis, 0.0, 0.0, 1.0, 0.0);
+        Vertex3f(coordaxis, 0.0, 0.0, 1.0);
+        Color4f(coordaxis, 0.0, 0.0, 1.0, 0.0);
+        Vertex3f(coordaxis, 0.15, 0.0, 0.85);
+        Color4f(coordaxis, 0.0, 0.0, 1.0, 0.0);
+        Vertex3f(coordaxis, 0.0, 0.0, 1.0);
+        Color4f(coordaxis, 0.0, 0.0, 1.0, 0.0);
+        Vertex3f(coordaxis, -0.15, 0.0, 0.85);
+        Color4f(coordaxis, 0.0, 0.0, 1.0, 0.0);
+        Vertex3f(coordaxis, 0.0, 0.0, 1.0);
+    End(coordaxis);   
 }

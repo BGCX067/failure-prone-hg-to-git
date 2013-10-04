@@ -14,6 +14,7 @@
 typedef struct _node{
 	Mesh *mesh;
     mat4 transform;
+    mat4 ltransform;
     Shader *material;
 	struct _node* parent;
 	struct _node* children;
