@@ -6,6 +6,32 @@
 typedef float mat4[16];
 typedef float mat3[9];
 
+/**
+ *  Matriz column-major
+ *
+ *  0   4   8   12
+ *  1   5   9   13
+ *  2   6   10  14
+ *  3   7   11  15
+ *
+ *
+ *  Orientação a partir da matrix:
+ *  X -> [0, 1, 2]
+ *  Y -> [4, 5, 6]
+ *  Z -> [8, 9, 10]
+ *  pos -> [12, 13, 14]
+ *
+ *
+ *  Camera - representa o inverso da transformação
+ *  aplicada no mundo. Assumindo que não tem escala
+ *  nessa matriz, a transposta da modelview é igual à
+ *  sua inversa
+ *      - OBS1: Função look at, por exemplo, escreve a
+ *      transposta da matriz acima
+ *  
+ *
+ **/
+
 //Funções abaixo só funcionam pra mat4
 void Identity(mat4 m);
 void Multm(mat4 res, const mat4 a, const mat4 b);

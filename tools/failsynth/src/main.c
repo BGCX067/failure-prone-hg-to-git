@@ -40,9 +40,13 @@ Camera c;
 Shader *material;
 
 
+
 //Coordinate axis
 Shader *colorshdr;
 Batch *coordaxis;
+
+int drawCenterOfRoation = 0;
+
 void createCoordAxis();
 
 //TODO:
@@ -58,7 +62,8 @@ void initializeGame(){
     CamInit(&c, GetScreenW(), GetScreenH(), TRACKBALL, PERSPECTIVE); 
     SetZfar(&c, 1000.0);
     SetProjection(c.mprojection);
-    Setvf(c.pos, 0.0, 10.0, 40.0);
+    //Setvf(c.pos, 0.0, 0.0, 3.0);
+    c.zoom = 3.0;
 
     createCoordAxis();
 
@@ -75,9 +80,14 @@ void initializeGame(){
     int depth = 100;
     //MeshGrammar *g = loadFromFile("data/spiral.xml");
     //MeshGrammar *g = loadFromFile("data/2.xml");
-    MeshGrammar* g = loadFromFile("data/3.xml");
+    //MeshGrammar* g = loadFromFile("data/3.xml");
+    //cena = GenScnSynth(g, depth);
+    
+    cena = InitializeScene();
+    Mesh *shortBox = CreateBox(1.0, 1.0, 1.0);
+    Node *shortBoxNode = AddMesh(cena, shortBox);
+    shortBoxNode->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color);
 
-    cena = GenScnSynth(g, depth);
 }
 
 int Render(event *e, double* dt){
@@ -89,6 +99,13 @@ int Render(event *e, double* dt){
     glDisable(GL_DEPTH_TEST);
     BindShader(colorshdr);
     Draw(coordaxis);
+
+    if(drawCenterOfRoation) {
+        Translatef(c.mview, c.pivot[0], c.pivot[1], c.pivot[2]);
+        SetView(c.mview);
+        BindShader(colorshdr);
+        Draw(coordaxis);
+    }
     glEnable(GL_DEPTH_TEST);
 
     glFlush();
@@ -98,7 +115,33 @@ int Render(event *e, double* dt){
 //TODO automatizar o uso da camera
 int Update(event* e, double *dt){
     c.update(&c, e, dt);
+
+    //printf("--------------------------------\n");
+    //for(int i = 0; i < 4; i++) {
+    //    printf("%f\t%f\t%f\t%f\n", c.mview[i], c.mview[i+4], c.mview[i+8], c.mview[i+12]);
+    //}
+    //printf("c.pos = %f, %f, %f\n", c.pos[0], c.pos[1], c.pos[2]);
+    mat4 m;
+    ToMatrixq(c.orientation, m);
+    
+    //printf("--------------------------------\n");
+    Inverse(m, m);
+    //for(int i = 0; i < 4; i++) {
+    //    printf("%f\t%f\t%f\t%f\n", m[i], m[i+4], m[i+8], m[i+12]);
+    //}
+    float cpos[4] = {-c.mview[12], -c.mview[13], -c.mview[14], 1.0};
+    //printf("cpos = %f, %f, %f\n", c.pos[0], c.pos[1], c.pos[2]);
+    float newpos[4];
+    Multmv(m, cpos, newpos);
+    //printf("newpos = %f, %f, %f, %f\n", newpos[0], newpos[1], newpos[2], newpos[3]);
+    vec3 lookat = {-newpos[0], -newpos[1], -newpos[2] };
+    //printf("lookat = %f, %f, %f\n", lookat[0], lookat[1], lookat[2]);
+
     SetView(c.mview);
+
+
+    if(e->keys[KEY_c])
+        drawCenterOfRoation = !drawCenterOfRoation;
 
     return 1;
 }

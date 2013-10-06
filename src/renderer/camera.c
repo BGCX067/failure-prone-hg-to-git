@@ -13,6 +13,10 @@
 #define M_PI_2		1.57079632679489661923	/* pi/2 */
 #endif
 
+static float zoomFactor = 5.0;
+static float panFactor = 0.1;
+
+
 /*
 void camerafit(Camera *c, BoundingBox b, float fovy, float ratio, float znear, float zfar) {
     QUAT_IDENTITY(c->orientation);
@@ -110,10 +114,11 @@ static void trackballUpdate(Camera *c, event *e, double *dt);
 void CamInit(Camera *c, int w, int h, int ct, int pt) {
     c->screenW = w;
     c->screenH = h;
-    
+    c->zoom = 0.0; 
     Setvf(c->pos, 0.0, 0.0, 0.0);
     Setvf(c->up, 0.0, 1.0, 0.0);
     Setvf(c->view, 0.0, 0.0, -1.0);
+    Setvf(c->pivot, 0.0, 0.0, 0.0);
     //Quaternion identidade
     Setqf(c->orientation, 0.0, 0.0, 0.0, 1.0);
     Identity(c->mview);
@@ -251,14 +256,25 @@ static void trackball(quat q, float p1x, float p1y, float p2x, float p2y) {
 }
 
 static void trackballUpdate(Camera *c, event *e, double *dt) {
-    static int spinning = 0;
+    static int spinning = 0, zooming = 0, moving = 0;
     static float p1x = 0.0, p1y = 0.0;
-    if(e->type & MOUSE_BUTTON_PRESS && e->buttonRight) {
+
+    if(e->type & MOUSE_BUTTON_PRESS && e->buttonRight 
+            && (e->keys[KEY_LCONTROL] || e->keys[KEY_RCONTROL])) {
+        p1y = e->y;
+        zooming = 1;
+    } else if(e->type & MOUSE_BUTTON_PRESS && e->buttonRight 
+            && (e->keys[KEY_LSHIFT]) || (e->keys[KEY_RSHIFT])) {
+        p1x = e->x;  
+        p1y = c->screenH - e->y;
+        moving = 1;
+    } else if(e->type & MOUSE_BUTTON_PRESS && e->buttonRight) {
         p1x = e->x;
         p1y = e->y;
         spinning = 1;
     } else if(e->type & MOUSE_BUTTON_RELEASE) {
         spinning = 0;
+        zooming = 0;
     } else if(e->type & MOUSE_MOTION_EVENT && e->buttonRight && spinning) {
         quat q;
         float p2x = e->x, p2y = e->y;
@@ -268,6 +284,25 @@ static void trackballUpdate(Camera *c, event *e, double *dt) {
         Normalizeq(c->orientation);
         p1x = p2x;
         p1y = p2y;
+    } else if(e->type & MOUSE_MOTION_EVENT && e->buttonRight 
+            && (e->keys[KEY_LCONTROL] || e->keys[KEY_RCONTROL]) && zooming) {
+        float p2y = e->y;
+        c->zoom += zoomFactor*(p2y - p1y)/c->screenH;
+        p1y = p2y;
+    } else if(e->type & MOUSE_MOTION_EVENT && e->buttonRight 
+            && (e->keys[KEY_LSHIFT] || e->keys[KEY_RSHIFT]) && moving) {
+        float p2x = e->x;
+        float p2y = c->screenH - e->y;
+        //TODO considerar aspect ratio e zoom
+        float dx = c->zoom*panFactor*(p2x - p1x)/c->screenW;
+        float dy = c->zoom*panFactor*(p2y - p1y)/c->screenH;
+
+        mat4 m;
+        ToMatrixq(c->orientation, m);
+        
+        c->pivot[0] += dx*m[0] + dy*m[1]; 
+        c->pivot[1] += dx*m[4] + dy*m[5]; 
+        c->pivot[2] += dx*m[8] + dy*m[9]; 
     } else if(e->keys[KEY_1]) {
         //FRONT
         vec3 v = {0.0, 0.0, 0.0};
@@ -282,9 +317,12 @@ static void trackballUpdate(Camera *c, event *e, double *dt) {
         FromAxisAngle(v, M_PI_2, c->orientation);
     }
 
-    mat4 t;
-    Identity(t);
-    Translatef(t, -c->pos[0], -c->pos[1], -c->pos[2]);
+    mat4 z, p;
+    Identity(z);
+    Identity(p);
+    Translatef(z, 0.0, 0.0, -c->zoom);
+    Translatef(p, -c->pivot[0], -c->pivot[1], -c->pivot[2]);
     ToMatrixq(c->orientation, c->mview);
-    Multm(c->mview, t, c->mview);
+    Multm(c->mview, z, c->mview);
+    Multm(c->mview, c->mview, p);
 }

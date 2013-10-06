@@ -31,15 +31,52 @@
 //1. speed para rotação e translação deveriam ser globais e modificáveis
 //   de algum modo.
 //2.
-//
+
+/**
+ *  Notas sobre a FPS
+ *  1. O vetor UP utilizado sempre é igual o Y do espaço do mundo (0, 1, 0);
+ *
+ **/
+
 //TODO TRACKBALL
 //1. Zoom
 //   1.1. Mouse wheel
-//   1.2. translate?
+//2. Pan
 
-//FIXME List 
-//
-//typedef enum _cameratype { FPS, TRACKBALL } CameraType;
+/**
+ *  Notas sobre a TRACKBALL.
+ *  1. Para posicionar corretamente a cena, utiliza-se a variável
+ *  _zoom_, que é exatamente a distancia da camera à cena.
+ *  A composição final da matriz view da camera TRACKBALL será:
+ *  Z*R*P;
+ *      Z -> translação do _zoom_ (apenas distancia a camera da cena)
+ *      R -> orientação da camera, expressa pelo quaternion dela
+ *      P -> translação em relação ao pivot, ponto para onde a camera olha,
+ *           o centro ao redor do qual a camera realiza suas rotações
+ *
+ *
+ *  2. No pan da TRACKBALL os eixos da para mudar o pivot são
+ *  retirados da VIEW
+ *      |X0  Y0  Z0  P0|
+ *      |X1  Y1  Z1  P1|
+ *  M = |X2  Y2  Z2  P2|
+ *      |-   -   -   - |
+ *
+ *  Como a VIEW da camera representa o oposto da orientação que será
+ *  aplicada no mundo, essa matriz precisa ser invertida pra obter
+ *  os eixos em coordandas do mundo. Como apenas rotações são aplicadas
+ *  nessa matriz, ela é ortonormal e sua inversa será igual à transposta.
+ *
+ *         |X0  X1  X2  -|
+ *         |Y0  Y1  Y2  -|
+ *  M^-1 = |Z0  Z1  Z2  -|
+ *         |P0  P1  P2  -|
+ *
+ *
+ *  O eixo X da camera no mundo então será M[0, 4, 8] e Y será M[1, 5, 9]
+ *  (column-major order).
+ *
+ **/
 
 enum cameratype { FPS, TRACKBALL };
 enum projectionType { PERSPECTIVE, ORTHO };
@@ -47,7 +84,7 @@ typedef struct _camera Camera;
 
 //TODO mudar o nome de view para look
 struct _camera{
-    vec3 pos, view, up;
+    vec3 pos, view, up, pivot;
     quat orientation;
     void (*update)(Camera *c, event *e, double *dt);
     int ctype, ptype;
@@ -55,6 +92,7 @@ struct _camera{
     mat4 mview, mprojection;
     float fovy;
     float znear, zfar;
+    float zoom;
 };
 
 //Mover

@@ -258,6 +258,10 @@ static int getKeyCode(int key){
 		case XK_9:	ret = KEY_9; break;
 		case XK_period:	ret = KEY_period; break;
 		case XK_minus:	ret = KEY_minus; break;
+		case XK_Control_L:	ret = KEY_LCONTROL; break;
+		case XK_Control_R:	ret = KEY_RCONTROL; break;
+		case XK_Shift_L:	ret = KEY_LSHIFT; break;
+		case XK_Shift_R:	ret = KEY_RSHIFT; break;
 	}
 	return ret;
 }
