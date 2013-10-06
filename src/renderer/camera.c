@@ -275,6 +275,7 @@ static void trackballUpdate(Camera *c, event *e, double *dt) {
     } else if(e->type & MOUSE_BUTTON_RELEASE) {
         spinning = 0;
         zooming = 0;
+        moving = 0;
     } else if(e->type & MOUSE_MOTION_EVENT && e->buttonRight && spinning) {
         quat q;
         float p2x = e->x, p2y = e->y;
