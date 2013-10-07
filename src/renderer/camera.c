@@ -14,7 +14,7 @@
 #endif
 
 static float zoomFactor = 5.0;
-static float panFactor = 0.1;
+static float panFactor = 0.01;
 
 
 /*

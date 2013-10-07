@@ -44,6 +44,8 @@
 ^tools/shadowcornell/objs_optimized
 ^tools/failsynth/deps_optimized
 ^tools/failsynth/objs_optimized
+^tools/camera/deps_optimized
+^tools/camera/objs_optimized
 ^tools/uomap
 
 .*.*.DS_Store
