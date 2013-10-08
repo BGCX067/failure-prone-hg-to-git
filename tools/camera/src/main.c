@@ -172,6 +172,11 @@ int Update(event* e, double *dt){
 
     SetView(c.mview);
 
+
+    if(e->type & MOUSE_BUTTON_PRESS) {
+       printf("wheel: %d\n", e->wheel); 
+    }
+
     return 1;
 }
 

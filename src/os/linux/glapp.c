@@ -283,6 +283,7 @@ void MainLoop(){
 	//setMouse(app->width/2, app->height/2);
 	while(1){
         evt.type = NO_EVENT;
+        evt.wheel = 0;
 		while(XPending(display)){
 			XEvent  event;
 			XNextEvent(display,  &event);
@@ -315,6 +316,13 @@ void MainLoop(){
 						evt.type |= MOUSE_MOTION_EVENT;
 					}
 					break;
+                /**
+                 * FIXME:
+                 * No X eventos de mousewheel são tratados como ButtonPress.
+                 * Logo ao mesmo tempo é feito um evento de ButtonRelease (?)
+                 * No enum de buttons, BUTTON_UP e BUTTON_DOWN correspondem ao
+                 * que o X utiliza para WHEEL_UP e WHEEL_DOWN
+                 **/
 				case ButtonPress:
 					evt.button |= 1 << (event.xbutton.button - 1);
                     evt.type |= MOUSE_BUTTON_PRESS;
@@ -324,10 +332,20 @@ void MainLoop(){
 						evt.buttonLeft = 1;
 					else if (event.xbutton.button == 3)
 						evt.buttonRight = 1;
+                    else if (event.xbutton.button == 4) {
+                        evt.wheel = 1;
+                        evt.type &= ~MOUSE_BUTTON_PRESS;
+                        evt.type |= MOUSE_WHEEL;
+                    } else if (event.xbutton.button == 5) {
+                        evt.wheel = -1;
+                        evt.type &= ~MOUSE_BUTTON_PRESS;
+                        evt.type |= MOUSE_WHEEL;
+                    }
 					break;
 				case ButtonRelease:
 					evt.button  &= ~( 1 <<event.xbutton.button - 1  );
-					evt.type |= MOUSE_BUTTON_RELEASE;
+                    if((event.xbutton.button != 4) && (event.xbutton.button != 5))
+                        evt.type |= MOUSE_BUTTON_RELEASE;
 					evt.buttonLeft = 0;
 					evt.buttonRight = 0;
                     evt.x = event.xbutton.x;

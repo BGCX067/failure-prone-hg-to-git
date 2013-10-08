@@ -14,6 +14,7 @@
 #endif
 
 static float zoomFactor = 5.0;
+static float zoomWheelFactor = 0.5;
 static float panFactor = 0.01;
 
 
@@ -290,7 +291,9 @@ static void trackballUpdate(Camera *c, event *e, double *dt) {
         float p2y = e->y;
         c->zoom += zoomFactor*(p2y - p1y)/c->screenH;
         p1y = p2y;
-    } else if(e->type & MOUSE_MOTION_EVENT && e->buttonRight 
+    } else if(e->type & MOUSE_WHEEL) {
+        c->zoom -= zoomWheelFactor*e->wheel;
+    }else if(e->type & MOUSE_MOTION_EVENT && e->buttonRight 
             && (e->keys[KEY_LSHIFT] || e->keys[KEY_RSHIFT]) && moving) {
         float p2x = e->x;
         float p2y = c->screenH - e->y;

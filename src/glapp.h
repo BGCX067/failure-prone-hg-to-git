@@ -19,7 +19,8 @@ enum {
     MOUSE_MOTION_EVENT = 1 << 2,
     MOUSE_BUTTON_EVENT = 1 << 3,
     MOUSE_BUTTON_PRESS = 1 << 4,
-    MOUSE_BUTTON_RELEASE = 1 << 5
+    MOUSE_BUTTON_RELEASE = 1 << 5,
+    MOUSE_WHEEL = 1 << 6,
 };
 
 /* enum para as keys do evento */
@@ -103,7 +104,7 @@ enum{
 	BUTTON_MIDDLE = 1 << 1,
 	BUTTON_RIGHT = 1 << 2,
 	BUTTON_UP = 1 << 3,
-	BUTTON_DOWN = 1 << 4
+	BUTTON_DOWN = 1 << 4,
 };
 
 typedef struct _event {
@@ -111,6 +112,7 @@ typedef struct _event {
     int keys[512];
     int buttonLeft;
     int buttonRight;
+    int wheel;
     int button;
     int x, y;
 }event;

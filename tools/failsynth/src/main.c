@@ -33,6 +33,7 @@ typedef struct MeshGrammar {
     Rule *entry;
     int rcount;
     Rule **rlist;
+    int depth;
 }MeshGrammar;
 
 Scene* cena;
@@ -40,12 +41,11 @@ Camera c;
 Shader *material;
 
 
-
 //Coordinate axis
 Shader *colorshdr;
 Batch *coordaxis;
 
-int drawCenterOfRoation = 0;
+int drawCenterOfRoation = 1;
 
 void createCoordAxis();
 
@@ -54,7 +54,7 @@ void createCoordAxis();
 //1. More shapes
 //4. camera functions for better visualization
 MeshGrammar *loadFromFile(const char *path);
-Scene *GenScnSynth(MeshGrammar *g, int depth);
+Scene *GenScnSynth(MeshGrammar *g);
 
 void initializeGame(){
     srand(time(0));
@@ -63,7 +63,7 @@ void initializeGame(){
     SetZfar(&c, 1000.0);
     SetProjection(c.mprojection);
     //Setvf(c.pos, 0.0, 0.0, 3.0);
-    c.zoom = 3.0;
+    c.zoom = 100.0;
 
     createCoordAxis();
 
@@ -77,17 +77,10 @@ void initializeGame(){
     float khakiShininess = 12.5;
     material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
 
-    int depth = 100;
     //MeshGrammar *g = loadFromFile("data/spiral.xml");
-    //MeshGrammar *g = loadFromFile("data/2.xml");
+    MeshGrammar *g = loadFromFile("data/2.xml");
     //MeshGrammar* g = loadFromFile("data/3.xml");
-    //cena = GenScnSynth(g, depth);
-    
-    cena = InitializeScene();
-    Mesh *shortBox = CreateBox(1.0, 1.0, 1.0);
-    Node *shortBoxNode = AddMesh(cena, shortBox);
-    shortBoxNode->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color);
-
+    cena = GenScnSynth(g);
 }
 
 int Render(event *e, double* dt){
@@ -97,9 +90,6 @@ int Render(event *e, double* dt){
 
     //Draw the coordinate axis
     glDisable(GL_DEPTH_TEST);
-    BindShader(colorshdr);
-    Draw(coordaxis);
-
     if(drawCenterOfRoation) {
         Translatef(c.mview, c.pivot[0], c.pivot[1], c.pivot[2]);
         SetView(c.mview);
@@ -115,33 +105,7 @@ int Render(event *e, double* dt){
 //TODO automatizar o uso da camera
 int Update(event* e, double *dt){
     c.update(&c, e, dt);
-
-    //printf("--------------------------------\n");
-    //for(int i = 0; i < 4; i++) {
-    //    printf("%f\t%f\t%f\t%f\n", c.mview[i], c.mview[i+4], c.mview[i+8], c.mview[i+12]);
-    //}
-    //printf("c.pos = %f, %f, %f\n", c.pos[0], c.pos[1], c.pos[2]);
-    mat4 m;
-    ToMatrixq(c.orientation, m);
-    
-    //printf("--------------------------------\n");
-    Inverse(m, m);
-    //for(int i = 0; i < 4; i++) {
-    //    printf("%f\t%f\t%f\t%f\n", m[i], m[i+4], m[i+8], m[i+12]);
-    //}
-    float cpos[4] = {-c.mview[12], -c.mview[13], -c.mview[14], 1.0};
-    //printf("cpos = %f, %f, %f\n", c.pos[0], c.pos[1], c.pos[2]);
-    float newpos[4];
-    Multmv(m, cpos, newpos);
-    //printf("newpos = %f, %f, %f, %f\n", newpos[0], newpos[1], newpos[2], newpos[3]);
-    vec3 lookat = {-newpos[0], -newpos[1], -newpos[2] };
-    //printf("lookat = %f, %f, %f\n", lookat[0], lookat[1], lookat[2]);
-
     SetView(c.mview);
-
-
-    if(e->keys[KEY_c])
-        drawCenterOfRoation = !drawCenterOfRoation;
 
     return 1;
 }
@@ -234,6 +198,7 @@ MeshGrammar *loadFromFile(const char *path) {
 	}
 
     MeshGrammar *g = malloc(sizeof(MeshGrammar));
+    g->depth = atof(ezxml_attr(gxml, "max_depth"));
     //Contar quantas rules diferentes da tag tem e associar o nome a um int
     int rulescount = 0;
 	for (ezxml_t rtag = ezxml_child(gxml, "rule" ); rtag; rtag = rtag->next ){
@@ -402,15 +367,14 @@ void processRule(Rule *r, mat4 t, MeshGrammar *g, Node *parent, int depth) {
     }
 }
 
-Scene *GenScnSynth(MeshGrammar *g, int depth) {
+Scene *GenScnSynth(MeshGrammar *g) {
     Scene *s = InitializeScene();
 
     mat4 m;
     Identity(m);
-    processRule(g->entry, m, g, s->root, depth);
+    processRule(g->entry, m, g, s->root, g->depth);
     return s;
 }
-
 
 //Creates a small coordinate axis to help testing some stuff
 void createCoordAxis() {
