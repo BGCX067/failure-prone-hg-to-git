@@ -46,6 +46,8 @@
 ^tools/failsynth/objs_optimized
 ^tools/camera/deps_optimized
 ^tools/camera/objs_optimized
+^tools/halfedge/deps_optimized
+^tools/halfedge/objs_optimized
 ^tools/uomap
 
 .*.*.DS_Store
