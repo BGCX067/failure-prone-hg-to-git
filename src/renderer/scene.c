@@ -141,7 +141,8 @@ Scene* InitializeScene(){
 static void renderNode(Node *n, mat4 t) {
     mat4 tres, lres;
     Multm(tres, t, n->transform);
-    Multm(lres, t, n->ltransform);
+    Multm(lres, n->transform, n->ltransform);
+    Multm(lres, t, lres);
     SetModel(lres);
     BindShader(n->material);
     if(n->mesh)

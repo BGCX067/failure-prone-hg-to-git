@@ -7,6 +7,7 @@
  *      1. Merge Edge and HalfEdge structs
  **/
 
+typedef struct hescene HEScene;
 typedef struct hemesh HEMesh;
 typedef struct heface HEFace;
 typedef struct heloop HELoop;
@@ -14,8 +15,14 @@ typedef struct heedge HEEdge;
 typedef struct hehalfedge HEHalfEdge;
 typedef struct hevertex HEVertex;
 
+struct hescene {
+    int nummeshes;
+    HEMesh *meshes;
+};
+
 struct hemesh {
-    unsigned int id;
+    int id;
+    int numfaces, numedges, numvertices;
     HEFace *faces;
     HEEdge *edges;
     HEVertex *vertices;
@@ -24,26 +31,26 @@ struct hemesh {
 };
 
 struct heface {
-    unsigned int id;
-    HEMesh *fmesh; //back pointer to mesh
-    HELoop *flout; //pointer to the outter loop of the face
+    int id;
+    HEMesh *mesh; //back pointer to mesh
+    HELoop *lout; //pointer to the outter loop of the face
     HELoop *loops; //list of loops
     HEFace *prev, *next;
 };
 
 struct heloop {
-    HEHalfEdge *ledge;
-    HEFace *lface;
+    HEHalfEdge *hedge;
+    HEFace *face;
     HELoop *prev, *next;
 };
 
 struct heedge {
+    int id;
     HEHalfEdge *he1, *he2;
     HEEdge *prev, *next;
 };
 
 struct hehalfedge {
-    unsigned int id;
     HEEdge *edge;
     HEVertex *vertex;
     HELoop *loop;
@@ -51,14 +58,16 @@ struct hehalfedge {
 };
 
 struct hevertex {
-    unsigned int id;
-    HEHalfEdge *vedge; //ponteiro pra he que sai desse vertice
-    float vcoord[3];
+    int id;
+    HEHalfEdge *hedge; //ponteiro pra he que sai desse vertice
+    float coord[3];
     HEVertex *prev, *next;
 };
 
 inline HEHalfEdge *HEMate(HEHalfEdge *he) {
     return (he == he->edge->he1) ? he->edge->he2 : he->edge->he1; 
 }
+
+HEMesh *HECreateTriangle();
 
 #endif
