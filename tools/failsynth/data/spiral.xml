@@ -5,7 +5,7 @@
     </rule>
     <rule name="spiral" weight="100">
         <instance shape="tubey"/>
-        <call transforms="ty 0.4 rx 0.5 sa 0.995" rule="spiral"/>
+        <call transforms="ty 0.4 rx 5 sa 0.995" rule="spiral"/>
     </rule>
     <rule name="spiral" weight="100">
         <instance shape="tubey"/>
@@ -13,7 +13,7 @@
     </rule>
     <rule name="spiral" weight="100">
         <instance shape="tubey"/>
-        <call transforms="ty 0.4 rx 0.5 rz -0.5 sa 0.995" rule="spiral"/>
+        <call transforms="ty 0.4 rx 5 rz -0.5 sa 0.995" rule="spiral"/>
     </rule>
     <rule name="spiral" weight="6">
         <call transforms="rx 25" rule="spiral"/>

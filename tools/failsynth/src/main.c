@@ -77,8 +77,8 @@ void initializeGame(){
     float khakiShininess = 12.5;
     material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
 
-    //MeshGrammar *g = loadFromFile("data/spiral.xml");
-    MeshGrammar *g = loadFromFile("data/2.xml");
+    MeshGrammar *g = loadFromFile("data/spiral.xml");
+    //MeshGrammar *g = loadFromFile("data/2.xml");
     //MeshGrammar* g = loadFromFile("data/3.xml");
     cena = GenScnSynth(g);
 }

@@ -3,7 +3,13 @@
 
 
 /**
- *  TODO:
+ *  TODO HP:
+ *      1. Sweeping
+ *      2. Face split
+ *      3. Primitives
+ *
+ *
+ *  TODO LP:
  *      1. Merge Edge and HalfEdge structs
  **/
 
