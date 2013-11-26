@@ -18,6 +18,35 @@ HEMesh *HECreateTriangle() {
     return t;
 }
 
+HEMesh *HECreateQuad() {
+    HEMesh *q = mvfs(1, -1.0, -1.0, 0.0);
+    smev(q, 0, 0, 1.0, -1.0, 0.0);
+    smev(q, 0, 1, 1.0, 1.0, 0.0);
+    smev(q, 0, 2, -1.0, 1.0, 0.0);
+    smef(q, 0, 3, 0);
+
+    return q;
+}
+
+HEMesh *HECreateCube() {
+    HEMesh *c = mvfs(1, -1.0, -1.0, 0.0);
+    smev(c, 0, 0, 1.0, -1.0, 0.0);
+    smev(c, 0, 1, 1.0, 1.0, 0.0);
+    smev(c, 0, 2, -1.0, 1.0, 0.0);
+    smef(c, 0, 3, 0);
+
+    smev(c, 1, 0, -1.0, -1.0, -1.0);
+    smev(c, 1, 1, 1.0, -1.0, -1.0);
+    smev(c, 1, 2, 1.0, 1.0, -1.0);
+    smev(c, 1, 3, -1.0, 1.0, -1.0);
+
+    smef(c, 1, 4, 5);
+    smef(c, 2, 5, 6);
+    smef(c, 3, 6, 7);
+    smef(c, 4, 7, 4);
+
+    return c;
+}
 
 typedef enum { PLUS, MINUS }HESign;
 
@@ -106,8 +135,8 @@ static void lmev(HEHalfEdge *he1, HEHalfEdge *he2,
         he = HEMate(he)->next;
     }
 
-    addhe(e, he2->vertex, he1, PLUS);
-    addhe(e, v, he2, MINUS);
+    addhe(e, he2->vertex, he1, MINUS);
+    addhe(e, v, he2, PLUS);
 
     v->hedge = he2->prev;
     he2->vertex->hedge = he2;

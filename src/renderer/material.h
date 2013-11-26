@@ -7,6 +7,7 @@
 //1. Shader* PhongShader(ka, kd, ks, shininess, lightpos, lightcolor);
 //
 Shader* PhongMaterial(vec3 ka, vec3 kd, vec3 ks, float shininess, vec3 lightpos, vec3 lightcolor);
+Shader* ShadowPhongMaterial(vec3 ka, vec3 kd, vec3 ks, float shininess, vec3 lightpos, vec3 lightcolor);
 Shader* AtmosphereMaterial();
 //enum MATERIAL_TYPE {
 //    CUSTOM, PHONG,

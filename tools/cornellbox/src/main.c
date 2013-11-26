@@ -105,7 +105,6 @@ int Update(event* e, double *dt){
     c.update(&c, e, dt);
     SetView(c.mview);
 
-
 /*    if(e->keys[KEY_z]) { 
         AddChildNode(shortBoxNode, shortestBoxNode);
         Identity(shortestBoxNode->transform);
@@ -119,8 +118,6 @@ int Update(event* e, double *dt){
     } else if (e->keys[KEY_v]) {
         Translatef(shortBoxNode->transform, +0.05, 0.0, 0.0);
     }*/
-
-
     return 1;
 }
 

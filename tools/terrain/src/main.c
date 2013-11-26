@@ -117,7 +117,7 @@ void generateTerrain(TerrainParam* root, int sizex, int sizey){
     AddIndices(tMesh, (sizex - 1)*(sizey - 1)*2*3, indices);
     AddNormals(tMesh, sizex*sizey*3, 3, normals);
     PrepareMesh(tMesh);
-    AddMesh(cena, tMesh);
+    Node *tNode = AddMesh(cena, tMesh);
 
     vec3 ka = {0.2, 0.4, 0.2};
     vec3 kd = {0.2, 0.4, 0.2};
@@ -125,7 +125,7 @@ void generateTerrain(TerrainParam* root, int sizex, int sizey){
     float shininess = 12.0;
     vec3 lightpos = {256, 100, 256};
     vec3 lightcolor = {1.0, 1.0, 1.0};
-    tMesh->material = PhongMaterial(ka, kd, ks, shininess, lightpos, lightcolor);
+    tNode->material = PhongMaterial(ka, kd, ks, shininess, lightpos, lightcolor);
     free(vertices);
     free(normals);
     //free(indices);
@@ -210,9 +210,9 @@ void generateSkyDome(int ndiv, float radius) {
     AddIndices(m, ntris*3, indices);
     AddNormals(m, ntris*3*3, 3, normals);
     PrepareMesh(m);
-    AddMesh(cena, m);
+    Node *skyNode = AddMesh(cena, m);
 
-    m->material = AtmosphereMaterial();
+    skyNode->material = AtmosphereMaterial();
 
     free(vertices);
     free(normals);
@@ -226,7 +226,7 @@ void InitializeGame(){
     CamInit(&c, GetScreenW(), GetScreenH(), TRACKBALL, PERSPECTIVE);
     SetZfar(&c, 2000.0);  
     SetProjection(c.mprojection);
-    Setvf(c.pos, 256.0, 0.0, 1024.0);
+    c.zoom = 5.0;
 
     menux = menuy = 0;
     tMesh = InitMesh();
@@ -241,16 +241,16 @@ void InitializeGame(){
 
   //  stbi_write_tga("noise.tga", 512, 512, 1, terrainbmp );
 
-    char *vertshader = ReadTextFile("data/shaders/phong.vert");
-    char *fragshader = ReadTextFile("data/shaders/phong.frag");
-    shdr = InitializeShader(NULL, vertshader, fragshader); 
-    free(vertshader);
-    free(fragshader);
+    //char *vertshader = ReadTextFile("data/shaders/phong.vert");
+    //char *fragshader = ReadTextFile("data/shaders/phong.frag");
+    //shdr = InitializeShader(NULL, vertshader, fragshader); 
+    //free(vertshader);
+    //free(fragshader);
 
     l.pos[0]= 256.0; l.pos[1] = 10.0; l.pos[2] = 256.0;
     
     //mat = colorMaterialDir();
-    //glPolygonMode(GL_BACK, GL_LINE);
+    glPolygonMode(GL_BACK, GL_LINE);
 }
 
 void Update(event* e, double* dt){
@@ -264,13 +264,14 @@ void Render(event *e, double* dt){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //Desenhar cena
-    Mesh *it;
+    DrawScene(cena);
+    /*Mesh *it;
     DL_FOREACH(cena->meshList, it) {
 	SetModel(it->transform);
         BindShader(it->material);
         DrawIndexedVAO(it->vaoId, it->indicesCount, GL_TRIANGLES);
 	i++;
-    }
+    }*/
 
     BeginGUI(e);
 	DrawGUINode();

@@ -122,7 +122,12 @@ Scene* InitializeScene(){
 	memset(s, 0, sizeof(Scene));
 
     s->root = malloc(sizeof(Node));
+    s->root->material = NULL;
+    s->root->mesh = NULL;
+    Identity(s->root->transform);
+    Identity(s->root->ltransform);
     s->root->children = NULL;
+    s->root->parent = NULL;
     
     //TODO animatedmeshlist
     s->mInfos = NULL;

@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include "math/mathutil.h"
 #include <math.h>
+#include "halfedge.h"
 
 Scene* cena;
 Camera c;
@@ -27,7 +28,6 @@ Batch *coordaxis;
 int drawCenterOfRoation = 1;
 void createCoordAxis();
 
-
 //GUI
 char cposstr[64];
 char cpivotstr[64];
@@ -37,6 +37,10 @@ char fovystr[16];
 char zfarstr[16];
 char znearstr[16];
 
+//Helper functions
+Mesh *HEMeshToMesh(HEMesh *hem);
+
+//Polygon Triangulation Related
 typedef struct vert {
     int id;
     double coord[2];
@@ -44,8 +48,6 @@ typedef struct vert {
     struct vert *next, *prev;
 } VertexNode2D;
 
-
-//Helper functions
 double TriangleArea2D(double a[2], double b[2], double c[2]) {
     return (b[0] - a[0])*(c[1] - a[1]) - (c[0] - a[0])*(b[1] - a[1]);
 }
@@ -180,6 +182,7 @@ int* EarClipTriangulate(VertexNode2D *vertices, int n) {
             v2 = v2->next;
         }while(v2 != vertices);
     }
+    printf("ultimo triangle\n");
     //os 3 últimos vertices representam o utlimo triangulo
     triangles[tindex] = vertices->id;
     triangles[tindex + 1] = vertices->next->id;
@@ -242,7 +245,7 @@ int* PolygonTriangulation(double *vertices, int nverts) {
 }
 
 void initializeGame(){
-    InitializeGUI(GetScreenW(), GetScreenH());
+    //InitializeGUI(GetScreenW(), GetScreenH());
     //CamInit(&c, GetScreenW(), GetScreenH(), FPS, PERSPECTIVE); 
     CamInit(&c, GetScreenW(), GetScreenH(), TRACKBALL, PERSPECTIVE); 
     SetZfar(&c, 1000.0);
@@ -264,17 +267,21 @@ void initializeGame(){
 
     cena = InitializeScene();
     Mesh *shortBox = CreateBox(1.0, 1.0, 1.0);
-    Node *shortBoxNode = AddMesh(cena, shortBox);
-    shortBoxNode->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color);
+    //Node *shortBoxNode = AddMesh(cena, shortBox);
+    //shortBoxNode->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color);
 
     //int nverts = 10;
     //double vertices[30] = { 0.0, 0.5, 0.0, 0.3, 0.0, 0.0, 0.5, 0.5, 0.0, 0.7, 0.0, 0.0, 1.0, 0.8, 0.0, 0.75, 0.75, 0.0, 0.45, 1.0, 0.0, 0.31, 0.5, 0.0, 0.25, 0.55, 0.0, 0.29, 0.8, 0.0};
-    int nverts = 3;
-    double vertices[9] = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0};
-    int *triangles = PolygonTriangulation(vertices, nverts);
-    for(int i = 0; i < nverts - 2; i++)
-        printf("triangle %d: %d, %d, %d\n", i, triangles[3*i], triangles[3*i + 1], triangles[3*i + 2]);
+    //int nverts = 3;
+    //double vertices[9] = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0};
+    //int *triangles = PolygonTriangulation(vertices, nverts);
+    //for(int i = 0; i < nverts - 2; i++)
+    //    printf("triangle %d: %d, %d, %d\n", i, triangles[3*i], triangles[3*i + 1], triangles[3*i + 2]);
     
+    HEMesh *hem = HECreateCube();
+    Mesh *heobj = HEMeshToMesh(hem);
+    Node *heobjNode = AddMesh(cena, heobj);
+    heobjNode->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color);
 }
 
 int gamebutton = 0;
@@ -298,7 +305,7 @@ int Render(event *e, double* dt){
     glEnable(GL_DEPTH_TEST);
     
     
-    Rect r1 = { 10.0, 575.0, 0.0, 0.0};
+    /*Rect r1 = { 10.0, 575.0, 0.0, 0.0};
     BeginGUI(e);
         DoToggleButton(1, &r1, "Camera", &gamebutton);
       
@@ -320,7 +327,7 @@ int Render(event *e, double* dt){
             DoLabel(20, 390, zfarstr);
             EndMenu(6, 10, 223, 370, 350, &menux1, &menux2);        
         }
-    EndGUI();
+    EndGUI();*/
 
     glFlush();
     return 1;
@@ -456,4 +463,113 @@ void createCoordAxis() {
         Color4f(coordaxis, 0.0, 0.0, 1.0, 0.0);
         Vertex3f(coordaxis, 0.0, 0.0, 1.0);
     End(coordaxis);   
+}
+
+bool debug = false;
+
+int  countVerticesFace(HEHalfEdge *h) {
+    int nvf = 0;
+    HEHalfEdge *he = h;
+    do {
+        nvf++;
+        HEVertex *v = he->vertex;
+        if(debug)
+            printf("\tvisitando vertice: v%d\n", v->id);
+    } while((he = he->next) != h);
+    return nvf;
+}
+
+void countVerticesIndices(HEMesh *hem, int *nv, int *ni) {
+    HEFace *fit;
+    DL_FOREACH(hem->faces, fit) {
+        if(debug)
+            printf("visitando a face: f%d\n", fit->id);
+        HELoop *l = fit->lout;
+        int nvf = countVerticesFace(l->hedge);
+        *nv += nvf;
+        //number of triangles created in that face is nvf - 2
+        *ni += 3*(nvf - 2);
+        //do {
+        //    nvf++;
+        //    HEVertex *v = he->vertex;
+        //    printf("\tvisitando vertice: v%d\n", v->id);
+        //} while((he = he->next) != l->hedge);
+    }
+}
+
+Mesh *HEMeshToMesh(HEMesh *hem) {
+    debug = false;
+    //number of vertices (same as number of normals) and number of indices
+    int nv = 0, ni = 0;
+    countVerticesIndices(hem, &nv, &ni);
+    
+    float *vertices = malloc(sizeof(float)*nv*3);
+    float *normals = malloc(sizeof(float)*nv*3);
+    unsigned int *indices = malloc(sizeof(unsigned int)*ni*3);
+    
+    debug = true;
+    if(debug)
+        printf("number of vertices: %d\nnumber of indices: %d\n", nv, ni); 
+    
+    int vc = 0, tc = 0, indexacc = 0;
+    HEFace *fit;
+    DL_FOREACH(hem->faces, fit) {
+        HELoop *l = fit->lout;
+        debug = false;
+        int nvf = countVerticesFace(l->hedge);
+        debug = true;
+        if(debug)
+            printf("visitando a face: f%d, nvf: %d\n", fit->id, nvf);
+        //com a linha poligonal, triangulariza a face
+        double *polyface = malloc(sizeof(double)*nvf*3);
+        int i = 0;
+        HEHalfEdge *he = l->hedge;
+        do {
+            HEVertex *v = he->vertex;
+            polyface[3*i] = v->coord[0];
+            polyface[3*i + 1] = v->coord[1];
+            polyface[3*i + 2] = v->coord[2];
+
+            vertices[3*vc] = v->coord[0];
+            vertices[3*vc + 1] = v->coord[1];
+            vertices[3*vc + 2] = v->coord[2];
+            
+            if(debug)
+                printf("\tvisitando vertice: v%d\n", v->id);
+
+            i++; vc++;
+        } while((he = he->next) != l->hedge);
+
+        int *tris = PolygonTriangulation(polyface, nvf);
+        for(int j = 0; j < nvf - 2; j++) {
+            indices[3*tc] = indexacc + tris[3*j];
+            indices[3*tc + 1] = indexacc + tris[3*j + 1];
+            indices[3*tc + 2] = indexacc + tris[3*j + 2];
+            tc++;
+        }
+        indexacc += nvf;
+        free(polyface);
+        free(tris);
+    }
+    if(debug)
+        printf("tc: %d, vc: %d, indexacc: %d\n", tc, vc, indexacc);
+
+    if(debug)
+        for(int i = 0; i < tc; i++) 
+            printf("t%d: (%d, %d, %d)\n", i, indices[3*i], indices[3*i + 1], indices[3*i + 2]);
+    
+    Mesh *m = InitMesh();
+    for(int i = 0; i < 3*vc; i++)
+        normals[i] = 0.0;
+    SetNormals(indices, vertices, normals, tc, vc);
+    AddVertices(m, 3*vc, 3, vertices);
+    AddNormals(m, 3*vc, 3, normals);
+    AddIndices(m, 3*tc, indices);
+    PrepareMesh(m);
+    
+    free(vertices);
+    free(normals);
+    free(indices);
+
+    return m;
 }

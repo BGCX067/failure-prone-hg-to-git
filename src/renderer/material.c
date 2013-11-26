@@ -22,8 +22,23 @@ Shader* PhongMaterial(vec3 ka, vec3 kd, vec3 ks, float shininess, vec3 lightpos,
     return shdr;
 }
 
-Shader* AtmosphereMaterial(){
+Shader* ShadowPhongMaterial(vec3 ka, vec3 kd, vec3 ks, float shininess, vec3 lightpos, vec3 lightcolor) {
+    char* vertsrc = ReadTextFile("data/shaders/shadowsecondpass.vert");
+    char* fragsrc = ReadTextFile("data/shaders/shadowsecondpass.frag"); 
+    Shader *shdr = InitializeShader(NULL, vertsrc, fragsrc);
+    free(vertsrc);
+    free(fragsrc);
+    SetShaderConstant(shdr, "ka", ka);
+    SetShaderConstant(shdr, "kd", kd);
+    SetShaderConstant(shdr, "ks", ks);
+    SetShaderConstant(shdr, "shininess", &shininess);
+    SetShaderConstant(shdr, "LightPosition", lightpos);
+    SetShaderConstant(shdr, "LightColor", lightcolor);
 
+    return shdr; 
+}
+
+Shader* AtmosphereMaterial(){
     char *vertshader = ReadTextFile("data/shaders/skyfromatmosphere.vert");
     char *fragshader = ReadTextFile("data/shaders/skyfromatmosphere.frag");
     Shader *shdr = InitializeShader(NULL, vertshader, fragshader);
