@@ -7,6 +7,11 @@
 static HEMesh* mvfs(int mid, float x, float y, float z);
 static bool smev(HEMesh *m, int fid, int vid, float x, float y, float z);
 static bool smef(HEMesh *m, int fid, int vid1, int vid2);
+static void sweep(HEFace *f, float dx, float dy, float dz);
+//static HEMesh* getHEMesh(HEMesh *head, int mid); 
+static HEFace* getHEFace(HEMesh *m, int fid); 
+//static HEHalfEdge* getHEd(HEFace *f, int vid1, int vid2); 
+static HEHalfEdge* sgetHEd(HEFace *f, int vid); 
 
 //Highest Level functions
 HEMesh *HECreateTriangle() {
@@ -48,6 +53,21 @@ HEMesh *HECreateCube() {
     return c;
 }
 
+//Ao criar um QUAD, duas faces são geradas, uma ccw e uma cw (front and back,
+//respectivamente). Aplicar um sweeping na face 0 com valor negativo ou um
+//sweeping na face 1 com valor positivo leva a resultados estranhos (cubo com
+//faces na orientação errada).
+HEMesh *HECreateCubeExtrude() {
+    HEMesh *c = mvfs(1, -1.0, -1.0, 0.0);
+    smev(c, 0, 0, 1.0, -1.0, 0.0);
+    smev(c, 0, 1, 1.0, 1.0, 0.0);
+    smev(c, 0, 2, -1.0, 1.0, 0.0);
+    smef(c, 0, 3, 0);
+    
+    sweep(getHEFace(c, 0), 0.0, 0.0, 3.0);
+    return c;
+}
+
 typedef enum { PLUS, MINUS }HESign;
 
 extern inline HEHalfEdge* HEMate(HEHalfEdge *he);
@@ -57,10 +77,6 @@ static HELoop *newHELoop(HEFace *f);
 static HEEdge *newHEEdge(HEMesh *m);
 static HEVertex *newHEVertex(HEMesh *m, float x, float y, float z);
 
-//static HEMesh* getHEMesh(HEMesh *head, int mid); 
-static HEFace* getHEFace(HEMesh *m, int fid); 
-//static HEHalfEdge* getHEd(HEFace *f, int vid1, int vid2); 
-static HEHalfEdge* sgetHEd(HEFace *f, int vid); 
 
 
 static HEHalfEdge* addhe(HEEdge *e, HEVertex *v, HEHalfEdge *h, HESign sign) {
@@ -348,3 +364,20 @@ static HEHalfEdge* sgetHEd(HEFace *f, int vid) {
     return NULL;
 }
 
+
+static void sweep(HEFace *f, float dx, float dy, float dz)  {
+    HELoop *l = f->lout;
+
+    HEHalfEdge *first = l->hedge;
+    HEHalfEdge *scan = first->next;
+    HEVertex *v = scan->vertex;
+
+    lmev(scan, scan, v->coord[0] + dx, v->coord[1] + dy, v->coord[2] + dz);
+    while(scan != first) {
+        v = scan->next->vertex;
+        lmev(scan->next, scan->next, v->coord[0] + dx, v->coord[1] + dy, v->coord[2] + dz);
+        lmef(scan->prev, scan->next->next);
+        scan = HEMate(scan->next)->next;
+    }
+    lmef(scan->prev, scan->next->next);
+}

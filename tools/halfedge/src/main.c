@@ -266,19 +266,8 @@ void initializeGame(){
     material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color); 
 
     cena = InitializeScene();
-    Mesh *shortBox = CreateBox(1.0, 1.0, 1.0);
-    //Node *shortBoxNode = AddMesh(cena, shortBox);
-    //shortBoxNode->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color);
-
-    //int nverts = 10;
-    //double vertices[30] = { 0.0, 0.5, 0.0, 0.3, 0.0, 0.0, 0.5, 0.5, 0.0, 0.7, 0.0, 0.0, 1.0, 0.8, 0.0, 0.75, 0.75, 0.0, 0.45, 1.0, 0.0, 0.31, 0.5, 0.0, 0.25, 0.55, 0.0, 0.29, 0.8, 0.0};
-    //int nverts = 3;
-    //double vertices[9] = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0};
-    //int *triangles = PolygonTriangulation(vertices, nverts);
-    //for(int i = 0; i < nverts - 2; i++)
-    //    printf("triangle %d: %d, %d, %d\n", i, triangles[3*i], triangles[3*i + 1], triangles[3*i + 2]);
     
-    HEMesh *hem = HECreateCube();
+    HEMesh *hem = HECreateCubeExtrude();
     Mesh *heobj = HEMeshToMesh(hem);
     Node *heobjNode = AddMesh(cena, heobj);
     heobjNode->material = PhongMaterial(khakiAmb, khakiDiff, khakiSpec, khakiShininess, l.pos, l.color);
@@ -358,7 +347,6 @@ int Update(event* e, double *dt){
     c.pos[1] = newpos[1];
     c.pos[2] = newpos[2];
     
-    
     /**
      *  Posição da câmera calculada a partir da matriz VIEW.
      **/
@@ -395,10 +383,9 @@ int Update(event* e, double *dt){
 
     SetView(c.mview);
 
-
-    if(e->type & MOUSE_BUTTON_PRESS) {
-       printf("wheel: %d\n", e->wheel); 
-    }
+    //if(e->type & MOUSE_BUTTON_PRESS) {
+    //   printf("wheel: %d\n", e->wheel); 
+    //}
 
     return 1;
 }
@@ -489,11 +476,6 @@ void countVerticesIndices(HEMesh *hem, int *nv, int *ni) {
         *nv += nvf;
         //number of triangles created in that face is nvf - 2
         *ni += 3*(nvf - 2);
-        //do {
-        //    nvf++;
-        //    HEVertex *v = he->vertex;
-        //    printf("\tvisitando vertice: v%d\n", v->id);
-        //} while((he = he->next) != l->hedge);
     }
 }
 
