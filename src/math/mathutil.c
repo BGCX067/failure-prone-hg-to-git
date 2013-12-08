@@ -1,5 +1,7 @@
 #include "mathutil.h"
 #include <math.h>
+#include <stdlib.h>
+#include "utlist.h"
 
 /* Por algum motivo M_PI nao aparece definido em math.h */
 #ifndef M_PI
@@ -76,103 +78,6 @@ int RayTriangleIntersection(vec3 ro, vec3 rd, vec3 va, vec3 vb, vec3 vc, float *
     return 1;
 }
 
-//bool pointInTriangle(float *p, float *v0, float *v1, float *v2) {  
-//}
-
-//Supõe que seja 2D
-//void EarClipTrig(float *vertices, int numvertices) {
-//    //Algoritmo:
-//    //for each Vi and the corresponding triangle V(i-1)ViV(i + 1)
-//    //  test if any other vertice is inside the triangle
-//    //TODO construir lista encadeada de vertices ?
-//    struct vert {
-//        int index;
-//        float coord[3];
-//        struct vert *next, *prev;
-//    };
-//
-//    struct vert* head = malloc(sizeof(struct vert));
-//    head->next = head;
-//    head->prev = head;
-//    head->index = 0;
-//    head->x = vertices[0];
-//    head->y = vertices[1];
-//    struct vert* last = head;
-//    for(int i = 1; i < numvertices; i++) {
-//        struct vert *v = malloc(sizeof())
-//        v->index = i;
-//        v->coord[0] = vertices[2*i];
-//        v->coord[1] = vertices[2*i + 1];
-//        v->coord[2] = 0.0;
-//        v->prev = last;
-//        v->next = head;
-//        last->next = v;
-//        head->prev = v;
-//        last = v;
-//    }
-//
-//    int nvert = numvertices;
-//    struct vert* currv = head;
-//    while (nvert > 3) {
-//        struct vert* v0 = currv;
-//        struct vert* v1 = v0->next;
-//        struct vert* v2 = v1->next;
-//        bool isEar = true;
-//        for(struct vert* it = v1->next; it != v0; it = it->next) {
-//            if(pointInTriangle(it->coord, v0->coord, v1->coord, v2->coord)) {
-//                isEar = false;
-//                break;
-//            }
-//        }
-//        if(isEar) {
-//            //faz triangulo v0v1v2
-//            tris[currtri] = v0->coord[0];
-//            tris[currtri + 1] = v0->coord[1];
-//            tris[currtri + 2] = v1->coord[0];
-//            tris[currtri + 3] = v1->coord[1];
-//            tris[currtri + 4] = v2->coord[0];
-//            tris[currtri + 5] = v2->coord[1];
-//            //remove v1 da lista
-//            v1->prev->next = v1->next;
-//            v1->next->prev = v1->prev;
-//            free(v1);
-//            nvert--;
-//        } 
-//        currv = currv->next;
-//    }
-//    //os 3 vertices restantes formam o ultimo triangulo
-//    tris[currtri] = currv->coord[0];
-//    tris[currtri + 1] = currv->coord[1];
-//    tris[currtri + 2] = (currv->next)->coord[0];
-//    tris[currtri + 3] = (currv->next)->coord[1];
-//    tris[currtri + 4] = (currv->next->next)->coord[0];
-//    tris[currtri + 5] = (currv->next->next)->coord[1];
-//
-//
-//    /*bool clipped[numvertices] { false };
-//    for(int i = 0; i < numvertices; i++) {
-//        bool isEar = true;
-//        //vertices do triangulo: i, i+1, i+2
-//        float v0[3] = { vertices[2*i], vertices[2*i + 1], 0.0};
-//        float v1[3] = { vertices[2*(i + 1)], vertices[2*(i + 1) + 1], 0.0};
-//        float v2[3] = { vertices[2*(i + 2)], vertices[2*(i + 2) + 1], 0.0};
-//        for(int j = (i + 3)%numvertices; j != i; j = (j + 1)%numvertices) {
-//            //ponto pra testar interseção: j
-//            float p[3] = {vertices[2*j], vertices[2*j +1], 0.0};
-//            if(pointInTriangle(p, v0, v1, v2)) {
-//                isEar = false;
-//                break;
-//            }
-//        }
-//        if(isEar) {
-//            //v0, v1, v2 é um triangulo válido.
-//            //remover v1 da lista de vertices e testar de novo com a lista menor 
-//            clipped[vertices[i + 1] = true;
-//        }
-//
-//    }*/
-//}
-
 float DegToRad(float angle) {
     return M_PI*angle/180.0f;
 }
@@ -219,5 +124,210 @@ void BBUnion(BBox *res, BBox b1, BBox b2) {
     res->pmax[0] = b1.pmax[0] > b2.pmax[0] ? b1.pmax[0] : b2.pmax[0];
     res->pmax[1] = b1.pmax[1] > b2.pmax[1] ? b1.pmax[1] : b2.pmax[1];
     res->pmax[2] = b1.pmax[2] > b2.pmax[2] ? b1.pmax[2] : b2.pmax[2];
+}
+
+
+
+double TriangleArea2D(double a[2], double b[2], double c[2]) {
+    return (b[0] - a[0])*(c[1] - a[1]) - (c[0] - a[0])*(b[1] - a[1]);
+}
+
+bool LeftPt2D(double a[2], double b[2], double c[2]) {
+    return DGreater(TriangleArea2D(a, b, c), 0.0, EPS_FLOAT);
+}
+
+bool LeftOnPt2D(double a[2], double b[2], double c[2]) {
+    double area = TriangleArea2D(a, b, c);
+    return DAEqual(area, 0.0, EPS_FLOAT) || DGreater(area, 0.0, EPS_FLOAT);
+}
+
+bool CollinearPt2D(double a[2], double b[2], double c[2]) {
+    return DEqual(TriangleArea2D(a, b, c), 0.0, EPS_FLOAT);
+}
+
+bool IntersectPropLine2D(double a[2], double b[2], double c[2], double d[2]) {
+    //Checks collinearity
+    if(CollinearPt2D(a, b, c) || CollinearPt2D(a, b, d) ||
+       CollinearPt2D(c, d, a) || CollinearPt2D(c, d, b) )
+        return false;
+
+    return (!LeftPt2D(a, b, c) != !LeftPt2D(a, b, d)) && (!LeftPt2D(c, d, a) != !LeftPt2D(c, d, b));
+}
+
+bool BetweenPt2D(double a[2], double b[2], double c[2]) {
+    if(!CollinearPt2D(a, b, c))
+        return false;
+
+    if(!DEqual(a[0], b[0], EPS_FLOAT)) {
+        bool a0lec0 = DEqual(a[0], c[0], EPS_FLOAT) || DLesser(a[0], c[0], EPS_FLOAT);
+        bool c0leb0 = DEqual(c[0], b[0], EPS_FLOAT) || DLesser(c[0], b[0], EPS_FLOAT);
+        bool a0gec0 = DEqual(a[0], c[0], EPS_FLOAT) || DGreater(a[0], c[0], EPS_FLOAT);
+        bool c0geb0 = DEqual(c[0], b[0], EPS_FLOAT) || DGreater(c[0], b[0], EPS_FLOAT);
+        return (a0lec0 && c0leb0) || (a0gec0 && c0geb0);
+    } else {
+        bool a1lec1 = DEqual(a[1], c[1], EPS_FLOAT) || DLesser(a[1], c[1], EPS_FLOAT);
+        bool c1leb1 = DEqual(c[1], b[1], EPS_FLOAT) || DLesser(c[1], b[1], EPS_FLOAT);
+        bool a1gec1 = DEqual(a[1], c[1], EPS_FLOAT) || DGreater(a[1], c[1], EPS_FLOAT);
+        bool c1geb1 = DEqual(c[1], b[1], EPS_FLOAT) || DGreater(c[1], b[1], EPS_FLOAT);
+        return (a1lec1 && c1leb1) || (a1gec1 && c1geb1);
+    }
+//    if(a[0] != b[0])
+//        return ((a[0] <= c[0]) && (c[0] <= b[0])) ||
+//               ((a[0] >= c[0]) && (c[0] >= b[0]));
+//    else 
+//        return ((a[1] <= c[1]) && (c[1] <= b[1])) ||
+//               ((a[1] >= c[1]) && (c[1] >= b[1]));
+}
+
+bool IntersectLine2D(double a[2], double b[2], double c[2], double d[2]) {
+    if(IntersectPropLine2D(a, b, c, d))
+        return true;
+    else if(BetweenPt2D(a, b, c) || BetweenPt2D(a, b, d) ||
+            BetweenPt2D(c, d, a) || BetweenPt2D(c, d, b))
+        return true;
+    return false;
+}
+
+//Polygon Triangulation Related
+typedef struct vert {
+    int id;
+    double coord[2];
+    bool ear;
+    struct vert *next, *prev;
+} VertexNode2D;
+
+static bool diagonalie2D(VertexNode2D *a, VertexNode2D *b) {
+    VertexNode2D *c = a->next, *c1;
+
+    do {
+        c1 = c->next;
+        //TODO comparar os ponteiros apenas
+        if((c != a) && (c1 != a) &&
+           (c != b) && (c1 != b) &&
+           IntersectLine2D(a->coord, b->coord, c->coord, c1->coord))
+            return false;
+        c = c->next;
+    } while(c != a->prev);
+    return true;
+}
+
+static bool inCone2D(VertexNode2D *a, VertexNode2D *b) {
+    VertexNode2D *a0 = a->prev, *a1 = a->next;
+    if(LeftOnPt2D(a->coord, a1->coord, a0->coord)) 
+        return LeftPt2D(a->coord, b->coord, a0->coord) && 
+               LeftPt2D(b->coord, a->coord, a1->coord);
+
+    return !(LeftOnPt2D(a->coord, b->coord, a1->coord) && 
+             LeftOnPt2D(b->coord, a->coord, a0->coord));
+}
+
+static bool diagonal(VertexNode2D *a, VertexNode2D *b) {
+    return inCone2D(a, b) && inCone2D(b, a) && diagonalie2D(a, b);
+}
+
+static void earInit(VertexNode2D *verts) {
+    VertexNode2D *v0, *v1, *v2;
+    v1 = verts;
+    do {
+        v0 = v1->prev;
+        v2 = v1->next;
+        v1->ear = diagonal(v0, v2);
+        v1 = v1->next;
+    } while(v1 != verts);
+}
+
+static int* earClipTriangulate(VertexNode2D *vertices, int n) {
+    int ntriangles = n - 2;
+    int tindex = 0;
+    int *triangles = malloc(sizeof(int)*ntriangles*3);
+    earInit(vertices);
+    while(n > 3) {
+        VertexNode2D *v2 = vertices;
+        do  {
+            if(v2->ear) {
+                VertexNode2D *v0, *v1, *v3, *v4;
+                v3 = v2->next;
+                v4 = v3->next;
+                v1 = v2->prev;
+                v0 = v1->prev;
+
+                //printf("diagonal: (%d, %d)\n", v1->id, v3->id);
+                v1->ear = diagonal(v0, v3);
+                v3->ear = diagonal(v1, v4);
+                triangles[tindex] = v1->id;
+                triangles[tindex + 1] = v2->id;
+                triangles[tindex + 2] = v3->id;
+                tindex += 3;
+
+                //remove v2
+                v1->next = v3;
+                v3->prev = v1;
+                vertices = v3;
+                n--;
+                break;
+            }
+            v2 = v2->next;
+        }while(v2 != vertices);
+    }
+    //printf("ultimo triangle\n");
+    //os 3 últimos vertices representam o utlimo triangulo
+    triangles[tindex] = vertices->id;
+    triangles[tindex + 1] = vertices->next->id;
+    triangles[tindex + 2] = vertices->next->next->id;
+    return triangles;
+}
+
+int* PolygonTriangulation(double *vertices, int nverts) {
+    //Projeta os vertices em um plano
+    //1. encontrar 2 vetores linearmente independentes no plano
+    double iv[3] = {0.0, 0.0, 0.0}, jv[3] = {0.0, 0.0, 0.0}, o[3] = {0.0, 0.0, 0.0};
+    for(int i = 1; i < nverts; i++) {
+        int prev = i - 1;
+        int next = (i + 1)%nverts;
+        double v0[3] = { vertices[3*prev], vertices[3*prev + 1], vertices[3*prev + 2]};
+        double v1[3] = { vertices[3*i], vertices[3*i + 1], vertices[3*i + 2]};
+        double v2[3] = { vertices[3*next], vertices[3*next + 1], vertices[3*next + 2]};
+
+        iv[0] = v2[0] - v1[0]; iv[1] = v2[1] - v1[1]; iv[2] = v2[2] - v1[2];
+        jv[0] = v0[0] - v1[0]; jv[1] = v0[1] - v1[1]; jv[2] = v0[2] - v1[2];
+
+        //verifica se os vetores são linearmente independentes
+        if((iv[0]/jv[0] != iv[1]/jv[1]) || (iv[0]/jv[0] != iv[2]/jv[2])) {
+            double ivlen = sqrt(iv[0]*iv[0] + iv[1]*iv[1] + iv[2]*iv[2]);
+            iv[0] /= ivlen; iv[1] /= ivlen; iv[2] /= ivlen;
+            double jvlen = sqrt(jv[0]*jv[0] + jv[1]*jv[1] + jv[2]*jv[2]);
+            jv[0] /= jvlen; jv[1] /= jvlen; jv[2] /= jvlen;
+            o[0] = v1[0]; o[1] = v1[1]; o[2] = v1[2];
+            //printf("iv: (%f, %f, %f), jv: (%f, %f, %f)\n", iv[0], iv[1], iv[2], jv[0], jv[1], jv[2]);
+            //printf("o: (%f, %f, %f)\n", o[0], o[1], o[2]);
+            break;
+        }
+    }
+
+    //2. escrever todos os pontos do poligono em função destes vetores
+    double vertices2D[2*nverts];
+    for(int i = 0; i < nverts; i++) {
+        double vec[3] = { vertices[3*i] - o[0], vertices[3*i + 1] - o[1], vertices[3*i + 2] - o[2]};
+        vertices2D[2*i] = iv[0]*vec[0] + iv[1]*vec[1] + iv[2]*vec[2];
+        vertices2D[2*i + 1] = jv[0]*vec[0] + jv[1]*vec[1] + jv[2]*vec[2];
+    }
+
+    //Constroi lista de vertices
+    VertexNode2D *vlist = NULL;
+    for(int i = nverts - 1; i  >= 0; i--) {
+        VertexNode2D *v = malloc(sizeof(VertexNode2D));
+        v->id = i;
+        v->coord[0] = vertices2D[2*i];
+        v->coord[1] = vertices2D[2*i + 1];
+        v->ear = false;
+        CDL_PREPEND(vlist, v); 
+    }
+    //VertexNode2D *v;
+    //printf("poligono:\n");
+    //CDL_FOREACH(vlist, v) {
+    //    printf("%d: (%f, %f), prev: %d, next: %d\n", v->id, v->coord[0], v->coord[1], v->prev->id, v->next->id);
+    //}
+        
+    return earClipTriangulate(vlist, nverts);
 }
 

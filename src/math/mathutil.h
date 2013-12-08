@@ -27,7 +27,9 @@ float DegToRad(float angle);
 
 void EarClipTrig(float *vertices, int numvertices);
 
-/* axis-aligned bounding box */
+/** 
+ * Axis-Aligned Bounding Box Related 
+ **/
 typedef struct _boundingbox {
     vec3 pmin;
     vec3 pmax;
@@ -37,5 +39,23 @@ typedef struct _boundingbox {
 void CalcBBox(BBox *b, float *vertices, int numvertices);
 void BBCenter(BBox b, vec3 v);
 void BBUnion(BBox *res, BBox b1, BBox b2);
+
+
+/**
+ * Geometric algorithms 2D
+ **/
+double TriangleArea2D(double a[2], double b[2], double c[2]);
+bool LeftPt2D(double a[2], double b[2], double c[2]);
+bool LeftOnPt2D(double a[2], double b[2], double c[2]);
+bool CollinearPt2D(double a[2], double b[2], double c[2]);
+bool IntersectPropLine2D(double a[2], double b[2], double c[2], double d[2]);
+bool BetweenPt2D(double a[2], double b[2], double c[2]);
+bool BetweenPt2D(double a[2], double b[2], double c[2]);
+bool IntersectLine2D(double a[2], double b[2], double c[2], double d[2]);
+
+/**
+ * Polygon triangulation related
+ **/
+int* PolygonTriangulation(double *vertices, int nverts);
 
 #endif
