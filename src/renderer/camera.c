@@ -264,8 +264,8 @@ static void trackballUpdate(Camera *c, event *e, double *dt) {
             && (e->keys[KEY_LCONTROL] || e->keys[KEY_RCONTROL])) {
         p1y = e->y;
         zooming = 1;
-    } else if(e->type & MOUSE_BUTTON_PRESS && e->buttonRight 
-            && (e->keys[KEY_LSHIFT]) || (e->keys[KEY_RSHIFT])) {
+    } else if((e->type & MOUSE_BUTTON_PRESS) && e->buttonRight 
+            && (e->keys[KEY_LSHIFT] || e->keys[KEY_RSHIFT])) {
         p1x = e->x;  
         p1y = c->screenH - e->y;
         moving = 1;

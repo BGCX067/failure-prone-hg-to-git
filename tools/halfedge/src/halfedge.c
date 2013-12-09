@@ -146,6 +146,7 @@ static void lmev(HEHalfEdge *he1, HEHalfEdge *he2,
     HEEdge *e = newHEEdge(he1->loop->face->mesh);
 
     HEHalfEdge *he = he1;
+    //percorre todas as half edges que saem do mesmo vertice que
     while(he != he2) {
         he->vertex = v;
         he = HEMate(he)->next;

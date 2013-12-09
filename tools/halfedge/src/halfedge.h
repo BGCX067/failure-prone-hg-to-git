@@ -86,6 +86,7 @@ inline HEHalfEdge *HEMate(HEHalfEdge *he) {
 HEMesh *HECreateTriangle();
 HEMesh *HECreateQuad();
 HEMesh *HECreateCube();
+HEMesh *HECreateCubeExtrude();
 
 
 #endif

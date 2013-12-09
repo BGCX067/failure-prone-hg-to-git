@@ -25,8 +25,6 @@ bool DLesser(double a, double b, double epsilon);
 int RayTriangleIntersection(vec3 ro, vec3 rd, vec3 va, vec3 vb, vec3 vc, float *t);
 float DegToRad(float angle);
 
-void EarClipTrig(float *vertices, int numvertices);
-
 /** 
  * Axis-Aligned Bounding Box Related 
  **/
