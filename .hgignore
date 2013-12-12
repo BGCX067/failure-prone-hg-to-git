@@ -48,6 +48,9 @@
 ^tools/camera/objs_optimized
 ^tools/halfedge/deps_optimized
 ^tools/halfedge/objs_optimized
+^tools/halfedge/deps_debug
+^tools/halfedge/objs_debug
+^tools/halfedge/objs_optimized
 ^tools/uomap
 
 .*.*.DS_Store
