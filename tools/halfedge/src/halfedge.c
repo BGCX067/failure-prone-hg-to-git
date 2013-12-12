@@ -3,13 +3,19 @@
 #include <stdbool.h>
 #include "util/utlist.h"
 
+static int nhe = 0;
+
 //Low level functions prototypes
 static HEMesh* mvfs(int mid, float x, float y, float z);
+static void lmev(HEHalfEdge *he1, HEHalfEdge *he2, float x, float y, float z);
+static int lmef(HEHalfEdge *he1, HEHalfEdge *he2);
+
 static bool smev(HEMesh *m, int fid, int vid, float x, float y, float z);
 static bool smef(HEMesh *m, int fid, int vid1, int vid2);
-static void sweep(HEFace *f, float dx, float dy, float dz);
+//static void sweep(HEFace *f, float dx, float dy, float dz);
 //static HEMesh* getHEMesh(HEMesh *head, int mid); 
 static HEFace* getHEFace(HEMesh *m, int fid); 
+static HEEdge* getHEEdge(HEMesh *m, int eid);
 //static HEHalfEdge* getHEd(HEFace *f, int vid1, int vid2); 
 static HEHalfEdge* sgetHEd(HEFace *f, int vid); 
 
@@ -30,6 +36,15 @@ HEMesh *HECreateQuad() {
     smev(q, 0, 2, -1.0, 1.0, 0.0);
     smef(q, 0, 3, 0);
 
+    return q;
+}
+
+HEMesh *HECreateQuadXZ(float xmin, float zmin, float xmax, float zmax) {
+    HEMesh *q = mvfs(1, xmin, 0.0, zmin);
+    smev(q, 0, 0, xmin, 0.0, zmax);
+    smev(q, 0, 1, xmax, 0.0, zmax);
+    smev(q, 0, 2, xmax, 0.0, zmin);
+    smef(q, 0, 3, 0);
     return q;
 }
 
@@ -64,8 +79,27 @@ HEMesh *HECreateCubeExtrude() {
     smev(c, 0, 2, -1.0, 1.0, 0.0);
     smef(c, 0, 3, 0);
     
-    sweep(getHEFace(c, 0), 0.0, 0.0, 3.0);
+    //sweep(getHEFace(c, 0), 0.0, 0.0, 3.0);
+    ExtrudeFace(c, 0, 0.0, 0.0, 3.0);
     return c;
+}
+
+void SplitEdge(HEMesh *m, int eid, float a) {
+    HEEdge *e = getHEEdge(m, eid);
+    HEVertex *v1 = e->he1->vertex;
+    HEVertex *v2 = e->he2->vertex;
+    double x = v1->coord[0] + a*(v2->coord[0] - v1->coord[0]);
+    double y = v1->coord[1] + a*(v2->coord[1] - v1->coord[1]);
+    double z = v1->coord[2] + a*(v2->coord[2] - v1->coord[2]);
+    lmev(e->he1, e->he2->next, x, y, z);
+}
+
+int SplitFace(HEMesh *m, int fid, int v1, int v2) {
+    HEFace *f = getHEFace(m, fid);
+    HEHalfEdge *he1 = sgetHEd(f, v1);
+    HEHalfEdge *he2 = sgetHEd(f, v2);
+
+    return lmef(he1, he2);
 }
 
 typedef enum { PLUS, MINUS }HESign;
@@ -76,8 +110,6 @@ static HEFace *newHEFace(HEMesh *m);
 static HELoop *newHELoop(HEFace *f);
 static HEEdge *newHEEdge(HEMesh *m);
 static HEVertex *newHEVertex(HEMesh *m, float x, float y, float z);
-
-
 
 static HEHalfEdge* addhe(HEEdge *e, HEVertex *v, HEHalfEdge *h, HESign sign) {
     HEHalfEdge *he;
@@ -91,15 +123,22 @@ static HEHalfEdge* addhe(HEEdge *e, HEVertex *v, HEHalfEdge *h, HESign sign) {
         he->prev = h->prev;
         h->prev = he;
         he->next = h;
+        he->id = nhe;
+        //printf("--criado half edge numero %d\n", nhe++);
     }
     //Ajusta os ponteiros
     he->edge = e;
     he->vertex = v;
     he->loop = h->loop;
-    if(sign == PLUS)
+    //PLUS -> ccw
+    //MINUS -> cw
+    if(sign == PLUS) {
+        //printf("h%d eh PLUS\n", he->id);
         e->he1 = he;
-    else
+    } else {
+        //printf("h%d eh MINUS\n", he->id);
         e->he2 = he;
+    }
 
     return he;
 }
@@ -137,11 +176,17 @@ static HEMesh* mvfs(int mid, float x, float y, float z) {
     he->vertex = v;
     he->edge = NULL;
     //v->hedge = he;
+    he->id = nhe;
+    //printf("mvfs\n");
+    //printf("--criado half edge numero %d\n", nhe++);
     return m;
 }
 
 static void lmev(HEHalfEdge *he1, HEHalfEdge *he2,
                  float x, float y, float z) {
+    //printf("lmev\n");
+    //printf("he1: %d\n", he1->id);
+    //printf("he2: %d\n", he2->id);
     HEVertex *v = newHEVertex(he1->loop->face->mesh, x, y, z);
     HEEdge *e = newHEEdge(he1->loop->face->mesh);
 
@@ -159,7 +204,10 @@ static void lmev(HEHalfEdge *he1, HEHalfEdge *he2,
     he2->vertex->hedge = he2;
 }
 
-static void lmef(HEHalfEdge *he1, HEHalfEdge *he2) {
+static int lmef(HEHalfEdge *he1, HEHalfEdge *he2) {
+    //printf("lmef\n");
+    //printf("he1: %d\n", he1->id);
+    //printf("he2: %d\n", he2->id);
     HEFace *f = newHEFace(he1->loop->face->mesh);
     HELoop *l = newHELoop(f);
     HEEdge *e = newHEEdge(he1->loop->face->mesh);
@@ -185,9 +233,7 @@ static void lmef(HEHalfEdge *he1, HEHalfEdge *he2) {
     l->hedge = nhe1;
     he2->loop->hedge = nhe2;
 
-    //h2->loop->setNormal();
-
-    //l->setNormal();
+    return f->id;
 }
 
 /*static bool mev(HEMesh *m, int fid1, int fid2, int vid1, int vid2, 
@@ -339,6 +385,16 @@ static HEFace* getHEFace(HEMesh *m, int fid) {
     return NULL;
 }
 
+
+static HEEdge* getHEEdge(HEMesh *m, int eid) {
+    HEEdge *it;
+    DL_FOREACH(m->edges, it) {
+        if(it->id == eid)
+            return it;
+    }
+    return NULL;
+}
+
 /*static HEHalfEdge* getHEd(HEFace *f, int vid1, int vid2) {
     HELoop *it;
     DL_FOREACH(f->loops, it) {
@@ -352,7 +408,7 @@ static HEFace* getHEFace(HEMesh *m, int fid) {
     return NULL;
 }*/
 
-//
+//retorna
 static HEHalfEdge* sgetHEd(HEFace *f, int vid) {
     HELoop *it;
     DL_FOREACH(f->loops, it) {
@@ -366,7 +422,8 @@ static HEHalfEdge* sgetHEd(HEFace *f, int vid) {
 }
 
 
-static void sweep(HEFace *f, float dx, float dy, float dz)  {
+void ExtrudeFace(HEMesh *m, int fid, float dx, float dy, float dz)  {
+    HEFace *f = getHEFace(m, fid);
     HELoop *l = f->lout;
 
     HEHalfEdge *first = l->hedge;

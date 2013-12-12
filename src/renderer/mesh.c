@@ -43,15 +43,17 @@ void AddIndices(Mesh *m, int num, unsigned int *indices) {
 void AddColors(Mesh *m, int count, float *colors) {
    m->colors = colors;
    m->colorsCount = count;
-   SetVertexAttribute(m->attrs, ATTR_COLOR, m->colorsCount, m->colorsCount*sizeof(float), 0, 3, 0);
+   SetVertexAttribute(m->attrs, ATTR_COLOR, m->colorsCount, m->colorsCount*sizeof(float), 0, 4, 0);
 }
 
 
 void PrepareMesh(Mesh *m) {
     //Criar VBO de indices
-    m->indicesId = InitializeVBO(m->indicesCount*sizeof(unsigned int), GL_STATIC_DRAW, m->indices);
     m->verticesVBO = InitializeVBO(m->verticesCount*sizeof(float), GL_STATIC_DRAW, m->vertices);
     m->attrs[ATTR_VERTEX]->vboID = m->verticesVBO;
+
+    if(m->indices)
+        m->indicesId = InitializeVBO(m->indicesCount*sizeof(unsigned int), GL_STATIC_DRAW, m->indices);
 
     if(m->normals) {
         m->normalsVBO = InitializeVBO(m->normalsCount*sizeof(float), GL_STATIC_DRAW, m->normals);
@@ -74,7 +76,11 @@ void PrepareMesh(Mesh *m) {
         m->attrs[ATTR_COLOR]->vboID = m->colorsVBO;
     }
     m->vaoId = InitEmptyVAO();
-    ConfigureIndexedVAO(m->vaoId, m->indicesId, m->attrs);
+
+    if(m->indices) 
+        ConfigureIndexedVAO(m->vaoId, m->indicesId, m->attrs);
+    else
+        ConfigureVAO(m->vaoId, m->attrs);
 }
 
 //TODO: versão pra AnimatedMesh 

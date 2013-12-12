@@ -141,7 +141,8 @@ RUNARGS		=
 
 
 # Which build to do if none is specified on the command line
-DEFAULTBUILD		= optimized
+#DEFAULTBUILD		= optimized
+DEFAULTBUILD		= debug
 
 ################# application ####################
 

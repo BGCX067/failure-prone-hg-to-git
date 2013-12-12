@@ -291,8 +291,20 @@ int* PolygonTriangulation(double *vertices, int nverts) {
         iv[0] = v2[0] - v1[0]; iv[1] = v2[1] - v1[1]; iv[2] = v2[2] - v1[2];
         jv[0] = v0[0] - v1[0]; jv[1] = v0[1] - v1[1]; jv[2] = v0[2] - v1[2];
 
+        double ivlen = sqrt(iv[0]*iv[0] + iv[1]*iv[1] + iv[2]*iv[2]);
+        double jvlen = sqrt(jv[0]*jv[0] + jv[1]*jv[1] + jv[2]*jv[2]);
+        iv[0] /= ivlen; iv[1] /= ivlen; iv[2] /= ivlen;
+        jv[0] /= jvlen; jv[1] /= jvlen; jv[2] /= jvlen;
+        double dotiv = iv[0]*jv[0] + iv[1]*jv[1] + iv[2]*jv[2];
+
         //verifica se os vetores são linearmente independentes
-        if((iv[0]/jv[0] != iv[1]/jv[1]) || (iv[0]/jv[0] != iv[2]/jv[2])) {
+        if(1.0 - fabs(dotiv) > EPS_FLOAT) {
+            o[0] = v1[0]; o[1] = v1[1]; o[2] = v1[2];
+            break;
+        }
+
+        //verifica se os vetores são linearmente independentes
+        /*if((iv[0]/jv[0] != iv[1]/jv[1]) || (iv[0]/jv[0] != iv[2]/jv[2])) {
             double ivlen = sqrt(iv[0]*iv[0] + iv[1]*iv[1] + iv[2]*iv[2]);
             iv[0] /= ivlen; iv[1] /= ivlen; iv[2] /= ivlen;
             double jvlen = sqrt(jv[0]*jv[0] + jv[1]*jv[1] + jv[2]*jv[2]);
@@ -301,7 +313,7 @@ int* PolygonTriangulation(double *vertices, int nverts) {
             //printf("iv: (%f, %f, %f), jv: (%f, %f, %f)\n", iv[0], iv[1], iv[2], jv[0], jv[1], jv[2]);
             //printf("o: (%f, %f, %f)\n", o[0], o[1], o[2]);
             break;
-        }
+        }*/
     }
 
     //2. escrever todos os pontos do poligono em função destes vetores

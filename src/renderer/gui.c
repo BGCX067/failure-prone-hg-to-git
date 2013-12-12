@@ -800,7 +800,7 @@ int DoCheckButton(int id, Rect  *r, char* text, int * state){
 		r->y += gui->menuoffsety;
 	}
 
-	int hover = isHover(r);
+	int hover = isHover(&rCheck);
 	if (hover){
 		gui->hotitem = id;
 		if ( (guiEv->buttonLeft) && (gui->activeitem == 0)){
@@ -1250,7 +1250,9 @@ int DoLineEdit(int id,  Rect* r, char* text, int maxTextLength ){
 	drawLineEdit(r, text, &rt, hover);
 	if (gui->activeitem == id) {
         if(len < maxTextLength){
-            for(int kid = 32; kid < 127; kid++){
+            //TODO verificar quais valores sao digitaveis
+            //Fazer um Numeric Line Edit?
+            for(int kid = 45; kid < 127; kid++){
                 if (guiEv->keys[kid]){
                     text[len] = (char) kid;
                     len++;

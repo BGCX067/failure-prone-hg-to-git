@@ -4,23 +4,13 @@
 
 /**
  *  TODO HP:
- *      1. Sweeping
- *      2. Face split
+ *      1. Sweeping *
+ *      2. Face split *
  *      3. Primitives
  *
  *  TODO LP:
  *      1. Merge Edge and HalfEdge structs
  **/
-
-
-/**
- *  FIXME:
- *      - Uma face sempre fica sobrando, como resultado do mvfs
- *      Ex.: criar um triangulo v0, v1, v2 acaba criando 2 faces com os mesmos vertices
- *
- *
- **/
-
 
 typedef struct hescene HEScene;
 typedef struct hemesh HEMesh;
@@ -70,6 +60,7 @@ struct hehalfedge {
     HEVertex *vertex;
     HELoop *loop;
     HEHalfEdge *next, *prev;
+    int id;
 };
 
 struct hevertex {
@@ -85,8 +76,16 @@ inline HEHalfEdge *HEMate(HEHalfEdge *he) {
 
 HEMesh *HECreateTriangle();
 HEMesh *HECreateQuad();
+HEMesh *HECreateQuadXZ(float xmin, float zmin, float xmax, float zmax);
 HEMesh *HECreateCube();
 HEMesh *HECreateCubeExtrude();
+
+
+void SplitEdge(HEMesh *m, int eid, float a);
+int SplitFace(HEMesh*m, int fid, int v1, int v2);
+
+
+void ExtrudeFace(HEMesh *m, int fid, float dx, float dy, float dz);
 
 
 #endif
